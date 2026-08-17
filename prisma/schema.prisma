@@ -1,0 +1,519 @@
+// Ternio — marketplace de leads B2B (Chile).
+// Reglas que este schema debe sostener (ver CLAUDE.md):
+//  - La PII de contacto del comprador vive SOLO en LeadContacto (1:1 con Lead),
+//    para que ninguna query de cara a proveedores pueda filtrarla por descuido.
+//  - Los estados del lead llevan historial de transiciones, no un booleano.
+//  - Los créditos son un ledger contable: nunca un saldo mutable sin historial.
+//  - Los rubros son datos (modo VENTA/CAPTURA, precios, campos del formulario),
+//    no código.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum RolUsuario {
+  COMPRADOR
+  PROVEEDOR
+  ADMIN
+}
+
+/// VENTA: el rubro se ofrece y se vende a proveedores.
+/// CAPTURA: el rubro publica páginas y captura leads en lista de espera,
+/// pero nunca los ofrece ni los vende.
+enum ModoRubro {
+  VENTA
+  CAPTURA
+}
+
+enum EstadoLead {
+  RECIBIDO
+  EN_REVISION
+  VERIFICADO
+  LISTA_ESPERA
+  DESCARTADO
+  ARCHIVADO
+}
+
+enum TipoTransicionLead {
+  CREADO
+  CUENTA_VINCULADA
+  EN_LISTA_ESPERA
+  ENVIADO_A_REVISION
+  RUT_VALIDADO
+  TELEFONO_VERIFICADO
+  VERIFICADO
+  DESCARTADO
+  ARCHIVADO
+}
+
+enum ActorTransicion {
+  SISTEMA
+  COMPRADOR
+  PROVEEDOR
+  ADMIN
+}
+
+enum EstadoProveedor {
+  NO_RECLAMADO
+  PENDIENTE
+  APROBADO
+  SUSPENDIDO
+}
+
+enum TipoCompraLead {
+  EXCLUSIVO
+  COMPARTIDO
+}
+
+enum EstadoCompraLead {
+  PAGADA
+  REVERSADA
+}
+
+enum TipoMovimientoCreditos {
+  COMPRA_PACK
+  CONSUMO_LEAD
+  REVERSA
+  AJUSTE
+}
+
+enum OrigenSolicitudRubro {
+  COTIZADOR
+  PROVEEDOR
+}
+
+enum TipoEventoAnalitica {
+  VISITA_PAGINA
+  FORM_START
+  LEAD_CREADO
+  CUENTA_CREADA
+}
+
+// ---------------------------------------------------------------------------
+// Cuentas y sesiones (Auth.js v5)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String?    @unique
+  emailVerified DateTime?
+  image         String?
+  rol           RolUsuario @default(COMPRADOR)
+
+  /// Hash de contraseña; solo lo usa el admin (provider Credentials).
+  passwordHash String?
+
+  /// El OTP se verifica UNA vez por cuenta: si el teléfono de una cotización
+  /// posterior coincide con este, no se vuelve a pedir.
+  telefonoE164Verificado String?
+  telefonoVerificadoAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  leadsComprador    Lead[]            @relation("LeadComprador")
+  transiciones      TransicionLead[]
+  verificacionesOtp VerificacionOtp[]
+  solicitudesRubro  SolicitudRubro[]
+  eventos           EventoAnalitica[]
+  proveedor         Proveedor?
+
+  @@index([telefonoE164Verificado])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  usuario User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  usuario User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Catálogo: rubros y comunas (configuración, no código)
+// ---------------------------------------------------------------------------
+
+model Rubro {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  nombre       String
+  nombrePlural String?
+  descripcion  String?
+  modo         ModoRubro @default(CAPTURA)
+  activo       Boolean   @default(true)
+  orden        Int       @default(0)
+
+  /// Nulos mientras el rubro esté en CAPTURA. Pasar a VENTA exige ambos > 0
+  /// (validado en servidor: src/lib/rubros.ts).
+  precioExclusivoClp  Int?
+  precioCompartidoClp Int?
+
+  /// Definición de los campos del formulario de cotización.
+  camposFormulario Json @default("[]")
+
+  /// Textos editables de las páginas programáticas (no hardcodeados).
+  contenidoSeo Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comunas    RubroComuna[]
+  leads      Lead[]
+  coberturas Cobertura[]
+  eventos    EventoAnalitica[]
+
+  @@index([modo, activo])
+}
+
+model Comuna {
+  id     String  @id @default(cuid())
+  slug   String  @unique
+  nombre String
+  region String
+  activa Boolean @default(true)
+  orden  Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rubros           RubroComuna[]
+  leads            Lead[]
+  coberturas       Cobertura[]
+  proveedores      Proveedor[]
+  solicitudesRubro SolicitudRubro[]
+  eventos          EventoAnalitica[]
+}
+
+/// Combinación publicada {rubro}/{comuna}, con su contenido único.
+model RubroComuna {
+  id        String  @id @default(cuid())
+  rubroId   String
+  comunaId  String
+  activa    Boolean @default(true)
+  contenido Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rubro  Rubro  @relation(fields: [rubroId], references: [id], onDelete: Cascade)
+  comuna Comuna @relation(fields: [comunaId], references: [id], onDelete: Cascade)
+
+  @@unique([rubroId, comunaId])
+  @@index([comunaId])
+}
+
+// ---------------------------------------------------------------------------
+// Oferta: proveedores y cobertura
+// ---------------------------------------------------------------------------
+
+model Proveedor {
+  id             String          @id @default(cuid())
+  slug           String          @unique
+  nombre         String
+  razonSocial    String?
+  rutNormalizado String?         @unique
+  email          String?
+  telefonoE164   String?
+  descripcion    String?
+  sitioWeb       String?
+  estado         EstadoProveedor @default(NO_RECLAMADO)
+  comunaBaseId   String?
+
+  /// Cuenta que controla el perfil; nula mientras el perfil no esté reclamado.
+  usuarioId String? @unique
+
+  /// Modo auto-compra con tope de gasto mensual (lógica en F3, UI en F4).
+  autoCompra     Boolean @default(false)
+  topeMensualClp Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  usuario     User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  comunaBase  Comuna?              @relation(fields: [comunaBaseId], references: [id], onDelete: SetNull)
+  coberturas  Cobertura[]
+  compras     CompraLead[]
+  movimientos MovimientoCreditos[]
+
+  @@index([estado])
+  @@index([comunaBaseId])
+}
+
+model Cobertura {
+  id          String  @id @default(cuid())
+  proveedorId String
+  rubroId     String
+  comunaId    String
+  activa      Boolean @default(true)
+
+  /// Preferencias de matching sobre los campos dinámicos del lead.
+  /// Reservado: sin lógica hasta F3.
+  filtrosJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+  rubro     Rubro     @relation(fields: [rubroId], references: [id], onDelete: Cascade)
+  comuna    Comuna    @relation(fields: [comunaId], references: [id], onDelete: Cascade)
+
+  @@unique([proveedorId, rubroId, comunaId])
+  @@index([rubroId, comunaId, activa])
+}
+
+// ---------------------------------------------------------------------------
+// Demanda: leads
+// ---------------------------------------------------------------------------
+
+model Lead {
+  id       String     @id @default(cuid())
+  rubroId  String
+  comunaId String
+  estado   EstadoLead @default(RECIBIDO)
+
+  /// Score calculable, no un booleano.
+  score Int @default(0)
+
+  /// Respuestas de los campos dinámicos del rubro. Sin PII de contacto.
+  datos Json @default("{}")
+
+  /// Snapshot del modo del rubro al crear el lead: un lead nacido en CAPTURA
+  /// no se vuelve vendible solo porque el rubro cambie de modo después.
+  modoRubroAlCrear ModoRubro
+
+  rutValido          Boolean @default(false)
+  telefonoVerificado Boolean @default(false)
+  whatsappOptIn      Boolean @default(false)
+
+  /// Cuenta del comprador, asignada al reclamar el lead tras crear cuenta.
+  compradorUsuarioId String?
+
+  /// Hash del token de la cookie de reclamo (httpOnly, firmada, 24 h).
+  claimTokenHash String?
+
+  origen String?
+  utm    Json?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  verificadoAt DateTime?
+  archivadoAt  DateTime?
+
+  rubro     Rubro  @relation(fields: [rubroId], references: [id])
+  comuna    Comuna @relation(fields: [comunaId], references: [id])
+  comprador User?  @relation("LeadComprador", fields: [compradorUsuarioId], references: [id], onDelete: SetNull)
+
+  contacto          LeadContacto?
+  transiciones      TransicionLead[]
+  compras           CompraLead[]
+  verificacionesOtp VerificacionOtp[]
+  solicitudesRubro  SolicitudRubro[]
+  eventos           EventoAnalitica[]
+
+  @@index([compradorUsuarioId])
+  @@index([claimTokenHash])
+  @@index([estado, createdAt])
+  @@index([rubroId, comunaId, createdAt])
+}
+
+/// Toda la PII de contacto del comprador, aislada del Lead.
+/// Nunca se incluye en queries de cara a proveedores: solo se revela tras
+/// una CompraLead pagada.
+model LeadContacto {
+  leadId         String  @id
+  nombreContacto String
+  email          String
+  telefonoE164   String
+  rutNormalizado String
+  razonSocial    String?
+  detalle        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([rutNormalizado])
+  @@index([telefonoE164])
+  @@index([email])
+}
+
+model TransicionLead {
+  id             String             @id @default(cuid())
+  leadId         String
+  tipo           TipoTransicionLead
+  estadoDesde    EstadoLead?
+  estadoHasta    EstadoLead
+  actor          ActorTransicion    @default(SISTEMA)
+  actorUsuarioId String?
+  nota           String?
+  createdAt      DateTime           @default(now())
+
+  lead         Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actorUsuario User? @relation(fields: [actorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt])
+  @@index([actorUsuarioId])
+}
+
+model VerificacionOtp {
+  id           String    @id @default(cuid())
+  /// Dueño de la verificación: el OTP se ancla a la cuenta, no al lead.
+  usuarioId    String
+  /// Traza opcional del lead que gatilló la verificación.
+  leadId       String?
+  telefonoE164 String
+  codigoHash   String
+  intentos     Int       @default(0)
+  expiraAt     DateTime
+  consumidoAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  usuario User  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  lead    Lead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId, createdAt])
+  @@index([leadId])
+}
+
+// ---------------------------------------------------------------------------
+// Venta de leads y ledger de créditos
+// ---------------------------------------------------------------------------
+
+model CompraLead {
+  id                 String           @id @default(cuid())
+  leadId             String
+  proveedorId        String
+  tipo               TipoCompraLead
+  precioClp          Int
+  creditosConsumidos Int
+  estado             EstadoCompraLead @default(PAGADA)
+  contactoReveladoAt DateTime         @default(now())
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  lead        Lead                 @relation(fields: [leadId], references: [id])
+  proveedor   Proveedor            @relation(fields: [proveedorId], references: [id])
+  movimientos MovimientoCreditos[]
+
+  @@unique([leadId, proveedorId])
+  @@index([proveedorId, createdAt])
+}
+
+/// Ledger contable: solo asientos. Una devolución es un asiento de reversa,
+/// nunca la edición de un asiento anterior.
+model MovimientoCreditos {
+  id             String                 @id @default(cuid())
+  proveedorId    String
+  tipo           TipoMovimientoCreditos
+  /// Con signo: positivo acredita, negativo consume.
+  montoCreditos  Int
+  /// Saldo resultante tras aplicar este asiento (se calcula en transacción
+  /// serializable; ver F3).
+  saldoPosterior Int
+  compraLeadId   String?
+  /// Idempotencia de webhooks de pago y de reversas.
+  idempotencyKey String?                @unique
+  descripcion    String?
+  createdAt      DateTime               @default(now())
+
+  proveedor  Proveedor   @relation(fields: [proveedorId], references: [id])
+  compraLead CompraLead? @relation(fields: [compraLeadId], references: [id], onDelete: SetNull)
+
+  @@index([proveedorId, createdAt])
+  @@index([compraLeadId])
+}
+
+// ---------------------------------------------------------------------------
+// Demanda de rubros no cubiertos ("Otro servicio")
+// ---------------------------------------------------------------------------
+
+model SolicitudRubro {
+  id         String               @id @default(cuid())
+  textoRubro String
+  origen     OrigenSolicitudRubro
+  comunaId   String?
+  usuarioId  String?
+  leadId     String?
+  createdAt  DateTime             @default(now())
+
+  comuna  Comuna? @relation(fields: [comunaId], references: [id], onDelete: SetNull)
+  usuario User?   @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  lead    Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([comunaId])
+  @@index([usuarioId])
+  @@index([leadId])
+}
+
+// ---------------------------------------------------------------------------
+// Embudo de analítica (go/no-go de Fase 0)
+// ---------------------------------------------------------------------------
+
+model EventoAnalitica {
+  id           String              @id @default(cuid())
+  tipo         TipoEventoAnalitica
+  rubroId      String?
+  comunaId     String?
+  leadId       String?
+  usuarioId    String?
+  /// Identificador anónimo de navegador; nunca PII.
+  sesionAnonId String?
+  path         String?
+  metadata     Json?
+  createdAt    DateTime            @default(now())
+
+  rubro   Rubro?  @relation(fields: [rubroId], references: [id], onDelete: SetNull)
+  comuna  Comuna? @relation(fields: [comunaId], references: [id], onDelete: SetNull)
+  lead    Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  usuario User?   @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([tipo, createdAt])
+  @@index([sesionAnonId])
+  @@index([rubroId])
+  @@index([comunaId])
+  @@index([leadId])
+  @@index([usuarioId])
+}
