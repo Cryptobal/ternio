@@ -1,0 +1,106 @@
+# Ternio
+
+Marketplace de leads B2B en Chile. El comprador cotiza gratis en una página
+`{rubro}/{comuna}`; los proveedores compran el contacto verificado con créditos
+prepagados. El contexto completo del producto está en [`CLAUDE.md`](./CLAUDE.md).
+
+Este repositorio está en **Fase 0 (validación)**: landing real con formulario,
+cuenta del comprador, panel mínimo de seguimiento, panel de admin en ruta oculta
+y medición del embudo. Todavía no hay venta de leads ni paneles de proveedor.
+
+## Stack
+
+Next.js 15 (App Router) · TypeScript estricto · Prisma + PostgreSQL (Neon) ·
+Tailwind v4 · Auth.js v5 (Google para compradores, Credentials para el admin).
+
+## Puesta en marcha
+
+```bash
+pnpm install
+cp .env.example .env.local     # completa los valores; nunca los subas al repo
+pnpm prisma migrate deploy     # o `pnpm db:migrate` en desarrollo
+pnpm hash:password 'tu-contraseña'   # el hash va en ADMIN_PASSWORD_HASH
+pnpm db:seed                   # 8 rubros, comunas piloto y cuenta de admin
+pnpm dev
+```
+
+Las variables de entorno están documentadas una por una en
+[`.env.example`](./.env.example).
+
+Dos que conviene entender antes de desplegar:
+
+- **`ADMIN_PATH`** define el segmento bajo el que se sirve el panel de admin.
+  No aparece en el sitio, ni en el sitemap, ni en `robots.txt` (listarla ahí la
+  revelaría). Esa URL es solo cosmética: la seguridad real es el rol `ADMIN`
+  validado en servidor, y cualquier otro caso responde 404. Rotarla es cambiar
+  la variable; la ruta anterior deja de servir de inmediato.
+- **`TURNSTILE_SECRET_KEY`** es *fail-closed*: si falta en producción, la
+  creación de leads falla con un mensaje explícito. Nunca se guarda un lead sin
+  pasar la verificación antifraude.
+
+## Validaciones
+
+```bash
+pnpm lint        # ESLint (next/core-web-vitals + next/typescript)
+pnpm typecheck   # tsc --noEmit, modo estricto
+pnpm test        # Vitest
+pnpm build       # build de producción
+pnpm prisma validate
+```
+
+Los tests de integración del reclamo de leads necesitan una base PostgreSQL con
+las migraciones aplicadas; sin ella se saltan solos:
+
+```bash
+TEST_DATABASE_URL="postgresql://…" pnpm test
+```
+
+## Métricas del go/no-go
+
+El criterio de la Fase 0 es **costo por lead verificado < 50% del precio de
+venta del lead**. El embudo que lo alimenta se guarda en `EventoAnalitica` y se
+ve en el panel de admin, pero también se puede consultar directo:
+
+```sql
+-- Embudo de los últimos 30 días: visita → inicio de formulario → lead → cuenta
+SELECT tipo, count(*) AS eventos
+FROM "EventoAnalitica"
+WHERE "createdAt" >= now() - interval '30 days'
+GROUP BY tipo
+ORDER BY array_position(
+  ARRAY['VISITA_PAGINA','FORM_START','LEAD_CREADO','CUENTA_CREADA']::text[],
+  tipo::text
+);
+```
+
+```sql
+-- Leads por día y cuántos llegaron a verificarse (denominador del costo por
+-- lead verificado). Los de rubros en modo CAPTURA quedan aparte: no se venden.
+SELECT date_trunc('day', l."createdAt")::date AS dia,
+       count(*)                                        AS leads,
+       count(*) FILTER (WHERE l.estado = 'VERIFICADO') AS verificados,
+       count(*) FILTER (WHERE l.estado = 'LISTA_ESPERA') AS en_lista_espera
+FROM "Lead" l
+GROUP BY 1
+ORDER BY 1 DESC;
+```
+
+`VISITA_PAGINA` y `FORM_START` se registran desde el navegador (las páginas
+públicas usan ISR); `LEAD_CREADO` y `CUENTA_CREADA` se registran en el servidor
+cuando de verdad ocurren, para que el criterio no sea falsificable desde el
+cliente. `CUENTA_CREADA` se cuenta una vez por cuenta, no por cotización.
+
+## Cómo está organizado
+
+| Ruta | Qué hace |
+| --- | --- |
+| `src/app/(seo)/[rubro]/[comuna]` | Página programática con ISR y el formulario de cotización |
+| `src/app/cotizacion/enviada` | Pantalla post-envío: crear cuenta con Google y reclamar el lead |
+| `src/app/mis-cotizaciones` | Panel del comprador (solo lectura, `noindex`) |
+| `src/app/admin/*` | Panel del dueño; se sirve solo por el rewrite desde `ADMIN_PATH` |
+| `src/server/*` | Server actions y helpers de sesión |
+| `src/lib/*` | Lógica pura y reutilizable (RUT, teléfono, score, rubros, tokens) |
+| `prisma/` | Schema, migraciones y seed idempotente |
+
+Los rubros, sus campos de formulario, sus precios y sus comunas son **filas en
+la base de datos**: agregar un rubro no toca código.
