@@ -3,8 +3,9 @@
 Ternio (ternio.cl) conecta empresas que necesitan un servicio B2B con
 proveedores de ese servicio, y monetiza vendiendo el contacto calificado
 (lead) a los proveedores. Flujo: el comprador llega por Google a una página
-{rubro}/{comuna} → completa el formulario de cotización → el lead se
-verifica (RUT, teléfono) → se ofrece a los proveedores cuya cobertura
+{rubro}/{comuna} → completa el formulario de cotización → crea su cuenta
+(Google) para seguir la cotización en su panel → el lead se verifica
+(RUT, teléfono por OTP) → se ofrece a los proveedores cuya cobertura
 calza → compran el contacto con créditos prepagados. El comprador nunca paga.
 Rubros iniciales: seguridad privada (punta de lanza; Gard Security, empresa
 del dueño, tiene derecho preferente sobre leads que calcen con su perfil),
@@ -14,7 +15,8 @@ El repositorio parte vacío y se construye por fases. Objetivo: negocio de
 bajo toque, todo self-serve. La apuesta de captación es SEO fuerte.
 ## Stack
 Next.js 15 App Router, TypeScript estricto, Prisma + Neon PostgreSQL,
-Tailwind + shadcn/ui, Auth.js v5, Vercel. Pagos: MercadoPago (packs de
+Tailwind + shadcn/ui, Auth.js v5 (Google OAuth para compradores;
+Credentials para el admin), Vercel. Pagos: MercadoPago (packs de
 créditos). Correo transaccional para avisos (Resend o similar, proponer).
 Verificación de formulario: Cloudflare Turnstile + OTP por SMS (proponer
 proveedor). Canal WhatsApp: Cloud API oficial de Meta, directa — diferido
@@ -32,11 +34,18 @@ a Fase 5; nada del lanzamiento depende de él.
   del rubro. WhatsApp NO es el canal de captura inicial: queda como canal
   de verificación y seguimiento (con opt-in del formulario) y, más
   adelante, como vía alternativa de cotización (Fase 5).
+- Cuenta del comprador: el formulario NUNCA se bloquea por login. Al enviar,
+  se le pide crear cuenta con Google (enlace por correo cuando exista
+  lib/email) para seguir su cotización en el panel /mis-cotizaciones y ver
+  qué empresa la tomó. Sin cuenta no hay OTP y el lead no pasa a venta:
+  queda en revisión del admin.
 - Verificación de leads en capas: (1) RUT obligatorio con dígito
   verificador válido; (2) cruce de razón social contra el SII (directo o
   vía API de terceros; si no es viable en Fase 1, se difiere y se valida
   DV + razón social declarada); (3) teléfono verificado por OTP — por SMS
-  primero, por WhatsApp cuando la cuenta de Meta esté verificada;
+  primero, por WhatsApp cuando la cuenta de Meta esté verificada; el OTP
+  se pide en el panel del comprador tras enviar el formulario, UNA sola vez
+  por cuenta: cotizaciones posteriores con ese teléfono no lo repiten;
   (4) señales de score que no excluyen: correo corporativo, dominio
   activo, coherencia de la solicitud. Un correo Gmail no descarta el
   lead, solo reduce su puntaje.
@@ -45,8 +54,27 @@ a Fase 5; nada del lanzamiento depende de él.
   El proveedor ve etiquetas de verificación en la ficha anónima.
 - Antifraude de formulario: Turnstile + honeypot, deduplicación por RUT y
   teléfono, y bloqueo de proveedores generándose leads propios.
+- Tres paneles: comprador (/mis-cotizaciones), proveedor (/panel) y admin.
+  El admin vive en una ruta oculta definida por env (ADMIN_PATH), sin
+  enlaces en el sitio, fuera del sitemap y SIN entrada en robots.txt
+  (listarla la revelaría). La URL oculta es cosmética: la seguridad real es
+  el rol ADMIN validado en servidor; el acceso no autorizado responde 404.
 - Rubros = filas en DB con su configuración: campos del formulario (JSON),
   campos del lead, precios, comunas activas. Agregar un rubro no toca código.
+- Rubros al lanzamiento: 3 en modo VENTA (seguridad, aseo, plagas) y 5 en
+  modo CAPTURA solo-SEO con lista de espera (arriendo de baños químicos,
+  arriendo de generadores, transporte de personal, transporte de carga,
+  climatización industrial). Un rubro CAPTURA publica páginas y captura
+  leads en lista de espera, pero no vende; pasa a VENTA cuando junta
+  demanda y 3–5 proveedores con créditos. "Control de acceso" es un tipo
+  de cotización dentro de seguridad, no un rubro aparte.
+- El cotizador siempre ofrece "Otro servicio" (texto libre): registra la
+  demanda (SolicitudRubro) y deja al comprador en lista de espera. El
+  proveedor puede solicitar rubros nuevos en su onboarding. La tabla de
+  demanda decide qué rubro se abre después.
+- Preferencias de matching por proveedor sobre los campos dinámicos del
+  lead (p. ej. tamaño del negocio): columna reservada en el schema desde
+  F1; lógica de matching en F3, UI en F4.
 - Precios iniciales (editables desde admin): seguridad exclusivo $50.000 /
   compartido $20.000; aseo $25.000 / $10.000; plagas $15.000 / $6.000.
   Compartido = máximo 3 compradores; exclusivo cierra el lead.
@@ -67,13 +95,16 @@ a Fase 5; nada del lanzamiento depende de él.
 ## Fase 0 — Validación (semana 1)
 Landing de UN rubro (seguridad) con el formulario real de cotización
 (campos desde la config del rubro, validación de DV de RUT, Turnstile) y
-medición de eventos: visita → inicio de formulario → lead creado. Los
-leads llegan al admin para revisión manual. Nada más. El dueño correrá
+medición de eventos: visita → inicio de formulario → lead creado → cuenta
+creada. Tras enviar, el comprador crea su cuenta con Google y ve su
+cotización en un panel mínimo. Los leads llegan al admin (ruta oculta)
+para revisión manual. Nada más. El dueño correrá
 Google Ads y llamadas a proveedores sobre esta landing. Criterio go/no-go:
 costo por lead verificado < 50% del precio de venta del lead.
 ## Fase 1 — Núcleo de datos y SEO programático
 1. Schema Prisma (proponer y validar): Rubro, Comuna, Proveedor, Cobertura,
-   Lead, CompraLead, MovimientoCreditos, más lo que falte. El Lead lleva
+   Lead, CompraLead, MovimientoCreditos, SolicitudRubro, más lo que
+   falte. El Rubro lleva modo VENTA/CAPTURA. El Lead lleva
    estados de verificación con historial de transiciones y un score
    calculable (no un booleano). Ledger de créditos contable: nunca un
    saldo mutable sin historial. Los modelos del canal WhatsApp se agregan
@@ -93,7 +124,8 @@ costo por lead verificado < 50% del precio de venta del lead.
 1. Formulario dinámico por rubro (config en DB), por pasos claros, móvil
    y desktop.
 2. Capas de verificación: DV de RUT, cruce SII de razón social, OTP de
-   teléfono por SMS, señales de score, Turnstile + honeypot, dedupe por
+   teléfono por SMS en el panel del comprador (una vez por cuenta),
+   señales de score, Turnstile + honeypot, dedupe por
    RUT y teléfono.
 3. Score del lead y estados: verificado / en revisión / descartado, con
    historial. Cola de revisión en el admin. Solo "verificado" pasa a la
