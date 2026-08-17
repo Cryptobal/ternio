@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from 'next-auth'
 import Google from 'next-auth/providers/google'
-import { RolUsuario } from '@prisma/client'
+
+import { ROLES, type Rol } from '@/lib/roles'
 
 /**
  * Configuración de Auth.js compartida con el edge (middleware).
@@ -8,6 +9,9 @@ import { RolUsuario } from '@prisma/client'
  * No puede importar Prisma ni node:crypto: el middleware corre en edge y
  * solo necesita decodificar el JWT para saber si hay sesión y con qué rol.
  * El adapter y el provider Credentials viven en src/auth.ts.
+ *
+ * Tampoco puede importar valores desde `@prisma/client` (ni enums): Vercel
+ * falla al desplegar la Edge Function si el bundle referencia `.prisma`.
  */
 
 /**
@@ -26,7 +30,7 @@ export const authConfig = {
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? ''
-        session.user.rol = (token.rol as RolUsuario | undefined) ?? RolUsuario.COMPRADOR
+        session.user.rol = (token.rol as Rol | undefined) ?? ROLES.COMPRADOR
       }
       return session
     },
