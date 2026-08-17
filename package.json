@@ -24,6 +24,7 @@
     "onlyBuiltDependencies": [
       "@prisma/client",
       "@prisma/engines",
+      "@tailwindcss/oxide",
       "esbuild",
       "prisma",
       "sharp",
@@ -35,6 +36,7 @@
     "@prisma/client": "6.2.1",
     "next": "15.1.6",
     "next-auth": "5.0.0-beta.25",
+    "prisma": "6.2.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "server-only": "^0.0.1",
@@ -49,7 +51,6 @@
     "eslint": "9.18.0",
     "eslint-config-next": "15.1.6",
     "postcss": "8.5.1",
-    "prisma": "6.2.1",
     "tailwindcss": "4.1.14",
     "tsx": "4.19.2",
     "typescript": "5.7.3",
