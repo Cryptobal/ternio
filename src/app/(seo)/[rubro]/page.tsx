@@ -8,6 +8,7 @@ import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorComunaCta } from '@/components/selector-comuna-cta'
 import { parsearCampos } from '@/lib/campos'
 import { combinacionesPublicadas, comunasActivas, rubrosActivos } from '@/lib/catalogo'
+import { OG_IMAGE } from '@/lib/metadata-publico'
 import { prisma } from '@/lib/prisma'
 import { copyRubro } from '@/lib/seo-contenido'
 import { pathPublicoRubro, RUBROS_VENTA_PUBLICOS, slugsBdCandidatos, slugPublicoDesdeBd } from '@/lib/seo-rutas'
@@ -58,7 +59,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: copy.title,
     description: copy.description,
     alternates: { canonical: path },
-    openGraph: { title: copy.title, description: copy.description, url: path, locale: 'es_CL' },
+    openGraph: {
+      title: copy.title,
+      description: copy.description,
+      url: path,
+      locale: 'es_CL',
+      images: [OG_IMAGE],
+    },
   }
 }
 
