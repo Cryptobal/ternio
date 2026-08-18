@@ -125,6 +125,23 @@ Desde `verificadoAt`, sobre el precio del rubro:
 | transporte de personal | 20.000 | 8.000 |
 | transporte de carga | 20.000 | 8.000 |
 | climatización industrial | 25.000 | 10.000 |
+| gasfitería | 12.000 | 5.000 |
+| electricista | 12.000 | 5.000 |
+| destape | 10.000 | 4.000 |
+| pintura | 15.000 | 6.000 |
+| remodelaciones | 25.000 | 10.000 |
+| cerrajero | 8.000 | 3.000 |
+| técnico electrodomésticos | 8.000 | 3.000 |
+| mudanzas | 15.000 | 6.000 |
+| jardinería | 10.000 | 4.000 |
+| aseo a domicilio | 8.000 | 3.000 |
+| cuidado adulto mayor | 20.000 | 8.000 |
+| contabilidad | 20.000 | 8.000 |
+| marketing digital | 25.000 | 10.000 |
+| abogados | 25.000 | 10.000 |
+| reclutamiento | 20.000 | 8.000 |
+| créditos y asesoría financiera | 25.000 | 10.000 |
+| seguros | 15.000 | 6.000 |
 
 ---
 

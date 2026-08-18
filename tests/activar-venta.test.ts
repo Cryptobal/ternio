@@ -42,6 +42,18 @@ describe('activar rubros de lista de espera a VENTA', () => {
       precioExclusivoClp: 20_000,
       precioCompartidoClp: 8_000,
     })
+    expect(PRECIOS_LANZAMIENTO.gasfiteria).toEqual({
+      precioExclusivoClp: 12_000,
+      precioCompartidoClp: 5_000,
+    })
+    expect(PRECIOS_LANZAMIENTO['aseo-hogar']).toEqual({
+      precioExclusivoClp: 8_000,
+      precioCompartidoClp: 3_000,
+    })
+    expect(PRECIOS_LANZAMIENTO['asesoria-financiera']).toEqual({
+      precioExclusivoClp: 25_000,
+      precioCompartidoClp: 10_000,
+    })
   })
 
   it('no toca Prueba E2E aunque esté activo y en CAPTURA', () => {

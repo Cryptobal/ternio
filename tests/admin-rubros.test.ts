@@ -59,6 +59,8 @@ describe('admin crea / edita rubro', () => {
   it('rechaza slugs reservados', () => {
     const r = parsearDatosRubro({ nombre: 'Admin', slug: 'admin', modo: 'CAPTURA' })
     expect(r.ok).toBe(false)
+    expect(parsearDatosRubro({ nombre: 'Créditos', slug: 'creditos', modo: 'VENTA' }).ok).toBe(false)
+    expect(parsearDatosRubro({ nombre: 'Gasfiter', slug: 'gasfiter', modo: 'VENTA' }).ok).toBe(false)
   })
 })
 

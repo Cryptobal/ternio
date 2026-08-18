@@ -8,8 +8,9 @@ import { validarModoRubro } from '../src/lib/rubros'
 /**
  * Seed idempotente y seguro de re-ejecutar.
  *
- * - Rubros: crea si faltan. Los 5 de lista de espera pasan a VENTA si
- *   siguen en CAPTURA; no pisa precios > 0 ni reactiva “Prueba E2E”.
+ * - Rubros: crea si faltan (8 B2B + 17 hogar/empresa/asesoría). Los 5
+ *   de lista de espera pasan a VENTA si siguen en CAPTURA; no pisa
+ *   precios > 0 ni reactiva “Prueba E2E”.
  * - Comunas: upsert de las 346 del CUT (región + provincia).
  * - RubroComuna: crea solo las combinaciones piloto (COMUNAS_SEO).
  *   No activa ni crea páginas para el resto de Chile.

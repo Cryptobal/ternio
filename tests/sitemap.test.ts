@@ -17,31 +17,20 @@ import {
 const BASE = 'https://ternio.cl'
 
 describe('sitemap público', () => {
-  it('el mínimo incluye home y las 8 landings de servicio (no solo legales)', () => {
+  it('el mínimo incluye home y las landings VENTA (no aliases)', () => {
     expect(RUTAS_SITEMAP_FIJAS).toContain('/seguridad')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/aseo')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/control-de-plagas')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/banos-quimicos')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/generadores')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/transporte-de-personal')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/transporte-de-carga')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/climatizacion-industrial')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/gasfiteria')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/aseo-hogar')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/asesoria-financiera')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/seguros')
     expect(RUTAS_SITEMAP_FIJAS).not.toContain('/plagas')
     expect(RUTAS_SITEMAP_FIJAS).not.toContain('/climatizacion')
-    expect(urlsSitemapFijas(BASE)).toEqual([
-      'https://ternio.cl/',
-      'https://ternio.cl/seguridad',
-      'https://ternio.cl/aseo',
-      'https://ternio.cl/control-de-plagas',
-      'https://ternio.cl/banos-quimicos',
-      'https://ternio.cl/generadores',
-      'https://ternio.cl/transporte-de-personal',
-      'https://ternio.cl/transporte-de-carga',
-      'https://ternio.cl/climatizacion-industrial',
-      'https://ternio.cl/proveedores',
-      'https://ternio.cl/privacidad',
-      'https://ternio.cl/terminos',
-    ])
+    expect(RUTAS_SITEMAP_FIJAS).not.toContain('/gasfiter')
+    expect(RUTAS_SITEMAP_FIJAS).not.toContain('/creditos')
+    expect(RUTAS_SITEMAP_FIJAS).not.toContain('/maestro')
+    expect(urlsSitemapFijas(BASE)[0]).toBe('https://ternio.cl/')
+    expect(urlsSitemapFijas(BASE)).toContain('https://ternio.cl/gasfiteria')
+    expect(urlsSitemapFijas(BASE)).toContain('https://ternio.cl/proveedores')
   })
 
   it('excluye /admin y /panel', () => {

@@ -9,7 +9,7 @@ indexó ni que hay proveedores comprando.
 ## Sitio y datos
 
 - [ ] `https://ternio.cl` responde.
-- [ ] Seed corrido contra Neon: 8 rubros, 346 comunas CUT, páginas
+- [ ] Seed corrido contra Neon: 25 rubros VENTA, 346 comunas CUT, páginas
       piloto (`COMUNAS_SEO`), cuenta admin. Comando: `pnpm db:seed`
       (no corre solo en el build de Vercel).
 - [ ] Gard Security existe (`slug` `gard-security` o fila real Gard),
@@ -25,13 +25,13 @@ indexó ni que hay proveedores comprando.
       `/guardias-de-seguridad` → `/seguridad`. `/empresas-de-aseo` → `/aseo`.
 - [ ] Un combo piloto (ej. `/seguridad/santiago`) abre el cotizador
       precargado.
-- [ ] Home: frase “Cotiza servicios para tu empresa” + un solo cotizador
-      (sin chips ni lista “Servicios” duplicada).
+- [ ] Home: frase “Cotiza servicios para tu casa o tu empresa” + un solo
+      cotizador en cascada sobre navy (sin pastillas de atajo ni losa blanca).
 
 ## Sitemap y Google
 
 - [ ] `https://www.ternio.cl/sitemap.xml` ya es **200**. Fail-soft si
-      Prisma falla: home + las 8 landings VENTA.
+      Prisma falla: home + las landings VENTA.
       Nunca 500. `ternio.cl` hace 308 a www.
 - [ ] `https://ternio.cl/robots.txt` apunta al sitemap. **No** menciona
       `/admin`.

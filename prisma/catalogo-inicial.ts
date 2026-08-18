@@ -2,10 +2,11 @@ import { ModoRubro } from '@prisma/client'
 
 import type { CampoFormulario } from '../src/lib/campos'
 import { COMUNAS_CHILE } from './comunas-chile'
+import { RUBROS_OLA2 } from './catalogo-ola2'
 
 /**
- * Catálogo de lanzamiento: 8 rubros en VENTA (con precios). Las comunas son
- * las 346 del CUT; las páginas programáticas se publican solo para COMUNAS_SEO.
+ * Catálogo: 8 rubros B2B originales + ola hogar/empresa/asesoría, todos VENTA.
+ * Las comunas son las 346 del CUT; las páginas programáticas solo COMUNAS_SEO.
  *
  * Vive aparte del seed para poder probarlo sin base de datos.
  */
@@ -436,6 +437,7 @@ export const RUBROS: SemillaRubro[] = [
         'El recinto y el tipo de equipo cambian el precio. Una sala de servidores no se cotiza igual que una planta.',
     },
   },
+  ...RUBROS_OLA2,
 ]
 
 /** Las 346 comunas oficiales (CUT). Sembrar no publica página SEO por cada una. */

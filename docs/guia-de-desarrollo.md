@@ -225,13 +225,31 @@ Precios de lead de lanzamiento (1 crédito = 1 CLP; editables en admin):
 | transporte de personal | 20.000 | 8.000 |
 | transporte de carga | 20.000 | 8.000 |
 | climatización industrial | 25.000 | 10.000 |
+| gasfitería | 12.000 | 5.000 |
+| electricista | 12.000 | 5.000 |
+| destape | 10.000 | 4.000 |
+| pintura | 15.000 | 6.000 |
+| remodelaciones | 25.000 | 10.000 |
+| cerrajero | 8.000 | 3.000 |
+| técnico electrodomésticos | 8.000 | 3.000 |
+| mudanzas | 15.000 | 6.000 |
+| jardinería | 10.000 | 4.000 |
+| aseo a domicilio | 8.000 | 3.000 |
+| cuidado adulto mayor | 20.000 | 8.000 |
+| contabilidad | 20.000 | 8.000 |
+| marketing digital | 25.000 | 10.000 |
+| abogados | 25.000 | 10.000 |
+| reclutamiento | 20.000 | 8.000 |
+| créditos y asesoría financiera | 25.000 | 10.000 |
+| seguros | 15.000 | 6.000 |
 
 Catálogo: `Rubro.modo` es `VENTA` o `CAPTURA`. Un lead nacido en `CAPTURA`
 (`modoRubroAlCrear`) **nunca** se ofrece a la venta aunque el rubro cambie
 después. Las páginas `{rubro}/{comuna}` solo existen si `RubroComuna.activa`.
-El piloto SEO es 8 comunas × 8 rubros. Las páginas de rubro cubren todo
+El piloto SEO es 8 comunas × 25 rubros. Las páginas de rubro cubren todo
 Chile con el selector Región → Provincia → Comuna (las 346 del CUT están
-sembradas; no hay 346 × 8 páginas vacías).
+sembradas; no hay 346 × N páginas vacías). Los rubros financieros son
+lead-gen a asesores/corredores: Ternio no es banco ni vende pólizas.
 
 Fail closed: sin Turnstile en producción no hay lead; sin sesión de
 proveedor no hay panel; sin `CompraLead` no hay PII; sin `ADMIN` `/admin`
@@ -332,8 +350,10 @@ Carlos no carga créditos. El sistema sí.
 - Región → Provincia → Comuna. Un solo nivel visible a la vez. Sin typeahead.
 - “Saltar” solo en pasos opcionales. Continuar bloquea identidad.
 - Móvil primero. Targets grandes (`min-h-11`).
-- Home: una frase (“Cotiza servicios para tu empresa”) y un solo
-  cotizador. El primer paso elige el rubro. Sin lista duplicada.
+- Home: una frase (“Cotiza servicios para tu casa o tu empresa”) y un
+  solo cotizador sobre el navy. Cascada: casa/empresa → combobox de
+  servicio → región → provincia → comuna. Sin pastillas de atajo, sin
+  losa blanca, sin lista de botones de rubro. Naranja solo en Cotizar.
 - `/panel` de un comprador: “esta es la cuenta de proveedores” + link a
   `/proveedores`. No fingir que es el otro lado.
 
@@ -358,12 +378,11 @@ Detalle en [`docs/seo-map.md`](./seo-map.md).
 El slug real de plagas (seed y prod) es `control-de-plagas`. Canónica
 `/control-de-plagas`. `/plagas` redirige 308.
 
-Sitemap www ya es 200. Fail-soft si Prisma falla: `/`, las 8 landings
-VENTA (`/seguridad`, `/aseo`, `/control-de-plagas`, `/banos-quimicos`,
-`/generadores`, `/transporte-de-personal`, `/transporte-de-carga`,
-`/climatizacion-industrial`) y `/proveedores`. Nunca 500. No incluye
-`/admin` ni `/panel`. `/climatizacion` es alias 308 de
-`/climatizacion-industrial`.
+Sitemap www ya es 200. Fail-soft si Prisma falla: `/`, las landings
+VENTA (25 slugs, sin aliases) y `/proveedores`. Nunca 500. No incluye
+`/admin` ni `/panel`. `/climatizacion` → `/climatizacion-industrial`,
+`/gasfiter` → `/gasfiteria`, `/maestro` y `/obras` → `/remodelaciones`,
+`/creditos` → `/asesoria-financiera` (308).
 
 No inventar “+1000 empresas” ni prueba social. Schema.org `Service` o
 `LocalBusiness` donde corresponda, con datos reales.

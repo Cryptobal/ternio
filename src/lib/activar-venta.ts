@@ -34,6 +34,23 @@ export const PRECIOS_LANZAMIENTO: Record<
   aseo: { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
   'control-de-plagas': { precioExclusivoClp: 15_000, precioCompartidoClp: 6_000 },
   ...PRECIOS_ACTIVAR_VENTA,
+  gasfiteria: { precioExclusivoClp: 12_000, precioCompartidoClp: 5_000 },
+  electricista: { precioExclusivoClp: 12_000, precioCompartidoClp: 5_000 },
+  destape: { precioExclusivoClp: 10_000, precioCompartidoClp: 4_000 },
+  pintura: { precioExclusivoClp: 15_000, precioCompartidoClp: 6_000 },
+  remodelaciones: { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
+  cerrajeria: { precioExclusivoClp: 8_000, precioCompartidoClp: 3_000 },
+  'tecnico-electrodomesticos': { precioExclusivoClp: 8_000, precioCompartidoClp: 3_000 },
+  mudanzas: { precioExclusivoClp: 15_000, precioCompartidoClp: 6_000 },
+  jardineria: { precioExclusivoClp: 10_000, precioCompartidoClp: 4_000 },
+  'aseo-hogar': { precioExclusivoClp: 8_000, precioCompartidoClp: 3_000 },
+  'cuidado-adulto-mayor': { precioExclusivoClp: 20_000, precioCompartidoClp: 8_000 },
+  contabilidad: { precioExclusivoClp: 20_000, precioCompartidoClp: 8_000 },
+  'marketing-digital': { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
+  abogados: { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
+  reclutamiento: { precioExclusivoClp: 20_000, precioCompartidoClp: 8_000 },
+  'asesoria-financiera': { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
+  seguros: { precioExclusivoClp: 15_000, precioCompartidoClp: 6_000 },
 }
 
 export function preciosLanzamiento(slug: string) {

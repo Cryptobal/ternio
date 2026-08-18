@@ -35,6 +35,10 @@ describe('rutas SEO públicas', () => {
       origen: '/climatizacion/:comuna',
       destino: '/climatizacion-industrial/:comuna',
     })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/gasfiter', destino: '/gasfiteria' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/maestro', destino: '/remodelaciones' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/obras', destino: '/remodelaciones' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/creditos', destino: '/asesoria-financiera' })
   })
 
   it('el selector usa la URL pública real', () => {
@@ -77,6 +81,10 @@ describe('copy único por combo', () => {
       'transporte-de-personal',
       'transporte-de-carga',
       'climatizacion-industrial',
+      'gasfiteria',
+      'aseo-hogar',
+      'asesoria-financiera',
+      'seguros',
     ] as const) {
       const copy = copyRubro(slug, 'Nombre', null)
       expect(copy.h1).not.toMatch(/Santiago|Valdivia|Providencia/i)
@@ -112,6 +120,9 @@ describe('copy único por combo', () => {
     expect(copyRubro('climatizacion', 'Empresas de climatización industrial', null).title).toBe(
       'Climatización industrial',
     )
+    expect(copyRubro('gasfiter', 'Gasfitería', null).title).toBe('Gasfitería')
+    expect(copyRubro('maestro', 'Remodelaciones', null).title).toBe('Remodelaciones')
+    expect(copyRubro('creditos', 'Créditos', null).title).toBe('Créditos y asesoría financiera')
   })
 
   it('cada landing VENTA tiene title e H1 propios, sin copy de lista de espera', () => {
@@ -124,6 +135,23 @@ describe('copy único por combo', () => {
       'transporte-de-personal',
       'transporte-de-carga',
       'climatizacion-industrial',
+      'gasfiteria',
+      'electricista',
+      'destape',
+      'pintura',
+      'remodelaciones',
+      'cerrajeria',
+      'tecnico-electrodomesticos',
+      'mudanzas',
+      'jardineria',
+      'aseo-hogar',
+      'cuidado-adulto-mayor',
+      'contabilidad',
+      'marketing-digital',
+      'abogados',
+      'reclutamiento',
+      'asesoria-financiera',
+      'seguros',
     ] as const
     const titles = slugs.map((slug) => copyRubro(slug, 'Nombre', null).title)
     const h1s = slugs.map((slug) => copyRubro(slug, 'Nombre', null).h1)
@@ -134,5 +162,15 @@ describe('copy único por combo', () => {
       expect(copy.intro).not.toMatch(/te avisamos|lista de espera|sumando empresas/i)
       expect(copy.cta).toMatch(/cotizaci/i)
     }
+  })
+
+  it('el copy financiero no vende cuentas ni se hace pasar por banco', () => {
+    const creditos = copyRubro('asesoria-financiera', 'Créditos', null)
+    const seguros = copyRubro('seguros', 'Seguros', null)
+    expect(creditos.intro).toMatch(/asesores|corredores/i)
+    expect(creditos.intro).toMatch(/no es un banco/i)
+    expect(`${creditos.h1} ${creditos.intro} ${creditos.description}`).not.toMatch(/abrir cuenta/i)
+    expect(seguros.intro).toMatch(/corredores/i)
+    expect(seguros.intro).toMatch(/no vende pólizas|no es una aseguradora/i)
   })
 })

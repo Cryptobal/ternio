@@ -14,6 +14,10 @@ export type AliasSeo = {
 export const SLUG_PUBLICO_A_BD: Record<string, string> = {
   plagas: 'control-de-plagas',
   climatizacion: 'climatizacion-industrial',
+  gasfiter: 'gasfiteria',
+  maestro: 'remodelaciones',
+  obras: 'remodelaciones',
+  creditos: 'asesoria-financiera',
 }
 
 /** slug de BD → path público. Identity salvo que se declare otra cosa. */
@@ -28,6 +32,23 @@ export const RUBROS_VENTA_PUBLICOS = [
   'transporte-de-personal',
   'transporte-de-carga',
   'climatizacion-industrial',
+  'gasfiteria',
+  'electricista',
+  'destape',
+  'pintura',
+  'remodelaciones',
+  'cerrajeria',
+  'tecnico-electrodomesticos',
+  'mudanzas',
+  'jardineria',
+  'aseo-hogar',
+  'cuidado-adulto-mayor',
+  'contabilidad',
+  'marketing-digital',
+  'abogados',
+  'reclutamiento',
+  'asesoria-financiera',
+  'seguros',
 ] as const
 
 export const ALIAS_SEO_308: AliasSeo[] = [
@@ -43,6 +64,14 @@ export const ALIAS_SEO_308: AliasSeo[] = [
   { origen: '/empresas-de-seguridad/:comuna', destino: '/seguridad/:comuna' },
   { origen: '/climatizacion', destino: '/climatizacion-industrial' },
   { origen: '/climatizacion/:comuna', destino: '/climatizacion-industrial/:comuna' },
+  { origen: '/gasfiter', destino: '/gasfiteria' },
+  { origen: '/gasfiter/:comuna', destino: '/gasfiteria/:comuna' },
+  { origen: '/maestro', destino: '/remodelaciones' },
+  { origen: '/maestro/:comuna', destino: '/remodelaciones/:comuna' },
+  { origen: '/obras', destino: '/remodelaciones' },
+  { origen: '/obras/:comuna', destino: '/remodelaciones/:comuna' },
+  { origen: '/creditos', destino: '/asesoria-financiera' },
+  { origen: '/creditos/:comuna', destino: '/asesoria-financiera/:comuna' },
 ]
 
 export function slugBdDesdePublico(slugPublico: string): string {

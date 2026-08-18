@@ -13,9 +13,9 @@ El sitemap que Google ve es `https://www.ternio.cl/sitemap.xml`
 ## Cómo se indexa
 
 1. `https://www.ternio.cl/sitemap.xml` ya es **200** y lista home,
-   las 8 landings VENTA y combos piloto.
+   las landings VENTA (25 slugs) y combos piloto.
    El código deja fail-soft: si Prisma falla, igual se publican
-   esas URLs fijas (incluidas las 8 landings VENTA). Nunca 500.
+   esas URLs fijas (incluidas las landings VENTA). Nunca 500.
    Sin `/admin` ni `/panel`.
 2. `robots.txt` apunta al sitemap. **No** menciona `/admin`.
 3. Search Console: enviar el sitemap www y pedir indexación de
@@ -45,7 +45,7 @@ Por eso `https://ternio.cl/plagas` da 404: no es la canónica.
 ## Por qué el piloto de comunas es acotado
 
 Seed: 346 comunas CUT. Páginas `{rubro}/{comuna}` indexables: 8
-comunas × 8 rubros (`COMUNAS_SEO`): `santiago`, `las-condes`,
+comunas × 25 rubros (`COMUNAS_SEO`): `santiago`, `las-condes`,
 `providencia`, `vitacura`, `nunoa`, `maipu`, `quilicura`,
 `pudahuel`. El resto cotiza en `/{rubro}` con el selector.
 
@@ -93,6 +93,31 @@ aseo / plagas. `/climatizacion` es alias 308.
 | Transporte de carga | `/transporte-de-carga` | VENTA |
 | Climatización industrial | `/climatizacion-industrial` | VENTA |
 
+## Ola hogar / empresa / asesoría (VENTA)
+
+Landings propias. Aliases 308 no van al sitemap. Financiero = asesores,
+no bancos.
+
+| Rubro | URL canónica | Alias 308 |
+| --- | --- | --- |
+| Gasfitería | `/gasfiteria` | `/gasfiter` |
+| Electricista | `/electricista` | — |
+| Destape y alcantarillado | `/destape` | — |
+| Pintura | `/pintura` | — |
+| Remodelaciones | `/remodelaciones` | `/maestro`, `/obras` |
+| Cerrajero | `/cerrajeria` | — |
+| Técnico de electrodomésticos | `/tecnico-electrodomesticos` | — |
+| Mudanzas y fletes | `/mudanzas` | — |
+| Jardinería | `/jardineria` | — |
+| Aseo a domicilio | `/aseo-hogar` | — |
+| Cuidado de adulto mayor | `/cuidado-adulto-mayor` | — |
+| Contabilidad | `/contabilidad` | — |
+| Marketing digital | `/marketing-digital` | — |
+| Abogados | `/abogados` | — |
+| Reclutamiento | `/reclutamiento` | — |
+| Créditos y asesoría financiera | `/asesoria-financiera` | `/creditos` |
+| Seguros | `/seguros` | — |
+
 ---
 
 ## URLs fijas públicas
@@ -108,6 +133,9 @@ aseo / plagas. `/climatizacion` es alias 308.
 | `/transporte-de-personal` | Sí | VENTA. |
 | `/transporte-de-carga` | Sí | VENTA. |
 | `/climatizacion-industrial` | Sí | VENTA. |
+| `/gasfiteria` | Sí | VENTA. `/gasfiter` es alias. |
+| `/aseo-hogar` | Sí | Distinto de `/aseo`. |
+| `/asesoria-financiera` | Sí | Asesores, no banco. `/creditos` es alias. |
 | `/plagas` | No (alias 308) | No duplicar contenido. |
 | `/climatizacion` | No (alias 308) | → `/climatizacion-industrial`. |
 | `/proveedores` | Sí | Alta. |
