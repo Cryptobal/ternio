@@ -38,35 +38,45 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
         <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
           <p className="font-medium">
             {reclamo.reclamados > 0
-              ? 'Listo: tu cotización quedó guardada.'
-              : 'Tu sesión ya está lista.'}
+              ? 'Listo: tu cotización quedó en tu cuenta de comprador.'
+              : 'Tu cuenta de comprador ya está lista.'}
           </p>
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
-            En tus cotizaciones ves lo que pediste y si alguna empresa ya tomó la solicitud.
+            En tus cotizaciones ves qué pediste y cuántas empresas tomaron la solicitud. No es un
+            panel de proveedor.
           </p>
           <Link
             href="/mis-cotizaciones"
             className="mt-4 inline-flex min-h-11 items-center rounded-2xl bg-(--color-marca) px-5 py-3 text-white"
           >
-            Ver mis cotizaciones
+            Ver tus cotizaciones
           </Link>
         </div>
       ) : otp?.telefonoEnmascarado || otp?.ok ? (
-        <FormularioOtpCodigo
-          origen="reclamo"
-          telefonoEnmascarado={otp.telefonoEnmascarado}
-          avisoInicial={otp.mensaje}
-        />
+        <div className="mt-8">
+          <p className="text-sm text-(--color-tinta-suave)">
+            Confirma el código y queda creada tu cuenta de comprador (mismo celular). Así sigues
+            qué pediste y si alguna empresa tomó la solicitud.
+          </p>
+          <FormularioOtpCodigo
+            origen="reclamo"
+            telefonoEnmascarado={otp.telefonoEnmascarado}
+            avisoInicial={otp.mensaje}
+          />
+        </div>
       ) : (
         <div className="mt-8 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-5 text-sm">
           <p className="font-medium">Tu cotización quedó guardada.</p>
           <p className="mt-1">
-            Para seguirla, entra con el teléfono que usaste.{' '}
-            <Link href="/entrar" className="font-medium underline underline-offset-4">
-              Ir a entrar
-            </Link>
-            .
+            Para seguirla, entra o crea tu cuenta de comprador con el mismo celular. Ahí ves qué
+            pediste y cuántas empresas tomaron.
           </p>
+          <Link
+            href="/entrar"
+            className="mt-4 inline-flex min-h-11 items-center rounded-2xl bg-(--color-marca) px-5 py-3 font-medium text-white"
+          >
+            Entrar a mis cotizaciones
+          </Link>
         </div>
       )}
     </div>

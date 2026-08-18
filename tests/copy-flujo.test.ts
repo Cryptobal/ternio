@@ -42,6 +42,22 @@ describe('copy público sin mentiras de launch', () => {
     expect(rewrite).toContain('TITULO_404')
   })
 
+  it('el comprador entra por Ya cotizé, nunca por “panel”', () => {
+    const header = readFileSync(resolve(process.cwd(), 'src/components/sitio/marco-publico.tsx'), 'utf8')
+    const otp = readFileSync(resolve(process.cwd(), 'src/components/formulario-otp.tsx'), 'utf8')
+    const enviada = readFileSync(
+      resolve(process.cwd(), 'src/app/(sitio)/cotizacion/enviada/page.tsx'),
+      'utf8',
+    )
+    expect(header).toMatch(/Ya cotizé/)
+    expect(header).toMatch(/href="\/entrar"/)
+    expect(header).not.toMatch(/Mi panel|tu panel/)
+    expect(otp).not.toMatch(/entrada al panel|tu panel/)
+    expect(enviada).toMatch(/cuenta de comprador/)
+    expect(enviada).toMatch(/mis-cotizaciones/)
+    expect(enviada).not.toMatch(/tu panel/)
+  })
+
   it('robots y sitemap no publican /admin', () => {
     const robots = readFileSync(resolve(process.cwd(), 'src/app/robots.ts'), 'utf8')
     expect(robots).not.toMatch(/['"`]\/admin/)

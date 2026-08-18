@@ -18,8 +18,8 @@ export default async function Entrar() {
     <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
       <h1 className="font-display text-2xl sm:text-3xl">Entra con tu teléfono</h1>
       <p className="mt-3 text-(--color-tinta-suave)">
-        Te enviamos un código de un solo uso. Sin contraseña. Si cotizaste, retomas esas
-        solicitudes. Si eres proveedor, entras a tu cuenta.
+        Te enviamos un código de un solo uso. Sin contraseña. Si cotizaste, vas a tus
+        cotizaciones. Si eres proveedor, entras a tu cuenta.
       </p>
       <FormularioOtpEntrar />
     </div>

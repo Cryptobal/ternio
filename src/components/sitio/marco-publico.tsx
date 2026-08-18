@@ -9,12 +9,20 @@ export function CabeceraPublica() {
         <Link href="/" aria-label="Ternio, ir al inicio">
           <Logo variante="oscuro" />
         </Link>
-        <Link
-          href="/proveedores"
-          className="inline-flex min-h-11 items-center rounded-full border border-(--color-ambar) px-4 py-2 text-sm font-semibold text-(--color-ambar) transition hover:bg-(--color-ambar) hover:text-(--color-tinta)"
-        >
-          Soy proveedor
-        </Link>
+        <nav className="flex flex-wrap items-center justify-end gap-2" aria-label="Entrar">
+          <Link
+            href="/entrar"
+            className="inline-flex min-h-11 items-center rounded-full px-3 py-2 text-sm font-medium text-white/90 underline-offset-4 hover:underline"
+          >
+            Ya cotizé
+          </Link>
+          <Link
+            href="/proveedores"
+            className="inline-flex min-h-11 items-center rounded-full border border-(--color-ambar) px-4 py-2 text-sm font-semibold text-(--color-ambar) transition hover:bg-(--color-ambar) hover:text-(--color-tinta)"
+          >
+            Soy proveedor
+          </Link>
+        </nav>
       </div>
     </header>
   )

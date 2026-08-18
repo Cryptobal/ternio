@@ -5,13 +5,13 @@ import { describe, expect, it } from 'vitest'
 describe('admin sin chrome público', () => {
   it('el layout de admin no monta la cabecera ni el pie comerciales', () => {
     const layout = readFileSync(resolve(process.cwd(), 'src/app/admin/layout.tsx'), 'utf8')
-    expect(layout).not.toMatch(/CabeceraPublica|PiePublico|MarcoPublico|Soy proveedor/)
+    expect(layout).not.toMatch(/CabeceraPublica|PiePublico|MarcoPublico|Soy proveedor|Ya cotizé/)
     expect(layout).not.toMatch(/from ['"]@\/components\/sitio/)
     expect(layout).not.toMatch(/from ['"]@\/components\/marca/)
   })
 
   it('el layout raíz no hereda header comercial a /admin', () => {
     const raiz = readFileSync(resolve(process.cwd(), 'src/app/layout.tsx'), 'utf8')
-    expect(raiz).not.toMatch(/CabeceraPublica|MarcoPublico|Soy proveedor/)
+    expect(raiz).not.toMatch(/CabeceraPublica|MarcoPublico|Soy proveedor|Ya cotizé/)
   })
 })

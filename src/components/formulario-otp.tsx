@@ -48,8 +48,8 @@ export function FormularioOtpCodigo({
       <h2 className="font-medium">Confirma tu teléfono</h2>
       <p className="mt-1 text-sm text-(--color-tinta-suave)">
         Te enviamos un código de 6 dígitos
-        {telefonoEnmascarado ? ` a ${telefonoEnmascarado}` : ''}. Es tu entrada al panel: no hay
-        contraseña.
+        {telefonoEnmascarado ? ` a ${telefonoEnmascarado}` : ''}. Con el mismo celular abres tu
+        cuenta. No hay contraseña.
       </p>
 
       <form action={confirmar} className="mt-4 space-y-3">
@@ -73,7 +73,7 @@ export function FormularioOtpCodigo({
         ) : null}
         <Boton>
           {origen === 'reclamo'
-            ? 'Confirmar y ver mi cotización'
+            ? 'Confirmar y ver mis cotizaciones'
             : origen === 'proveedor'
               ? 'Confirmar y ver mi cuenta'
               : 'Entrar'}
