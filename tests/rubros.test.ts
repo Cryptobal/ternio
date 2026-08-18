@@ -68,7 +68,7 @@ describe('textoEstadoComprador', () => {
     for (const estado of Object.values(EstadoLead)) {
       const texto = textoEstadoComprador(estado)
       expect(texto.length).toBeGreaterThan(0)
-      // Nada de jerga interna en el panel del comprador.
+      // Nada de jerga interna en tus cotizaciones.
       expect(texto).not.toMatch(/LEAD|RECIBIDO|EN_REVISION/i)
     }
   })

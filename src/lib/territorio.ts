@@ -64,6 +64,40 @@ export function pasoTerritorio(region: string, provincia: string, comunaSlug = '
   return 'listo'
 }
 
+export type NivelListaTerritorio = 'region' | 'provincia' | 'comuna'
+
+/**
+ * Un solo nivel de chips a la vez. Nunca regiones + provincias + comunas juntas.
+ * En modo múltiple (cobertura) la lista de comunas sigue visible tras la primera
+ * elección para poder marcar más de una.
+ */
+export function nivelListaTerritorio(
+  region: string,
+  provincia: string,
+  comunaSlug = '',
+  opciones?: { multiple?: boolean },
+): NivelListaTerritorio | null {
+  const paso = pasoTerritorio(region, provincia, comunaSlug)
+  if (paso === 'listo') return opciones?.multiple ? 'comuna' : null
+  return paso
+}
+
+export function debeMostrarNivelTerritorio(
+  nivel: NivelListaTerritorio,
+  region: string,
+  provincia: string,
+  comunaSlug = '',
+  opciones?: { multiple?: boolean },
+): boolean {
+  return nivelListaTerritorio(region, provincia, comunaSlug, opciones) === nivel
+}
+
+export function preguntaNivelTerritorio(nivel: NivelListaTerritorio): string {
+  if (nivel === 'region') return '¿En qué región?'
+  if (nivel === 'provincia') return '¿En qué provincia?'
+  return '¿En qué comuna?'
+}
+
 export function comunaPorSlug(
   comunas: ComunaTerritorio[],
   slug: string,

@@ -4,7 +4,9 @@ import { COMUNAS_CHILE } from '../prisma/comunas-chile'
 import {
   comunaPorSlug,
   comunasDe,
+  debeMostrarNivelTerritorio,
   filtrarComunas,
+  nivelListaTerritorio,
   pasoTerritorio,
   provinciasDe,
   regionesDe,
@@ -34,5 +36,77 @@ describe('territorio CUT', () => {
     expect(pasoTerritorio('Región Metropolitana', '', '')).toBe('provincia')
     expect(pasoTerritorio('Región Metropolitana', 'Santiago', '')).toBe('comuna')
     expect(pasoTerritorio('Región Metropolitana', 'Santiago', 'providencia')).toBe('listo')
+  })
+
+  it('un solo nivel visible a la vez: nunca regiones + provincias + comunas juntas', () => {
+    const vacio = { region: '', provincia: '', comuna: '' }
+    const conRegion = { region: 'Región Metropolitana', provincia: '', comuna: '' }
+    const conProvincia = { region: 'Región Metropolitana', provincia: 'Santiago', comuna: '' }
+    const listo = {
+      region: 'Región Metropolitana',
+      provincia: 'Santiago',
+      comuna: 'providencia',
+    }
+
+    expect(nivelListaTerritorio(vacio.region, vacio.provincia, vacio.comuna)).toBe('region')
+    expect(debeMostrarNivelTerritorio('region', vacio.region, vacio.provincia, vacio.comuna)).toBe(true)
+    expect(debeMostrarNivelTerritorio('provincia', vacio.region, vacio.provincia, vacio.comuna)).toBe(
+      false,
+    )
+    expect(debeMostrarNivelTerritorio('comuna', vacio.region, vacio.provincia, vacio.comuna)).toBe(false)
+
+    expect(nivelListaTerritorio(conRegion.region, conRegion.provincia, conRegion.comuna)).toBe(
+      'provincia',
+    )
+    expect(
+      debeMostrarNivelTerritorio('region', conRegion.region, conRegion.provincia, conRegion.comuna),
+    ).toBe(false)
+    expect(
+      debeMostrarNivelTerritorio('provincia', conRegion.region, conRegion.provincia, conRegion.comuna),
+    ).toBe(true)
+    expect(
+      debeMostrarNivelTerritorio('comuna', conRegion.region, conRegion.provincia, conRegion.comuna),
+    ).toBe(false)
+
+    expect(nivelListaTerritorio(conProvincia.region, conProvincia.provincia, conProvincia.comuna)).toBe(
+      'comuna',
+    )
+    expect(
+      debeMostrarNivelTerritorio(
+        'provincia',
+        conProvincia.region,
+        conProvincia.provincia,
+        conProvincia.comuna,
+      ),
+    ).toBe(false)
+    expect(
+      debeMostrarNivelTerritorio(
+        'comuna',
+        conProvincia.region,
+        conProvincia.provincia,
+        conProvincia.comuna,
+      ),
+    ).toBe(true)
+
+    expect(nivelListaTerritorio(listo.region, listo.provincia, listo.comuna)).toBeNull()
+    expect(debeMostrarNivelTerritorio('region', listo.region, listo.provincia, listo.comuna)).toBe(false)
+    expect(debeMostrarNivelTerritorio('provincia', listo.region, listo.provincia, listo.comuna)).toBe(
+      false,
+    )
+    expect(debeMostrarNivelTerritorio('comuna', listo.region, listo.provincia, listo.comuna)).toBe(false)
+
+    expect(nivelListaTerritorio(listo.region, listo.provincia, listo.comuna, { multiple: true })).toBe(
+      'comuna',
+    )
+    expect(
+      debeMostrarNivelTerritorio('comuna', listo.region, listo.provincia, listo.comuna, {
+        multiple: true,
+      }),
+    ).toBe(true)
+    expect(
+      debeMostrarNivelTerritorio('region', listo.region, listo.provincia, listo.comuna, {
+        multiple: true,
+      }),
+    ).toBe(false)
   })
 })

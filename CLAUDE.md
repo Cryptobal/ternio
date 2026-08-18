@@ -220,3 +220,5 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
 - `/admin/rubros` crea y edita rubros (desactivar, no borrar).
   VENTA exige ambos precios > 0. El sitio usa `motion` con
   `prefers-reduced-motion`.
+- El comprador no tiene panel. `/mis-cotizaciones` es “tus cotizaciones”.
+  El selector de territorio muestra un solo nivel a la vez.

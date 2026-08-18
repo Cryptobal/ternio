@@ -42,6 +42,33 @@ describe('copy público sin mentiras de launch', () => {
     expect(rewrite).toContain('TITULO_404')
   })
 
+  it('tus cotizaciones no se llaman panel', () => {
+    const mis = readFileSync(resolve(process.cwd(), 'src/app/(sitio)/mis-cotizaciones/page.tsx'), 'utf8')
+    const enviada = readFileSync(
+      resolve(process.cwd(), 'src/app/(sitio)/cotizacion/enviada/page.tsx'),
+      'utf8',
+    )
+    expect(mis).not.toMatch(/Panel privado|Mi panel|tu panel/i)
+    expect(mis).toMatch(/Tus cotizaciones/)
+    expect(mis).toContain('EstadoCompraLead.PAGADA')
+    expect(mis).not.toContain('LeadContacto')
+    expect(enviada).not.toMatch(/tu panel/i)
+  })
+
+  it('el selector de territorio no apila niveles ni usa typeahead', () => {
+    const territorio = readFileSync(
+      resolve(process.cwd(), 'src/components/selector-territorio.tsx'),
+      'utf8',
+    )
+    const home = readFileSync(resolve(process.cwd(), 'src/components/selector-cotizacion.tsx'), 'utf8')
+    expect(territorio).toContain('debeMostrarNivelTerritorio')
+    expect(territorio).not.toMatch(/buscar comuna|typeahead|<select/i)
+    expect(territorio).not.toMatch(/Primero elige la región|Primero elige la provincia/)
+    expect(home).toContain('{rubro ?')
+    expect(home).toContain('SelectorTerritorio')
+    expect(home).not.toMatch(/enVenta\[0\]/)
+  })
+
   it('robots y sitemap no publican /admin', () => {
     const robots = readFileSync(resolve(process.cwd(), 'src/app/robots.ts'), 'utf8')
     expect(robots).not.toMatch(/['"`]\/admin/)

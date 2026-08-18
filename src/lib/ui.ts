@@ -17,3 +17,6 @@ export const CLASE_BOTON =
   'inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-(--color-marca) px-5 py-3 text-base font-semibold text-white transition hover:bg-(--color-tinta) disabled:opacity-60'
 
 export const CLASE_PASO_ACTIVO = 'ring-2 ring-(--color-ambar) ring-offset-2'
+
+export const CLASE_MIGA =
+  'inline-flex min-h-11 items-center gap-2 rounded-full border border-(--color-borde) bg-(--color-papel) px-3 py-1.5 text-sm font-medium transition hover:border-(--color-marca)'

@@ -2,19 +2,22 @@
 
 import { useMemo, useState } from 'react'
 
+import { ChipMiga } from '@/components/chip-miga'
 import { PasoAnimado } from '@/components/ui/motion'
 import {
   comunaPorSlug,
   comunasDe,
-  pasoTerritorio,
+  debeMostrarNivelTerritorio,
+  nivelListaTerritorio,
+  preguntaNivelTerritorio,
   provinciasDe,
   regionesDe,
   type ComunaTerritorio,
+  type NivelListaTerritorio,
 } from '@/lib/territorio'
-import { CLASE_CHIP, CLASE_CHIP_ACTIVO, CLASE_PASO_ACTIVO } from '@/lib/ui'
+import { CLASE_CHIP, CLASE_CHIP_ACTIVO } from '@/lib/ui'
 
-const CLASE_LISTA =
-  'grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2'
+const CLASE_LISTA = 'grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2'
 
 function ChipOpcion({
   seleccionado,
@@ -71,17 +74,45 @@ export function SelectorTerritorio({
   )
 
   const seleccionadas = new Set(multiple ? values : value ? [value] : [])
-  const paso = pasoTerritorio(region, provincia, multiple ? (values[0] ?? '') : (value ?? ''))
+  const comunaSlug = multiple ? (values[0] ?? '') : (value ?? '')
+  const opciones = { multiple }
+  const nivel = nivelListaTerritorio(region, provincia, comunaSlug, opciones)
+  const mostrarRegion = debeMostrarNivelTerritorio('region', region, provincia, comunaSlug, opciones)
+  const mostrarProvincia = debeMostrarNivelTerritorio(
+    'provincia',
+    region,
+    provincia,
+    comunaSlug,
+    opciones,
+  )
+  const mostrarComuna = debeMostrarNivelTerritorio('comuna', region, provincia, comunaSlug, opciones)
+  const comunaElegida = !multiple && value ? comunaPorSlug(comunas, value) : undefined
+
+  function limpiarComunas() {
+    if (multiple) onChangeMultiple?.([])
+    else onChange?.('')
+  }
 
   function elegirRegion(nombre: string) {
     setRegion(nombre)
     setProvincia('')
-    if (!multiple) onChange?.('')
+    limpiarComunas()
   }
 
   function elegirProvincia(nombre: string) {
     setProvincia(nombre)
-    if (!multiple) onChange?.('')
+    limpiarComunas()
+  }
+
+  function quitarRegion() {
+    setRegion('')
+    setProvincia('')
+    limpiarComunas()
+  }
+
+  function quitarProvincia() {
+    setProvincia('')
+    limpiarComunas()
   }
 
   function elegir(comuna: ComunaTerritorio) {
@@ -98,58 +129,54 @@ export function SelectorTerritorio({
   }
 
   return (
-    <div className="grid gap-4">
-      <fieldset className={paso === 'region' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
-        <legend id={`${idPrefijo}-region`} className="mb-2 text-sm font-medium">
-          Región
-        </legend>
-        <ul className={CLASE_LISTA} role="list">
-          {regiones.map((nombre) => (
-            <ChipOpcion
-              key={nombre}
-              seleccionado={region === nombre}
-              onClick={() => elegirRegion(nombre)}
-            >
-              {nombre}
-            </ChipOpcion>
-          ))}
-        </ul>
-      </fieldset>
+    <div className="grid gap-3">
+      {region || provincia || comunaElegida ? (
+        <div className="flex flex-wrap gap-2">
+          {region ? (
+            <ChipMiga onQuitar={quitarRegion}>{region}</ChipMiga>
+          ) : null}
+          {provincia ? (
+            <ChipMiga onQuitar={quitarProvincia}>{provincia}</ChipMiga>
+          ) : null}
+          {comunaElegida ? (
+            <ChipMiga onQuitar={() => onChange?.('')}>{comunaElegida.nombre}</ChipMiga>
+          ) : null}
+        </div>
+      ) : null}
 
-      {region ? (
-        <PasoAnimado id={`${idPrefijo}-provincia-${region}`}>
-          <fieldset className={paso === 'provincia' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
-            <legend id={`${idPrefijo}-provincia`} className="mb-2 text-sm font-medium">
-              Provincia
-            </legend>
-            <ul className={CLASE_LISTA} role="list">
-              {provincias.map((nombre) => (
-                <ChipOpcion
-                  key={nombre}
-                  seleccionado={provincia === nombre}
-                  onClick={() => elegirProvincia(nombre)}
-                >
-                  {nombre}
-                </ChipOpcion>
-              ))}
-            </ul>
-          </fieldset>
-        </PasoAnimado>
-      ) : (
-        <p className="text-sm text-(--color-tinta-suave)">Primero elige la región.</p>
-      )}
+      <PasoAnimado id={`${idPrefijo}-${nivel ?? 'listo'}`}>
+        {mostrarRegion ? (
+          <ListaNivel
+            id={`${idPrefijo}-region`}
+            nivel="region"
+            items={regiones.map((nombre) => ({
+              clave: nombre,
+              etiqueta: nombre,
+              seleccionado: region === nombre,
+              onClick: () => elegirRegion(nombre),
+            }))}
+          />
+        ) : null}
 
-      {region && provincia ? (
-        <PasoAnimado id={`${idPrefijo}-comuna-${region}-${provincia}`}>
-          {multiple ? (
-            <fieldset
-              className={
-                paso === 'comuna' || paso === 'listo'
-                  ? `rounded-2xl ${paso === 'comuna' ? CLASE_PASO_ACTIVO : ''} p-1`
-                  : ''
-              }
-            >
-              <legend className="mb-2 text-sm font-medium">Comunas</legend>
+        {mostrarProvincia ? (
+          <ListaNivel
+            id={`${idPrefijo}-provincia`}
+            nivel="provincia"
+            items={provincias.map((nombre) => ({
+              clave: nombre,
+              etiqueta: nombre,
+              seleccionado: provincia === nombre,
+              onClick: () => elegirProvincia(nombre),
+            }))}
+          />
+        ) : null}
+
+        {mostrarComuna ? (
+          multiple ? (
+            <fieldset>
+              <legend id={`${idPrefijo}-comuna`} className="mb-2 text-sm font-medium">
+                {preguntaNivelTerritorio('comuna')}
+              </legend>
               {listaComunas.length === 0 ? (
                 <p className="text-sm text-(--color-tinta-suave)">No hay comunas en esta provincia.</p>
               ) : (
@@ -177,27 +204,44 @@ export function SelectorTerritorio({
               ) : null}
             </fieldset>
           ) : (
-            <fieldset className={paso === 'comuna' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
-              <legend id={`${idPrefijo}-comuna`} className="mb-2 text-sm font-medium">
-                Comuna
-              </legend>
-              <ul className={CLASE_LISTA} role="list">
-                {listaComunas.map((comuna) => (
-                  <ChipOpcion
-                    key={comuna.slug}
-                    seleccionado={value === comuna.slug}
-                    onClick={() => elegir(comuna)}
-                  >
-                    {comuna.nombre}
-                  </ChipOpcion>
-                ))}
-              </ul>
-            </fieldset>
-          )}
-        </PasoAnimado>
-      ) : region ? (
-        <p className="text-sm text-(--color-tinta-suave)">Primero elige la provincia.</p>
-      ) : null}
+            <ListaNivel
+              id={`${idPrefijo}-comuna`}
+              nivel="comuna"
+              items={listaComunas.map((comuna) => ({
+                clave: comuna.slug,
+                etiqueta: comuna.nombre,
+                seleccionado: value === comuna.slug,
+                onClick: () => elegir(comuna),
+              }))}
+            />
+          )
+        ) : null}
+      </PasoAnimado>
     </div>
+  )
+}
+
+function ListaNivel({
+  id,
+  nivel,
+  items,
+}: {
+  id: string
+  nivel: NivelListaTerritorio
+  items: { clave: string; etiqueta: string; seleccionado: boolean; onClick: () => void }[]
+}) {
+  return (
+    <fieldset>
+      <legend id={id} className="mb-2 text-sm font-medium">
+        {preguntaNivelTerritorio(nivel)}
+      </legend>
+      <ul className={CLASE_LISTA} role="list">
+        {items.map((item) => (
+          <ChipOpcion key={item.clave} seleccionado={item.seleccionado} onClick={item.onClick}>
+            {item.etiqueta}
+          </ChipOpcion>
+        ))}
+      </ul>
+    </fieldset>
   )
 }
