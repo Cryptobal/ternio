@@ -55,7 +55,7 @@ export function estadoInicialLead(modo: ModoRubro): EstadoLead {
   return modo === ModoRubro.CAPTURA ? EstadoLead.LISTA_ESPERA : EstadoLead.RECIBIDO
 }
 
-/** Texto honesto para el panel del comprador; nunca jerga interna ni marketplace. */
+/** Texto honesto para tus cotizaciones; nunca jerga interna ni “te van a contactar”. */
 export function textoEstadoComprador(estado: EstadoLead): string {
   switch (estado) {
     case EstadoLead.LISTA_ESPERA:

@@ -95,7 +95,9 @@ producción (`ternio.cl`), sin mentir.
 - Search Console puede pedir indexación. El código deja las URLs listas;
   **no se afirma que Google ya indexó**.
 - Tras el envío: OTP por SMS. RUT con DV. Identidad obligatoria. Turnstile.
-- `/mis-cotizaciones` muestra estado real (no un “en proceso” vacío).
+- `/mis-cotizaciones` muestra estado real, un recap de lo que pidió
+  (`Lead.datos`, sin PII) y cuántas empresas (`CompraLead` PAGADA) ya
+  tienen los datos. No es un panel.
 
 ### B. Proveedor entra y compra contactos
 
@@ -174,11 +176,11 @@ Sin dependencias nuevas salvo que sea inevitable. Migraciones solo aditivas.
 
 ## Arquitectura (archivos reales)
 
-Tres paneles:
+Cuentas (el comprador no tiene panel):
 
 | Quién | Ruta | Archivo |
 | --- | --- | --- |
-| Comprador | `/mis-cotizaciones` | `src/app/(sitio)/mis-cotizaciones/page.tsx` |
+| Comprador | `/mis-cotizaciones` — tus cotizaciones | `src/app/(sitio)/mis-cotizaciones/page.tsx` |
 | Proveedor | `/panel` | `src/app/(sitio)/panel/page.tsx` |
 | Admin | `/admin` | `src/app/admin/page.tsx` — 404 si no es ADMIN |
 
@@ -316,7 +318,8 @@ Carlos no carga créditos. El sistema sí.
 
 - Español de Chile.
 - Una columna. Un botón primario por pantalla.
-- Región → Provincia → Comuna. Sin typeahead.
+- Región → Provincia → Comuna. Un nivel a la vez. Sin typeahead. Sin
+  `<select>` nativo como UI principal. Sin listar las 346 comunas.
 - “Saltar” solo en pasos opcionales. Continuar bloquea identidad.
 - Móvil primero. Targets grandes (`min-h-11`).
 - Home: una frase (“Cotiza servicios para tu empresa”), atajos a

@@ -1,17 +1,23 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { EstadoCompraLead } from '@prisma/client'
 
-import { resumenCotizacionComprador } from '@/lib/estado-comprador'
+import { parsearCampos } from '@/lib/campos'
+import {
+  recapDatosComprador,
+  resumenCotizacionComprador,
+  textoEmpresasTomaron,
+} from '@/lib/estado-comprador'
 import { prisma } from '@/lib/prisma'
 import { ROLES } from '@/lib/roles'
 import { salir } from '@/server/auth-acciones'
 import { reclamarLeadsAction } from '@/server/leads'
 import { sesionActual } from '@/server/sesion'
 
-/** Panel privado del comprador: fuera del índice y fuera del sitemap. */
+/** Tus cotizaciones: fuera del índice y fuera del sitemap. No es un panel. */
 export const metadata: Metadata = {
-  title: 'Mis cotizaciones',
+  title: 'Tus cotizaciones',
   robots: { index: false, follow: false },
 }
 
@@ -29,7 +35,7 @@ export default async function MisCotizaciones() {
   if (!sesion?.user?.id) {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
-        <h1 className="font-display text-2xl">Mis cotizaciones</h1>
+        <h1 className="font-display text-2xl">Tus cotizaciones</h1>
         <p className="mt-3 text-(--color-tinta-suave)">
           Entra con el teléfono que usaste al cotizar. Te enviamos un código de un solo uso.
         </p>
@@ -56,15 +62,21 @@ export default async function MisCotizaciones() {
       createdAt: true,
       rutValido: true,
       telefonoVerificado: true,
-      rubro: { select: { nombre: true, slug: true } },
+      datos: true,
+      rubro: { select: { nombre: true, slug: true, camposFormulario: true } },
       comuna: { select: { nombre: true, slug: true } },
+      _count: {
+        select: {
+          compras: { where: { estado: EstadoCompraLead.PAGADA } },
+        },
+      },
     },
   })
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:py-14">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl sm:text-3xl">Mis cotizaciones</h1>
+        <h1 className="font-display text-2xl sm:text-3xl">Tus cotizaciones</h1>
         <form action={salir}>
           <button
             type="submit"
@@ -92,6 +104,11 @@ export default async function MisCotizaciones() {
         <ul className="mt-8 space-y-4">
           {cotizaciones.map((cotizacion) => {
             const resumen = resumenCotizacionComprador(cotizacion)
+            const recap = recapDatosComprador(
+              cotizacion.datos,
+              parsearCampos(cotizacion.rubro.camposFormulario),
+            )
+            const empresas = textoEmpresasTomaron(cotizacion._count.compras)
             return (
               <li
                 key={cotizacion.id}
@@ -108,8 +125,19 @@ export default async function MisCotizaciones() {
                 <p className="mt-2 inline-block rounded-full bg-(--color-papel) px-3 py-1 text-sm">
                   {resumen.estado}
                 </p>
+                {recap.length > 0 ? (
+                  <dl className="mt-3 space-y-1 text-sm">
+                    {recap.map((linea) => (
+                      <div key={linea.etiqueta}>
+                        <dt className="text-(--color-tinta-suave)">{linea.etiqueta}</dt>
+                        <dd>{linea.valor}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+                <p className="mt-3 text-sm">{empresas}</p>
                 {resumen.siguiente ? (
-                  <p className="mt-3 text-sm text-(--color-tinta-suave)">{resumen.siguiente}</p>
+                  <p className="mt-2 text-sm text-(--color-tinta-suave)">{resumen.siguiente}</p>
                 ) : null}
               </li>
             )

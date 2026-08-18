@@ -38,11 +38,11 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
         <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
           <p className="font-medium">
             {reclamo.reclamados > 0
-              ? 'Listo: tu cotización quedó guardada en tu panel.'
+              ? 'Listo: tu cotización quedó guardada.'
               : 'Tu sesión ya está lista.'}
           </p>
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
-            Desde tu panel ves el estado de tu solicitud.
+            En tus cotizaciones ves lo que pediste y si alguna empresa ya tomó la solicitud.
           </p>
           <Link
             href="/mis-cotizaciones"

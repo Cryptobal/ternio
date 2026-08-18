@@ -127,7 +127,7 @@ cliente. `CUENTA_CREADA` se cuenta una vez por cuenta, no por cotización.
 | `src/app/(seo)/[rubro]/[comuna]` | Página programática con ISR y el formulario de cotización |
 | `src/app/cotizacion/enviada` | Pantalla post-envío: código SMS y sesión |
 | `src/app/entrar` | Reingreso por OTP de teléfono (comprador o proveedor) |
-| `src/app/mis-cotizaciones` | Panel del comprador: estado honesto + próximo paso |
+| `src/app/mis-cotizaciones` | Tus cotizaciones: estado honesto, recap y empresas que tomaron |
 | `src/app/proveedores` | Alta de cuenta de proveedor (RUT + cobertura + OTP) |
 | `src/app/panel` | Cuenta mínima del proveedor; sin marketplace |
 | `src/app/admin/*` | Panel del dueño en `/admin`; 404 si no hay rol ADMIN |

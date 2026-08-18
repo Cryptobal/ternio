@@ -9,10 +9,10 @@ Si algo de este archivo choca con la guía, gana la guía.
 
 1. Llega por Google a `/seguridad`, `/aseo` o `/control-de-plagas` (o `/plagas` → 308),
    o entra a la home y elige un atajo / el selector.
-2. Elige Región → Provincia → Comuna (sin typeahead). Si esa combinación
-   tiene página publicada, va a `/{rubro}/{comuna}` con el formulario
-   listo. Si no, cotiza en `/{rubro}?comuna=` — el formulario acepta las
-   346 comunas.
+2. Elige Región → Provincia → Comuna, un nivel a la vez (sin typeahead).
+   En la home primero elige el servicio; la lista se guarda en una miga.
+   Si esa combinación tiene página publicada, va a `/{rubro}/{comuna}`
+   con el formulario listo. Si no, cotiza en `/{rubro}?comuna=`.
 3. Cotizador de micro-pasos: primero las 3–6 preguntas del rubro (si
    están bien configuradas; si no, se salta al tronco y se loguea sin
    PII), después razón social → RUT → nombre → teléfono → correo.
@@ -25,8 +25,9 @@ Si algo de este archivo choca con la guía, gana la guía.
 6. Si RUT válido + teléfono verificado + rubro nacido en `VENTA`, el
    lead pasa a `VERIFICADO` (`verificadoAt`). Si abandona sin OTP, queda
    en revisión del admin.
-7. `/mis-cotizaciones`: estado real (recibida, en revisión, verificada,
-   lista de espera, descartada).
+7. `/mis-cotizaciones` (tus cotizaciones, no un panel): estado real,
+   recap de lo que pidió y cuántas empresas (`CompraLead` PAGADA) ya
+   tienen los datos. Cero se dice en simple.
 
 El comprador nunca paga. Nadie le vende su teléfono a un proveedor sin
 `CompraLead`.
