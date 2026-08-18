@@ -48,8 +48,21 @@ describe('validarModoRubro', () => {
     expect(validarModoRubro({ ...VENTA_OK, precioExclusivoClp: 0 }).ok).toBe(false)
   })
 
-  it('no exige precios a un rubro en CAPTURA', () => {
-    expect(validarModoRubro(CAPTURA)).toEqual({ ok: true })
+  it('si declara hogar, exige precios de hogar', () => {
+    expect(
+      validarModoRubro({
+        ...VENTA_OK,
+        audiencias: ['hogar', 'empresa'],
+      }).ok,
+    ).toBe(false)
+    expect(
+      validarModoRubro({
+        ...VENTA_OK,
+        audiencias: ['hogar', 'empresa'],
+        precioExclusivoHogarClp: 8_000,
+        precioCompartidoHogarClp: 3_000,
+      }),
+    ).toEqual({ ok: true })
   })
 })
 

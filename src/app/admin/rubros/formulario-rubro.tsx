@@ -34,8 +34,11 @@ type RubroForm = {
   modo: ModoRubro
   activo: boolean
   orden: number
+  audiencias?: string[]
   precioExclusivoClp: number | null
   precioCompartidoClp: number | null
+  precioExclusivoHogarClp?: number | null
+  precioCompartidoHogarClp?: number | null
   camposFormulario?: unknown
 }
 
@@ -117,44 +120,108 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
           {errores.modo ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.modo}</p> : null}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="precioExclusivoClp" className="mb-1 block text-sm font-medium">
-              Precio exclusivo (CLP)
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium">Audiencias</legend>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex min-h-11 items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="audiencias"
+                value="empresa"
+                defaultChecked={(rubro?.audiencias ?? ['empresa']).includes('empresa')}
+              />
+              Empresa
             </label>
-            <input
-              id="precioExclusivoClp"
-              name="precioExclusivoClp"
-              className={CLASE_CAMPO}
-              inputMode="numeric"
-              defaultValue={rubro?.precioExclusivoClp ?? ''}
-              placeholder={preciosSeed ? String(preciosSeed.precioExclusivoClp) : ''}
-            />
-            {errores.precioExclusivoClp ? (
-              <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioExclusivoClp}</p>
-            ) : null}
+            <label className="flex min-h-11 items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="audiencias"
+                value="hogar"
+                defaultChecked={(rubro?.audiencias ?? []).includes('hogar')}
+              />
+              Casa (hogar)
+            </label>
           </div>
-          <div>
-            <label htmlFor="precioCompartidoClp" className="mb-1 block text-sm font-medium">
-              Precio compartido (CLP)
-            </label>
-            <input
-              id="precioCompartidoClp"
-              name="precioCompartidoClp"
-              className={CLASE_CAMPO}
-              inputMode="numeric"
-              defaultValue={rubro?.precioCompartidoClp ?? ''}
-              placeholder={preciosSeed ? String(preciosSeed.precioCompartidoClp) : ''}
-            />
-            {errores.precioCompartidoClp ? (
-              <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioCompartidoClp}</p>
-            ) : null}
+          {errores.audiencias ? (
+            <p className="mt-1 text-sm text-(--color-rojo)">{errores.audiencias}</p>
+          ) : null}
+        </fieldset>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3">
+            <p className="text-sm font-medium">Precios empresa</p>
+            <div>
+              <label htmlFor="precioExclusivoClp" className="mb-1 block text-sm">
+                Exclusivo (CLP)
+              </label>
+              <input
+                id="precioExclusivoClp"
+                name="precioExclusivoClp"
+                className={CLASE_CAMPO}
+                inputMode="numeric"
+                defaultValue={rubro?.precioExclusivoClp ?? ''}
+                placeholder={preciosSeed ? String(preciosSeed.precioExclusivoClp) : ''}
+              />
+              {errores.precioExclusivoClp ? (
+                <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioExclusivoClp}</p>
+              ) : null}
+            </div>
+            <div>
+              <label htmlFor="precioCompartidoClp" className="mb-1 block text-sm">
+                Compartido (CLP)
+              </label>
+              <input
+                id="precioCompartidoClp"
+                name="precioCompartidoClp"
+                className={CLASE_CAMPO}
+                inputMode="numeric"
+                defaultValue={rubro?.precioCompartidoClp ?? ''}
+                placeholder={preciosSeed ? String(preciosSeed.precioCompartidoClp) : ''}
+              />
+              {errores.precioCompartidoClp ? (
+                <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioCompartidoClp}</p>
+              ) : null}
+            </div>
+          </div>
+          <div className="grid gap-3">
+            <p className="text-sm font-medium">Precios hogar</p>
+            <div>
+              <label htmlFor="precioExclusivoHogarClp" className="mb-1 block text-sm">
+                Exclusivo (CLP)
+              </label>
+              <input
+                id="precioExclusivoHogarClp"
+                name="precioExclusivoHogarClp"
+                className={CLASE_CAMPO}
+                inputMode="numeric"
+                defaultValue={rubro?.precioExclusivoHogarClp ?? ''}
+              />
+              {errores.precioExclusivoHogarClp ? (
+                <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioExclusivoHogarClp}</p>
+              ) : null}
+            </div>
+            <div>
+              <label htmlFor="precioCompartidoHogarClp" className="mb-1 block text-sm">
+                Compartido (CLP)
+              </label>
+              <input
+                id="precioCompartidoHogarClp"
+                name="precioCompartidoHogarClp"
+                className={CLASE_CAMPO}
+                inputMode="numeric"
+                defaultValue={rubro?.precioCompartidoHogarClp ?? ''}
+              />
+              {errores.precioCompartidoHogarClp ? (
+                <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioCompartidoHogarClp}</p>
+              ) : null}
+            </div>
           </div>
         </div>
         <p className="text-sm text-(--color-tinta-suave)">
-          VENTA exige ambos precios mayores a $0. CAPTURA no. 1 crédito = $1.
+          Si el rubro atiende hogar y no cargas precios de hogar, esos leads no se venden. CAPTURA
+          no exige precios. 1 crédito = $1.
           {preciosSeed
-            ? ` Seed de este rubro: exclusivo ${preciosSeed.precioExclusivoClp} / compartido ${preciosSeed.precioCompartidoClp}.`
+            ? ` Seed empresa: exclusivo ${preciosSeed.precioExclusivoClp} / compartido ${preciosSeed.precioCompartidoClp}.`
             : ''}
         </p>
 

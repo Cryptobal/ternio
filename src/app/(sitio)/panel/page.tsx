@@ -6,6 +6,7 @@ import { PacksCreditos } from '@/app/(sitio)/panel/packs'
 import { TomarLead } from '@/app/(sitio)/panel/tomar-lead'
 import { FormularioCambiarPassword } from '@/components/panel/formulario-cambiar-password'
 import { FichaLead } from '@/components/panel/ficha-lead'
+import { FormularioAudienciaRubro } from '@/components/panel/formulario-audiencia-rubro'
 import { etiquetaModoCobertura, leerSnapshotCobertura, textoCobertura } from '@/lib/cobertura'
 import { formatearClp } from '@/lib/dinero'
 import { flowConfigurado } from '@/lib/flow'
@@ -134,6 +135,16 @@ export default async function PanelProveedor({
       ? `${etiquetaModoCobertura(snapshot.modo)} · ${textoCobertura(snapshot)}`
       : 'Tu cobertura'
 
+  const rubrosSnapshot = snapshot?.rubros ?? []
+  const rubrosInfo =
+    rubrosSnapshot.length > 0
+      ? await prisma.rubro.findMany({
+          where: { slug: { in: rubrosSnapshot } },
+          select: { slug: true, nombre: true },
+          orderBy: { orden: 'asc' },
+        })
+      : []
+
   const rubrosEnLista = [...new Set(disponibles.map((lead) => lead.rubroSlug))]
   const disponiblesFiltrados = rubroFiltro
     ? disponibles.filter((lead) => lead.rubroSlug === rubroFiltro)
@@ -195,6 +206,28 @@ export default async function PanelProveedor({
           </a>
         </div>
       </header>
+
+      {rubrosInfo.length > 0 ? (
+        <section className={`mt-6 ${CLASE_SUPERFICIE}`}>
+          <h2 className="font-display text-xl">¿A quién atiendes?</h2>
+          <p className="mt-1 text-sm text-(--color-tinta-suave)">
+            Por cada rubro: casa, empresa o ambas. Default ambas.
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {rubrosInfo.map((rubro) => (
+              <li key={rubro.slug}>
+                <FormularioAudienciaRubro
+                  rubroSlug={rubro.slug}
+                  nombre={rubro.nombre}
+                  iniciales={
+                    snapshot?.audienciasPorRubro?.[rubro.slug] ?? ['hogar', 'empresa']
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {pago === 'ok' ? (
         <p className="mt-4 rounded-2xl bg-(--color-verde-suave) px-4 py-3 text-sm">

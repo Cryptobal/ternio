@@ -65,6 +65,7 @@ export const PROMESAS_HOME = [
 export type RubroCatalogo = {
   slug: string
   nombre: string
+  audiencias: readonly string[]
 }
 
 export type EnlaceCatalogo = {
@@ -99,7 +100,7 @@ export function enlacesCatalogo(
 
   return ordenAudiencia.map((audiencia) => {
     const items = rubros
-      .filter((rubro) => audienciasDe(rubro.slug).includes(audiencia))
+      .filter((rubro) => audienciasDe(rubro.audiencias).includes(audiencia))
       .map((rubro) => ({
         slug: rubro.slug,
         nombre: rubro.nombre,
@@ -136,9 +137,9 @@ export function combosDestacados(
   }))
 }
 
-/** Fallback documentado: rubro sin entrada en el mapa va a empresa (B2B). */
-export function audienciaCatalogoFallback(slug: string): Audiencia {
-  return audienciasDe(slug)[0] ?? 'empresa'
+/** Fallback si el rubro llega sin audiencias: empresa (B2B). */
+export function audienciaCatalogoFallback(audiencias: unknown): Audiencia {
+  return audienciasDe(audiencias)[0] ?? 'empresa'
 }
 
 export { AUDIENCIAS, ETIQUETA_AUDIENCIA }

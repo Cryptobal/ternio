@@ -36,6 +36,7 @@ function aSelector(rubro: Awaited<ReturnType<typeof rubrosConComunas>>[number]):
     nombrePlural: rubro.nombrePlural,
     descripcion: rubro.descripcion,
     modo: rubro.modo,
+    audiencias: rubro.audiencias,
     comunas: rubro.comunas.map(({ comuna }) => comuna),
   }
 }
@@ -49,6 +50,7 @@ async function rubroPorParam(slugPublico: string) {
       nombrePlural: true,
       descripcion: true,
       modo: true,
+      audiencias: true,
       camposFormulario: true,
     },
   })
@@ -187,6 +189,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
               comunaSlug={comunaPreseleccionada}
               comunas={comunas}
               campos={parsearCampos(rubro.camposFormulario)}
+              audienciasRubro={rubro.audiencias}
               audienciaInicial={audienciaQuery}
               turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
             />

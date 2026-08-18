@@ -30,6 +30,7 @@ function lead(parcial: Partial<LeadMatch> = {}): LeadMatch {
     rutValido: true,
     telefonoVerificado: true,
     verificadoAt: new Date('2026-08-18T11:00:00.000Z'),
+    audiencia: 'empresa',
     ...parcial,
   }
 }

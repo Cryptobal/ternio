@@ -141,7 +141,11 @@ export default async function Proveedores() {
             </p>
           ) : (
             <FormularioCuentaProveedor
-              rubros={rubros.map((rubro) => ({ slug: rubro.slug, nombre: rubro.nombre }))}
+              rubros={rubros.map((rubro) => ({
+                slug: rubro.slug,
+                nombre: rubro.nombre,
+                audiencias: rubro.audiencias,
+              }))}
               comunas={comunas}
             />
           )}

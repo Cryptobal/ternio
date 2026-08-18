@@ -215,6 +215,7 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
               rubroSlug={rubro.slug}
               comunaSlug={comuna.slug}
               campos={campos}
+              audienciasRubro={rubro.audiencias}
               audienciaInicial={audienciaQuery}
               turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
             />

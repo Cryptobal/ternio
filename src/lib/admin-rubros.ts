@@ -1,5 +1,6 @@
 import { ModoRubro } from '@prisma/client'
 
+import { parsearAudienciasEntrada, type Audiencia } from '@/lib/audiencia'
 import {
   camposFormularioSchema,
   parsearCampos,
@@ -35,8 +36,11 @@ export type DatosRubroEscritos = {
   modo: ModoRubro
   activo: boolean
   orden: number
+  audiencias: Audiencia[]
   precioExclusivoClp: number | null
   precioCompartidoClp: number | null
+  precioExclusivoHogarClp: number | null
+  precioCompartidoHogarClp: number | null
 }
 
 export type ResultadoParseoRubro =
@@ -69,8 +73,11 @@ export function parsearDatosRubro(entrada: {
   modo?: unknown
   activo?: unknown
   orden?: unknown
+  audiencias?: unknown
   precioExclusivoClp?: unknown
   precioCompartidoClp?: unknown
+  precioExclusivoHogarClp?: unknown
+  precioCompartidoHogarClp?: unknown
 }): ResultadoParseoRubro {
   const errores: Record<string, string> = {}
   const nombre = texto(entrada.nombre)
@@ -96,10 +103,15 @@ export function parsearDatosRubro(entrada: {
     entrada.activo === 'on' ||
     entrada.activo === '1'
 
+  const audienciasParse = parsearAudienciasEntrada(entrada.audiencias)
+  if (!audienciasParse.ok) errores.audiencias = audienciasParse.motivo
+
   const precioExclusivoClp = parsearPrecioClp(entrada.precioExclusivoClp)
   const precioCompartidoClp = parsearPrecioClp(entrada.precioCompartidoClp)
+  const precioExclusivoHogarClp = parsearPrecioClp(entrada.precioExclusivoHogarClp)
+  const precioCompartidoHogarClp = parsearPrecioClp(entrada.precioCompartidoHogarClp)
 
-  if (Object.keys(errores).length > 0) {
+  if (Object.keys(errores).length > 0 || !audienciasParse.ok) {
     return { ok: false, errores, motivo: 'Revisa los datos marcados.' }
   }
 
@@ -111,22 +123,34 @@ export function parsearDatosRubro(entrada: {
     modo,
     activo,
     orden: Number.isInteger(orden) ? orden : 100,
+    audiencias: audienciasParse.audiencias,
     precioExclusivoClp,
     precioCompartidoClp,
+    precioExclusivoHogarClp,
+    precioCompartidoHogarClp,
   }
 
   const validacion = validarModoRubro({
     modo: datos.modo,
     activo: true,
+    audiencias: datos.audiencias,
     precioExclusivoClp: datos.precioExclusivoClp,
     precioCompartidoClp: datos.precioCompartidoClp,
+    precioExclusivoHogarClp: datos.precioExclusivoHogarClp,
+    precioCompartidoHogarClp: datos.precioCompartidoHogarClp,
   })
   if (!validacion.ok) {
-    if ((datos.precioExclusivoClp ?? 0) <= 0) {
+    if (datos.audiencias.includes('empresa') && (datos.precioExclusivoClp ?? 0) <= 0) {
       errores.precioExclusivoClp = validacion.motivo
     }
-    if ((datos.precioCompartidoClp ?? 0) <= 0) {
+    if (datos.audiencias.includes('empresa') && (datos.precioCompartidoClp ?? 0) <= 0) {
       errores.precioCompartidoClp = validacion.motivo
+    }
+    if (datos.audiencias.includes('hogar') && (datos.precioExclusivoHogarClp ?? 0) <= 0) {
+      errores.precioExclusivoHogarClp = validacion.motivo
+    }
+    if (datos.audiencias.includes('hogar') && (datos.precioCompartidoHogarClp ?? 0) <= 0) {
+      errores.precioCompartidoHogarClp = validacion.motivo
     }
     return { ok: false, errores, motivo: validacion.motivo }
   }

@@ -26,9 +26,12 @@ export const SELECT_FICHA_ANONIMA = {
       modo: true,
       precioExclusivoClp: true,
       precioCompartidoClp: true,
+      precioExclusivoHogarClp: true,
+      precioCompartidoHogarClp: true,
     },
   },
   comuna: { select: { slug: true, nombre: true, region: true, provincia: true } },
+  audiencia: true,
 } satisfies Prisma.LeadSelect
 
 export type FichaAnonimaLead = Prisma.LeadGetPayload<{

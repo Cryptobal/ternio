@@ -20,8 +20,11 @@ export default async function AdminRubroEditar({ params }: { params: Promise<{ i
       modo: true,
       activo: true,
       orden: true,
+      audiencias: true,
       precioExclusivoClp: true,
       precioCompartidoClp: true,
+      precioExclusivoHogarClp: true,
+      precioCompartidoHogarClp: true,
       camposFormulario: true,
     },
   })

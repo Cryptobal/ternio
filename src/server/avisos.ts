@@ -26,10 +26,12 @@ import {
 import { SELECT_FICHA_ANONIMA } from '@/lib/ficha-anonima'
 import {
   leadSePuedeVender,
+  precioBasePorAudiencia,
   precioVigente,
   type LeadMatch,
   type ProveedorMatch,
 } from '@/lib/matching'
+import { parsearAudiencia } from '@/lib/audiencia'
 import { prisma } from '@/lib/prisma'
 
 function leadMatchDesdeFicha(lead: {
@@ -38,6 +40,7 @@ function leadMatchDesdeFicha(lead: {
   rutValido: boolean
   telefonoVerificado: boolean
   verificadoAt: Date | null
+  audiencia?: string | null
   rubro: { slug: string }
   comuna: { slug: string; region: string; provincia: string }
 }): LeadMatch {
@@ -51,6 +54,7 @@ function leadMatchDesdeFicha(lead: {
     rutValido: lead.rutValido,
     telefonoVerificado: lead.telefonoVerificado,
     verificadoAt: lead.verificadoAt,
+    audiencia: parsearAudiencia(lead.audiencia) ?? null,
   }
 }
 
@@ -59,7 +63,12 @@ function proveedorMatchDesdeFila(proveedor: {
   coberturaNacional: boolean
   slug: string
   solicitudEspera: unknown
-  coberturas: Array<{ activa: boolean; rubro: { slug: string }; comuna: { slug: string } }>
+  coberturas: Array<{
+    activa: boolean
+    audiencias?: string[]
+    rubro: { slug: string }
+    comuna: { slug: string }
+  }>
 }): ProveedorMatch {
   return {
     estado: proveedor.estado,
@@ -70,6 +79,7 @@ function proveedorMatchDesdeFila(proveedor: {
       activa: fila.activa,
       rubroSlug: fila.rubro.slug,
       comunaSlug: fila.comuna.slug,
+      audiencias: fila.audiencias,
     })),
   }
 }
@@ -104,6 +114,7 @@ export async function avisarProveedoresLeadVerificado(leadId: string): Promise<v
           where: { activa: true },
           select: {
             activa: true,
+            audiencias: true,
             rubro: { select: { slug: true } },
             comuna: { select: { slug: true } },
           },
@@ -112,11 +123,20 @@ export async function avisarProveedoresLeadVerificado(leadId: string): Promise<v
     })
 
     const ahora = new Date()
+    const audiencia = parsearAudiencia(lead.audiencia) ?? null
     const ficha = {
       rubro: lead.rubro.nombre,
       comuna: lead.comuna.nombre,
-      precioExclusivoClp: precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahora),
-      precioCompartidoClp: precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahora),
+      precioExclusivoClp: precioVigente(
+        precioBasePorAudiencia({ audiencia, tipo: 'EXCLUSIVO', rubro: lead.rubro }),
+        lead.verificadoAt,
+        ahora,
+      ),
+      precioCompartidoClp: precioVigente(
+        precioBasePorAudiencia({ audiencia, tipo: 'COMPARTIDO', rubro: lead.rubro }),
+        lead.verificadoAt,
+        ahora,
+      ),
     }
     const cuerpo = correoAvisoLead(ficha)
     const destinos = proveedoresAAvisar(

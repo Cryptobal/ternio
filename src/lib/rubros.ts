@@ -1,5 +1,7 @@
 import { EstadoLead, ModoRubro } from '@prisma/client'
 
+import { audienciasDe } from '@/lib/audiencia'
+
 /**
  * Reglas de negocio de los rubros. Un rubro es configuración en base de datos,
  * así que estas reglas se validan en servidor cada vez que se lee o se edita
@@ -11,19 +13,19 @@ export type RubroConPrecios = {
   activo: boolean
   precioExclusivoClp: number | null
   precioCompartidoClp: number | null
+  precioExclusivoHogarClp?: number | null
+  precioCompartidoHogarClp?: number | null
+  audiencias?: readonly string[] | null
 }
 
 /**
  * Un rubro en CAPTURA nunca vende: publica páginas y acumula demanda en lista
- * de espera. Solo VENTA (con precios cargados) habilita la oferta a proveedores.
+ * de espera. Solo VENTA (con precios cargados por cada audiencia) habilita
+ * la oferta a proveedores.
  */
 export function rubroPuedeVender(rubro: RubroConPrecios): boolean {
-  return (
-    rubro.activo &&
-    rubro.modo === ModoRubro.VENTA &&
-    (rubro.precioExclusivoClp ?? 0) > 0 &&
-    (rubro.precioCompartidoClp ?? 0) > 0
-  )
+  if (!rubro.activo || rubro.modo !== ModoRubro.VENTA) return false
+  return validarModoRubro(rubro).ok
 }
 
 export type ResultadoValidacionModo =
@@ -31,17 +33,37 @@ export type ResultadoValidacionModo =
   | { ok: false; motivo: string }
 
 /**
- * Pasar un rubro a VENTA exige ambos precios > 0. Se valida en servidor antes
- * de escribir: un rubro en VENTA sin precio sería un lead vendible a $0.
+ * Pasar un rubro a VENTA exige precios > 0 para cada audiencia declarada.
  */
 export function validarModoRubro(rubro: RubroConPrecios): ResultadoValidacionModo {
   if (rubro.modo !== ModoRubro.VENTA) return { ok: true }
 
-  if ((rubro.precioExclusivoClp ?? 0) <= 0) {
-    return { ok: false, motivo: 'Para pasar a VENTA necesitas un precio exclusivo mayor a $0.' }
+  const audiencias = audienciasDe(rubro.audiencias)
+
+  if (audiencias.includes('empresa')) {
+    if ((rubro.precioExclusivoClp ?? 0) <= 0) {
+      return { ok: false, motivo: 'Para pasar a VENTA necesitas un precio exclusivo de empresa mayor a $0.' }
+    }
+    if ((rubro.precioCompartidoClp ?? 0) <= 0) {
+      return { ok: false, motivo: 'Para pasar a VENTA necesitas un precio compartido de empresa mayor a $0.' }
+    }
   }
-  if ((rubro.precioCompartidoClp ?? 0) <= 0) {
-    return { ok: false, motivo: 'Para pasar a VENTA necesitas un precio compartido mayor a $0.' }
+
+  if (audiencias.includes('hogar')) {
+    if ((rubro.precioExclusivoHogarClp ?? 0) <= 0) {
+      return {
+        ok: false,
+        motivo:
+          'Este rubro atiende hogar: carga precio exclusivo de hogar mayor a $0 (si no, esos leads no se venden).',
+      }
+    }
+    if ((rubro.precioCompartidoHogarClp ?? 0) <= 0) {
+      return {
+        ok: false,
+        motivo:
+          'Este rubro atiende hogar: carga precio compartido de hogar mayor a $0 (si no, esos leads no se venden).',
+      }
+    }
   }
 
   return { ok: true }

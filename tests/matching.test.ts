@@ -32,6 +32,7 @@ function lead(parcial: Partial<LeadMatch> = {}): LeadMatch {
     rutValido: true,
     telefonoVerificado: true,
     verificadoAt: new Date(ahora.getTime() - 60 * 60 * 1000),
+    audiencia: 'empresa',
     ...parcial,
   }
 }
@@ -305,5 +306,107 @@ describe('proveedorEsDuenioDelLead', () => {
     expect(proveedorEsDuenioDelLead('76.482.113-0', '76482113-0')).toBe(true)
     expect(proveedorEsDuenioDelLead('76.482.113-0', '12.345.678-5')).toBe(false)
     expect(proveedorEsDuenioDelLead(null, '12.345.678-5')).toBe(false)
+  })
+})
+
+describe('matching por audiencia', () => {
+  const leadHogar = () =>
+    lead({
+      rubroSlug: 'control-de-plagas',
+      comunaSlug: 'nunoa',
+      audiencia: 'hogar',
+    })
+
+  it('proveedor solo-empresa no recibe lead de hogar', () => {
+    const soloEmpresa = proveedor({
+      coberturas: [
+        {
+          rubroSlug: 'control-de-plagas',
+          comunaSlug: 'nunoa',
+          activa: true,
+          audiencias: ['empresa'],
+        },
+      ],
+      solicitudEspera: {
+        modo: 'comuna',
+        rubros: ['control-de-plagas'],
+        regiones: [],
+        provincias: [],
+        comunas: ['nunoa'],
+        audienciasPorRubro: { 'control-de-plagas': ['empresa'] },
+      },
+    })
+    expect(proveedorCubreLead(soloEmpresa, leadHogar())).toBe(false)
+  })
+
+  it('proveedor ambas sí recibe lead de hogar', () => {
+    const ambas = proveedor({
+      coberturas: [
+        {
+          rubroSlug: 'control-de-plagas',
+          comunaSlug: 'nunoa',
+          activa: true,
+          audiencias: ['hogar', 'empresa'],
+        },
+      ],
+      solicitudEspera: {
+        modo: 'comuna',
+        rubros: ['control-de-plagas'],
+        regiones: [],
+        provincias: [],
+        comunas: ['nunoa'],
+        audienciasPorRubro: { 'control-de-plagas': ['hogar', 'empresa'] },
+      },
+    })
+    expect(proveedorCubreLead(ambas, leadHogar())).toBe(true)
+  })
+
+  it('lead con audiencia null llega a todos (histórico)', () => {
+    const soloEmpresa = proveedor({
+      coberturas: [
+        {
+          rubroSlug: 'control-de-plagas',
+          comunaSlug: 'nunoa',
+          activa: true,
+          audiencias: ['empresa'],
+        },
+      ],
+      solicitudEspera: {
+        modo: 'comuna',
+        rubros: ['control-de-plagas'],
+        regiones: [],
+        provincias: [],
+        comunas: ['nunoa'],
+        audienciasPorRubro: { 'control-de-plagas': ['empresa'] },
+      },
+    })
+    expect(
+      proveedorCubreLead(
+        soloEmpresa,
+        lead({ rubroSlug: 'control-de-plagas', comunaSlug: 'nunoa', audiencia: null }),
+      ),
+    ).toBe(true)
+  })
+
+  it('cobertura nacional también filtra por audiencia del snapshot', () => {
+    const nacional = proveedor({
+      coberturaNacional: true,
+      coberturas: [],
+      solicitudEspera: {
+        modo: 'nacional',
+        rubros: ['control-de-plagas'],
+        regiones: [],
+        provincias: [],
+        comunas: [],
+        audienciasPorRubro: { 'control-de-plagas': ['empresa'] },
+      },
+    })
+    expect(proveedorCubreLead(nacional, leadHogar())).toBe(false)
+    expect(
+      proveedorCubreLead(
+        nacional,
+        lead({ rubroSlug: 'control-de-plagas', comunaSlug: 'nunoa', audiencia: 'empresa' }),
+      ),
+    ).toBe(true)
   })
 })

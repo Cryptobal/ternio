@@ -43,10 +43,10 @@ describe('contenido-home', () => {
 
   it('enlacesCatalogo: empresa primero, href solo con combos, fallback empresa', () => {
     const rubros = [
-      { slug: 'seguridad', nombre: 'Seguridad privada' },
-      { slug: 'aseo-hogar', nombre: 'Aseo del hogar' },
-      { slug: 'banos-quimicos', nombre: 'Baños químicos' },
-      { slug: 'rubro-raro', nombre: 'Servicio raro' },
+      { slug: 'seguridad', nombre: 'Seguridad privada', audiencias: ['empresa'] },
+      { slug: 'aseo-hogar', nombre: 'Aseo del hogar', audiencias: ['hogar'] },
+      { slug: 'banos-quimicos', nombre: 'Baños químicos', audiencias: ['empresa'] },
+      { slug: 'rubro-raro', nombre: 'Servicio raro', audiencias: ['empresa'] },
     ]
     const grupos = enlacesCatalogo(rubros, [
       { rubro: 'seguridad', comuna: 'las-condes' },
@@ -58,7 +58,7 @@ describe('contenido-home', () => {
     expect(empresa.items.find((i) => i.slug === 'seguridad')?.href).toBe('/seguridad')
     expect(empresa.items.find((i) => i.slug === 'banos-quimicos')?.href).toBeNull()
     expect(empresa.items.find((i) => i.slug === 'rubro-raro')?.href).toBeNull()
-    expect(audienciaCatalogoFallback('rubro-raro')).toBe('empresa')
+    expect(audienciaCatalogoFallback([])).toBe('empresa')
 
     const hogar = grupos[1]!
     expect(hogar.items.find((i) => i.slug === 'aseo-hogar')?.href).toBe('/aseo-hogar')

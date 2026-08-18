@@ -77,6 +77,7 @@ export function FormularioCotizacion({
   comunaSlug,
   comunas = [],
   campos,
+  audienciasRubro = ['empresa'],
   audienciaInicial,
   turnstileSiteKey,
 }: {
@@ -84,6 +85,7 @@ export function FormularioCotizacion({
   comunaSlug?: string
   comunas?: ComunaTerritorio[]
   campos: CampoFormulario[]
+  audienciasRubro?: readonly string[]
   audienciaInicial?: string | null
   turnstileSiteKey: string | undefined
 }) {
@@ -99,7 +101,7 @@ export function FormularioCotizacion({
   const [comenzado, setComenzado] = useState(false)
   const [errorPaso, setErrorPaso] = useState<string | undefined>()
   const [audiencia, setAudiencia] = useState<Audiencia | ''>(() =>
-    audienciaInicialParaPagina(rubroSlug, audienciaInicial),
+    audienciaInicialParaPagina(audienciasRubro, audienciaInicial),
   )
   const errores = estado.errores ?? {}
   const resumenRef = useRef<HTMLDivElement>(null)

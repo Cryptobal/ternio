@@ -6,6 +6,7 @@
  */
 
 import { leerSnapshotCobertura } from '@/lib/cobertura'
+import { audienciasDe, type Audiencia } from '@/lib/audiencia'
 import { normalizarRut } from '@/lib/rut'
 
 export const GARD_VENTANA_MS = 15 * 60 * 1000
@@ -28,7 +29,12 @@ export type ProveedorMatch = {
   coberturaNacional: boolean
   slug: string
   solicitudEspera: unknown
-  coberturas: Array<{ rubroSlug: string; comunaSlug: string; activa: boolean }>
+  coberturas: Array<{
+    rubroSlug: string
+    comunaSlug: string
+    activa: boolean
+    audiencias?: readonly string[]
+  }>
 }
 
 export type LeadMatch = {
@@ -43,6 +49,73 @@ export type LeadMatch = {
   rutValido: boolean
   telefonoVerificado: boolean
   verificadoAt: Date | null
+  /**
+   * hogar | empresa. Null = lead anterior a la migración: compatible con
+   * todos los proveedores y precio de empresa.
+   */
+  audiencia: Audiencia | null
+}
+
+export type PreciosRubroMatch = {
+  precioExclusivoClp: number | null
+  precioCompartidoClp: number | null
+  precioExclusivoHogarClp?: number | null
+  precioCompartidoHogarClp?: number | null
+}
+
+/**
+ * Resuelve el precio base según audiencia del lead, antes de freshness.
+ * Fail-closed: sin precio de hogar no cae al de empresa.
+ */
+export function precioBasePorAudiencia(args: {
+  audiencia: Audiencia | null
+  tipo: TipoToma
+  rubro: PreciosRubroMatch
+}): number | null {
+  const audiencia = args.audiencia ?? 'empresa'
+  if (audiencia === 'hogar') {
+    return args.tipo === 'EXCLUSIVO'
+      ? (args.rubro.precioExclusivoHogarClp ?? null)
+      : (args.rubro.precioCompartidoHogarClp ?? null)
+  }
+  return args.tipo === 'EXCLUSIVO'
+    ? args.rubro.precioExclusivoClp
+    : args.rubro.precioCompartidoClp
+}
+
+/** Audiencias que el proveedor declara para un rubro (filas o snapshot). */
+export function audienciasProveedorParaRubro(
+  proveedor: Pick<ProveedorMatch, 'solicitudEspera' | 'coberturas'>,
+  rubroSlug: string,
+): Audiencia[] {
+  const deFilas = proveedor.coberturas.filter(
+    (fila) => fila.activa !== false && fila.rubroSlug === rubroSlug,
+  )
+  if (deFilas.length > 0) {
+    const primera = deFilas[0]
+    if (primera?.audiencias && primera.audiencias.length > 0) {
+      return audienciasDe(primera.audiencias)
+    }
+  }
+
+  const snap = leerSnapshotCobertura(proveedor.solicitudEspera)
+  const delSnap = snap?.audienciasPorRubro?.[rubroSlug]
+  if (delSnap && delSnap.length > 0) return audienciasDe(delSnap)
+
+  // Sin dato (migración incompleta): no perder avisos.
+  return ['hogar', 'empresa']
+}
+
+/**
+ * Lead.audiencia null (histórico) calza con todos.
+ * Si no, el proveedor debe declarar esa audiencia en el rubro.
+ */
+export function proveedorAtiendeAudiencia(
+  proveedor: Pick<ProveedorMatch, 'solicitudEspera' | 'coberturas'>,
+  lead: Pick<LeadMatch, 'rubroSlug' | 'audiencia'>,
+): boolean {
+  if (lead.audiencia == null) return true
+  return audienciasProveedorParaRubro(proveedor, lead.rubroSlug).includes(lead.audiencia)
 }
 
 export function esSlugGard(slug: string): boolean {
@@ -103,6 +176,7 @@ export function proveedorCubreLead(proveedor: ProveedorMatch, lead: LeadMatch): 
   if (proveedor.estado !== 'APROBADO') return false
   const rubros = slugsRubroDelProveedor(proveedor)
   if (!rubros.includes(lead.rubroSlug)) return false
+  if (!proveedorAtiendeAudiencia(proveedor, lead)) return false
   return geografiaCubreLead(proveedor, lead)
 }
 
