@@ -8,6 +8,8 @@ import { MedidorVisita } from '@/components/medidor-embudo'
 import { OtroServicio } from '@/components/otro-servicio'
 import { parsearCampos } from '@/lib/campos'
 import { combinacionPorSlugs, combinacionesPublicadas } from '@/lib/catalogo'
+import { copyCombo } from '@/lib/seo-contenido'
+import { pathPublicoCombo, pathPublicoRubro, slugBdDesdePublico, slugPublicoDesdeBd } from '@/lib/seo-rutas'
 
 /** ISR: el contenido cambia poco y la página tiene que salir rápido. */
 export const revalidate = 3600
@@ -29,28 +31,37 @@ function leerContenidoSeo(valor: unknown): ContenidoSeo {
 export async function generateStaticParams() {
   const combinaciones = await combinacionesPublicadas()
   return combinaciones.map((combinacion) => ({
-    rubro: combinacion.rubro,
+    rubro: slugPublicoDesdeBd(combinacion.rubro),
     comuna: combinacion.comuna,
   }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { rubro, comuna } = await params
-  const combinacion = await combinacionPorSlugs(rubro, comuna)
+  const combinacion = await combinacionPorSlugs(slugBdDesdePublico(rubro), comuna)
   if (!combinacion) return {}
 
-  const titulo = `${combinacion.rubro.nombrePlural ?? combinacion.rubro.nombre} en ${combinacion.comuna.nombre}`
+  const copy = copyCombo({
+    slugBd: combinacion.rubro.slug,
+    nombreRubro: combinacion.rubro.nombre,
+    nombrePlural: combinacion.rubro.nombrePlural ?? combinacion.rubro.nombre,
+    comuna: combinacion.comuna.nombre,
+    region: combinacion.comuna.region,
+    provincia: combinacion.comuna.provincia,
+  })
+  const path = pathPublicoCombo(combinacion.rubro.slug, combinacion.comuna.slug)
 
   return {
-    title: titulo,
-    description: `Cotiza ${combinacion.rubro.nombre.toLowerCase()} en ${combinacion.comuna.nombre}. Cuéntanos qué necesitas y te contactan empresas de la zona. Cotizar es gratis.`,
-    alternates: { canonical: `/${rubro}/${comuna}` },
+    title: copy.h1,
+    description: copy.description,
+    alternates: { canonical: path },
+    openGraph: { title: copy.h1, description: copy.description, url: path, locale: 'es_CL' },
   }
 }
 
 export default async function PaginaRubroComuna({ params }: Props) {
   const { rubro: rubroSlug, comuna: comunaSlug } = await params
-  const combinacion = await combinacionPorSlugs(rubroSlug, comunaSlug)
+  const combinacion = await combinacionPorSlugs(slugBdDesdePublico(rubroSlug), comunaSlug)
 
   if (!combinacion) notFound()
 
@@ -60,13 +71,23 @@ export default async function PaginaRubroComuna({ params }: Props) {
 
   // El contenido de la combinación manda sobre el del rubro: así cada página
   // {rubro}/{comuna} puede tener texto propio sin tocar código.
+  const generado = copyCombo({
+    slugBd: rubro.slug,
+    nombreRubro: rubro.nombre,
+    nombrePlural: rubro.nombrePlural ?? rubro.nombre,
+    comuna: comuna.nombre,
+    region: comuna.region,
+    provincia: comuna.provincia,
+  })
   const contenidoRubro = leerContenidoSeo(rubro.contenidoSeo)
   const contenidoCombinacion = leerContenidoSeo(combinacion.contenido)
-  const intro = contenidoCombinacion.intro ?? contenidoRubro.intro ?? ''
-  const porQue = contenidoCombinacion.porQue ?? contenidoRubro.porQue ?? ''
+  const intro = contenidoCombinacion.intro ?? generado.intro
+  const porQue = contenidoCombinacion.porQue ?? contenidoRubro.porQue ?? generado.porQue
 
-  const titulo = `${rubro.nombrePlural ?? rubro.nombre} en ${comuna.nombre}`
+  const titulo = generado.h1
   const base = process.env.NEXT_PUBLIC_SITIO_URL ?? 'https://ternio.cl'
+  const pathRubro = pathPublicoRubro(rubro.slug)
+  const pathCombo = pathPublicoCombo(rubro.slug, comuna.slug)
 
   const jsonLd = [
     {
@@ -78,13 +99,13 @@ export default async function PaginaRubroComuna({ params }: Props) {
           '@type': 'ListItem',
           position: 2,
           name: rubro.nombrePlural ?? rubro.nombre,
-          item: `${base}/${rubro.slug}`,
+          item: `${base}${pathRubro}`,
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: comuna.nombre,
-          item: `${base}/${rubro.slug}/${comuna.slug}`,
+          item: `${base}${pathCombo}`,
         },
       ],
     },
@@ -117,7 +138,7 @@ export default async function PaginaRubroComuna({ params }: Props) {
             Inicio
           </Link>
           <span aria-hidden="true"> › </span>
-          <Link href={`/${rubro.slug}`} className="underline-offset-4 hover:underline">
+          <Link href={pathRubro} className="underline-offset-4 hover:underline">
             {rubro.nombrePlural ?? rubro.nombre}
           </Link>
           <span aria-hidden="true"> › </span>

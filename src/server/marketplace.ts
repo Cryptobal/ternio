@@ -1,0 +1,399 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import {
+  EstadoCompraLead,
+  EstadoLead,
+  EstadoProveedor,
+  ModoRubro,
+  Prisma,
+  TipoCompraLead,
+  TipoMovimientoCreditos,
+} from '@prisma/client'
+
+import { SELECT_FICHA_ANONIMA } from '@/lib/ficha-anonima'
+import {
+  esSlugGard,
+  faseVentanaGard,
+  leadSePuedeVender,
+  minutosRestantes,
+  puedeTomarLead,
+  precioVigente,
+  proveedorCubreLead,
+  resumenCupos,
+  type CompraResumen,
+  type LeadMatch,
+  type ProveedorMatch,
+  type TipoToma,
+} from '@/lib/matching'
+import { prisma } from '@/lib/prisma'
+import { saldoProveedor } from '@/server/creditos'
+import { requerirProveedor } from '@/server/sesion'
+
+export type ResultadoToma = { ok: boolean; mensaje: string }
+
+export type ContactoRevelado = {
+  nombreContacto: string
+  email: string
+  telefonoE164: string
+  rutNormalizado: string
+  razonSocial: string | null
+}
+
+export type LeadPanelDisponible = {
+  id: string
+  rubro: string
+  rubroSlug: string
+  comuna: string
+  region: string
+  verificadoAt: Date
+  rutValido: boolean
+  telefonoVerificado: boolean
+  precioExclusivo: number | null
+  precioCompartido: number | null
+  cuposRestantes: number
+  puedeExclusivo: boolean
+  puedeCompartido: boolean
+  reservadoGard: boolean
+  disponibleEnMin: number
+}
+
+export type LeadPanelTomado = LeadPanelDisponible & {
+  tipo: TipoToma
+  contacto: ContactoRevelado
+}
+
+function aLeadMatch(lead: {
+  estado: string
+  modoRubroAlCrear: string
+  rutValido: boolean
+  telefonoVerificado: boolean
+  verificadoAt: Date | null
+  rubro: { slug: string }
+  comuna: { slug: string }
+}): LeadMatch {
+  return {
+    rubroSlug: lead.rubro.slug,
+    comunaSlug: lead.comuna.slug,
+    estado: lead.estado,
+    modoRubroAlCrear: lead.modoRubroAlCrear,
+    rutValido: lead.rutValido,
+    telefonoVerificado: lead.telefonoVerificado,
+    verificadoAt: lead.verificadoAt,
+  }
+}
+
+function aProveedorMatch(proveedor: {
+  estado: string
+  coberturaNacional: boolean
+  slug: string
+  solicitudEspera: unknown
+  coberturas: Array<{ activa: boolean; rubro: { slug: string }; comuna: { slug: string } }>
+}): ProveedorMatch {
+  return {
+    estado: proveedor.estado,
+    coberturaNacional: proveedor.coberturaNacional,
+    slug: proveedor.slug,
+    solicitudEspera: proveedor.solicitudEspera,
+    coberturas: proveedor.coberturas.map((fila) => ({
+      activa: fila.activa,
+      rubroSlug: fila.rubro.slug,
+      comunaSlug: fila.comuna.slug,
+    })),
+  }
+}
+
+async function hayGardQueCalzaLead(lead: LeadMatch): Promise<boolean> {
+  if (lead.rubroSlug !== 'seguridad') return false
+  const gards = await prisma.proveedor.findMany({
+    where: {
+      estado: EstadoProveedor.APROBADO,
+      OR: [{ slug: 'gard-security' }, { slug: { startsWith: 'gard' } }],
+    },
+    select: {
+      estado: true,
+      coberturaNacional: true,
+      slug: true,
+      solicitudEspera: true,
+      coberturas: {
+        where: { activa: true },
+        select: { activa: true, rubro: { select: { slug: true } }, comuna: { select: { slug: true } } },
+      },
+    },
+  })
+  return gards.some((gard) => proveedorCubreLead(aProveedorMatch(gard), lead))
+}
+
+export async function cargarPanelProveedor(usuarioId: string) {
+  const proveedor = await prisma.proveedor.findUnique({
+    where: { usuarioId },
+    select: {
+      id: true,
+      slug: true,
+      nombre: true,
+      estado: true,
+      coberturaNacional: true,
+      solicitudEspera: true,
+      coberturas: {
+        select: { activa: true, rubro: { select: { slug: true } }, comuna: { select: { slug: true } } },
+      },
+    },
+  })
+
+  if (!proveedor) {
+    return { proveedor: null, saldo: 0, disponibles: [] as LeadPanelDisponible[], tomados: [] as LeadPanelTomado[] }
+  }
+
+  const saldo = await saldoProveedor(proveedor.id)
+  const matchProv = aProveedorMatch(proveedor)
+  const ahora = new Date()
+  const desde = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const [candidatos, comprasPropias] = await Promise.all([
+    prisma.lead.findMany({
+      where: {
+        estado: EstadoLead.VERIFICADO,
+        modoRubroAlCrear: ModoRubro.VENTA,
+        rutValido: true,
+        telefonoVerificado: true,
+        verificadoAt: { gte: desde },
+      },
+      select: {
+        ...SELECT_FICHA_ANONIMA,
+        compras: {
+          where: { estado: EstadoCompraLead.PAGADA },
+          select: { tipo: true, estado: true, proveedorId: true },
+        },
+      },
+      orderBy: { verificadoAt: 'desc' },
+      take: 80,
+    }),
+    prisma.compraLead.findMany({
+      where: { proveedorId: proveedor.id, estado: EstadoCompraLead.PAGADA },
+      select: {
+        tipo: true,
+        lead: {
+          select: {
+            ...SELECT_FICHA_ANONIMA,
+            contacto: {
+              select: {
+                nombreContacto: true,
+                email: true,
+                telefonoE164: true,
+                rutNormalizado: true,
+                razonSocial: true,
+              },
+            },
+            compras: {
+              where: { estado: EstadoCompraLead.PAGADA },
+              select: { tipo: true, estado: true, proveedorId: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ])
+
+  const idsPropios = new Set(comprasPropias.map((compra) => compra.lead.id))
+  const disponibles: LeadPanelDisponible[] = []
+
+  for (const lead of candidatos) {
+    if (idsPropios.has(lead.id)) continue
+    const matchLead = aLeadMatch(lead)
+    if (!leadSePuedeVender(matchLead, ahora)) continue
+    if (!proveedorCubreLead(matchProv, matchLead)) continue
+    const compras: CompraResumen[] = lead.compras
+    const cupos = resumenCupos(compras)
+    if (!cupos.puedeExclusivo && !cupos.puedeCompartido) continue
+    const hayGard = await hayGardQueCalzaLead(matchLead)
+    const gard = faseVentanaGard({
+      rubroSlug: matchLead.rubroSlug,
+      verificadoAt: matchLead.verificadoAt,
+      hayGardQueCalza: hayGard,
+      slugProveedor: proveedor.slug,
+      ahora,
+    })
+    disponibles.push({
+      id: lead.id,
+      rubro: lead.rubro.nombre,
+      rubroSlug: lead.rubro.slug,
+      comuna: lead.comuna.nombre,
+      region: lead.comuna.region,
+      verificadoAt: lead.verificadoAt ?? lead.createdAt,
+      rutValido: lead.rutValido,
+      telefonoVerificado: lead.telefonoVerificado,
+      precioExclusivo: precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahora),
+      precioCompartido: precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahora),
+      cuposRestantes: cupos.cuposCompartidoRestantes,
+      puedeExclusivo: cupos.puedeExclusivo && Boolean(precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahora)),
+      puedeCompartido:
+        cupos.puedeCompartido && Boolean(precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahora)),
+      reservadoGard: gard.fase === 'reservado',
+      disponibleEnMin: gard.fase === 'reservado' ? minutosRestantes(gard.restanteMs) : 0,
+    })
+  }
+
+  const tomados: LeadPanelTomado[] = comprasPropias.flatMap((compra) => {
+    const lead = compra.lead
+    if (!lead.contacto) return []
+    const ahoraLocal = new Date()
+    const compras: CompraResumen[] = lead.compras
+    const cupos = resumenCupos(compras)
+    return [
+      {
+        id: lead.id,
+        rubro: lead.rubro.nombre,
+        rubroSlug: lead.rubro.slug,
+        comuna: lead.comuna.nombre,
+        region: lead.comuna.region,
+        verificadoAt: lead.verificadoAt ?? lead.createdAt,
+        rutValido: lead.rutValido,
+        telefonoVerificado: lead.telefonoVerificado,
+        precioExclusivo: precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahoraLocal),
+        precioCompartido: precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahoraLocal),
+        cuposRestantes: cupos.cuposCompartidoRestantes,
+        puedeExclusivo: false,
+        puedeCompartido: false,
+        reservadoGard: false,
+        disponibleEnMin: 0,
+        tipo: compra.tipo,
+        contacto: lead.contacto,
+      },
+    ]
+  })
+
+  return { proveedor, saldo, disponibles, tomados }
+}
+
+export async function tomarLeadAction(
+  _previo: ResultadoToma,
+  formData: FormData,
+): Promise<ResultadoToma> {
+  const sesion = await requerirProveedor()
+  const leadId = String(formData.get('leadId') ?? '')
+  const tipoBruto = String(formData.get('tipo') ?? '')
+  const tipo: TipoToma | null = tipoBruto === 'EXCLUSIVO' || tipoBruto === 'COMPARTIDO' ? tipoBruto : null
+  if (!leadId || !tipo) return { ok: false, mensaje: 'Falta el tipo de toma.' }
+
+  try {
+    const mensaje = await prisma.$transaction(
+      async (tx) => {
+        const proveedor = await tx.proveedor.findUnique({
+          where: { usuarioId: sesion.user.id },
+          select: {
+            id: true,
+            slug: true,
+            estado: true,
+            coberturaNacional: true,
+            solicitudEspera: true,
+            coberturas: {
+              select: { activa: true, rubro: { select: { slug: true } }, comuna: { select: { slug: true } } },
+            },
+          },
+        })
+        if (!proveedor || proveedor.estado !== EstadoProveedor.APROBADO) {
+          throw new Error('Tu cuenta todavía no puede tomar compradores.')
+        }
+
+        const lead = await tx.lead.findUnique({
+          where: { id: leadId },
+          select: {
+            ...SELECT_FICHA_ANONIMA,
+            compras: {
+              where: { estado: EstadoCompraLead.PAGADA },
+              select: { tipo: true, estado: true, proveedorId: true },
+            },
+          },
+        })
+        if (!lead) throw new Error('No encontramos ese comprador.')
+
+        const yaMio = lead.compras.some((compra) => compra.proveedorId === proveedor.id)
+        if (yaMio) return 'Este contacto ya es tuyo.'
+
+        const ahora = new Date()
+        const matchLead = aLeadMatch(lead)
+        const matchProv = aProveedorMatch(proveedor)
+        const hayGard = await hayGardQueCalzaEnTx(tx, matchLead)
+        const precioBase =
+          tipo === 'EXCLUSIVO' ? lead.rubro.precioExclusivoClp : lead.rubro.precioCompartidoClp
+        const precio = precioVigente(precioBase, lead.verificadoAt, ahora)
+        const saldo = await saldoProveedor(proveedor.id, tx)
+
+        const decision = puedeTomarLead({
+          proveedor: matchProv,
+          lead: matchLead,
+          tipo,
+          compras: lead.compras,
+          saldo,
+          precioClp: precio,
+          hayGardQueCalza: hayGard,
+          ahora,
+        })
+        if (!decision.ok) throw new Error(decision.motivo)
+        if (!precio) throw new Error('Este servicio no tiene precio de venta.')
+
+        const compra = await tx.compraLead.create({
+          data: {
+            leadId: lead.id,
+            proveedorId: proveedor.id,
+            tipo: tipo === 'EXCLUSIVO' ? TipoCompraLead.EXCLUSIVO : TipoCompraLead.COMPARTIDO,
+            precioClp: precio,
+            creditosConsumidos: precio,
+            estado: EstadoCompraLead.PAGADA,
+            contactoReveladoAt: ahora,
+          },
+          select: { id: true },
+        })
+
+        await tx.movimientoCreditos.create({
+          data: {
+            proveedorId: proveedor.id,
+            tipo: TipoMovimientoCreditos.CONSUMO_LEAD,
+            montoCreditos: -precio,
+            saldoPosterior: saldo - precio,
+            compraLeadId: compra.id,
+            descripcion: `Contacto ${tipo === 'EXCLUSIVO' ? 'exclusivo' : 'compartido'}`,
+          },
+        })
+
+        return 'Ya es tuyo. Ahí está el contacto.'
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    )
+
+    revalidatePath('/panel')
+    return { ok: true, mensaje }
+  } catch (error) {
+    const texto = error instanceof Error ? error.message : 'No se pudo tomar.'
+    return { ok: false, mensaje: texto }
+  }
+}
+
+async function hayGardQueCalzaEnTx(tx: Prisma.TransactionClient, lead: LeadMatch): Promise<boolean> {
+  if (lead.rubroSlug !== 'seguridad') return false
+  const gards = await tx.proveedor.findMany({
+    where: {
+      estado: EstadoProveedor.APROBADO,
+      OR: [{ slug: 'gard-security' }, { slug: { startsWith: 'gard' } }],
+    },
+    select: {
+      estado: true,
+      coberturaNacional: true,
+      slug: true,
+      solicitudEspera: true,
+      coberturas: {
+        where: { activa: true },
+        select: { activa: true, rubro: { select: { slug: true } }, comuna: { select: { slug: true } } },
+      },
+    },
+  })
+  return gards.some((gard) => proveedorCubreLead(aProveedorMatch(gard), lead) && esSlugGard(gard.slug))
+}
+
+export async function proveedorDelUsuario(usuarioId: string) {
+  return prisma.proveedor.findUnique({
+    where: { usuarioId },
+    select: { id: true, estado: true, slug: true, nombre: true },
+  })
+}

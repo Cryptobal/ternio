@@ -32,6 +32,7 @@ import { reclamarLeadsPorHash, reclamarLeadsPorTelefono } from '@/lib/reclamo'
 import { enviarSms } from '@/lib/sms'
 import { esMovil, normalizarTelefonoE164 } from '@/lib/telefono'
 import { destinoTrasLogin } from '@/lib/roles'
+import { activarProveedorTrasOtp } from '@/server/creditos'
 import { usuarioActualId } from '@/server/sesion'
 
 export type EstadoOtp = {
@@ -452,6 +453,7 @@ export async function confirmarOtpAction(
       where: { id: otp.usuarioId },
       data: { telefonoE164Verificado: telefonoE164, telefonoVerificadoAt: new Date() },
     })
+    await activarProveedorTrasOtp(otp.usuarioId)
   }
 
   const yaRegistrado = await prisma.eventoAnalitica.findFirst({

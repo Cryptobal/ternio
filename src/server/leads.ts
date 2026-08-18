@@ -164,7 +164,9 @@ export async function crearLeadAction(
   }
 
   const modo = rubro.modo
-  const estado = estadoInicialLead(modo)
+  const pasaAVenta =
+    modo === ModoRubro.VENTA && telefonoYaVerificado
+  const estado = pasaAVenta ? EstadoLead.VERIFICADO : estadoInicialLead(modo)
 
   // El texto libre puede traer nombres, direcciones o teléfonos: vive solo en
   // LeadContacto, nunca en `datos`, que es lo que alimenta la ficha anónima.
@@ -199,6 +201,7 @@ export async function crearLeadAction(
         modoRubroAlCrear: modo,
         rutValido: true,
         telefonoVerificado: telefonoYaVerificado,
+        verificadoAt: pasaAVenta ? new Date() : undefined,
         whatsappOptIn: String(formData.get('whatsappOptIn') ?? '') === 'on',
         compradorUsuarioId,
         claimTokenHash,
@@ -245,11 +248,25 @@ export async function crearLeadAction(
         data: {
           leadId: creado.id,
           tipo: TipoTransicionLead.TELEFONO_VERIFICADO,
-          estadoDesde: estado,
+          estadoDesde: estadoInicialLead(modo),
           estadoHasta: estado,
           actor: ActorTransicion.COMPRADOR,
           actorUsuarioId: compradorUsuarioId,
           nota: 'Teléfono ya verificado en esta cuenta; no se pide de nuevo.',
+        },
+      })
+    }
+
+    if (pasaAVenta) {
+      await tx.transicionLead.create({
+        data: {
+          leadId: creado.id,
+          tipo: TipoTransicionLead.VERIFICADO,
+          estadoDesde: estadoInicialLead(modo),
+          estadoHasta: EstadoLead.VERIFICADO,
+          actor: ActorTransicion.SISTEMA,
+          actorUsuarioId: compradorUsuarioId,
+          nota: 'RUT válido y teléfono ya verificado en esta cuenta.',
         },
       })
     }

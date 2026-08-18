@@ -14,6 +14,10 @@ También: [`docs/como-funciona.md`](./docs/como-funciona.md) (flujos),
 
 `CLAUDE.md` es el prompt maestro histórico (fases, stack, reglas duras).
 
+La app cubre el contrato operativo de la guía: cotizar, tomar contactos
+en `/panel` y operar desde `/admin`. Flow recarga packs si hay
+`FLOW_API_KEY` / `FLOW_SECRET_KEY`; el pack de arranque no depende de eso.
+
 ## Stack
 
 Next.js 15 (App Router) · TypeScript estricto · Prisma + PostgreSQL (Neon) ·

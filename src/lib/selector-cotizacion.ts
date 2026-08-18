@@ -1,7 +1,9 @@
+import { pathPublicoCombo, pathPublicoRubro } from '@/lib/seo-rutas'
+
 /**
  * Destino del selector de cotización de la home.
  *
- * Combo publicado (RubroComuna activa) → /{rubro}/{comuna}
+ * Combo publicado (RubroComuna activa) → URL pública canónica
  * Comuna sin página SEO → /{rubro}?comuna=
  * Sin comuna → /{rubro}
  */
@@ -23,9 +25,9 @@ export function destinoSelector(
   publicado = false,
 ): string {
   const comuna = comunaSlug?.trim()
-  if (comuna && publicado) return `/${rubro.slug}/${comuna}`
-  if (comuna) return `/${rubro.slug}?comuna=${encodeURIComponent(comuna)}`
-  return `/${rubro.slug}`
+  if (comuna && publicado) return pathPublicoCombo(rubro.slug, comuna)
+  if (comuna) return `${pathPublicoRubro(rubro.slug)}?comuna=${encodeURIComponent(comuna)}`
+  return pathPublicoRubro(rubro.slug)
 }
 
 export function claveCombo(rubroSlug: string, comunaSlug: string): string {

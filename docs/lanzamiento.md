@@ -49,23 +49,42 @@ indexó ni que hay proveedores comprando.
 
 - [ ] `ADMIN_EMAIL` + `ADMIN_PASSWORD_HASH` (`pnpm hash:password`).
 - [ ] Entrar a `/admin/ingresar`. Un no-admin ve 404.
-- [ ] Home: tres números + listas. Aprobar un proveedor (carga 200.000).
-- [ ] Cargar créditos a mano. Suspender si hace falta.
-- [ ] Verificar / descartar un lead. Ver PII y quién lo compró.
+- [ ] Home: tres números + listas. Suspender si hace falta.
+- [ ] Verificar / descartar un lead. Ver PII, saldo y quién lo compró.
+- [ ] No hace falta cargar créditos a mano: el alta los acredita sola.
 
 ## Proveedor (un caso real)
 
-- [ ] Crear cuenta en `/proveedores` con celular propio.
-- [ ] Aprobarla en admin (o usar Gard si ya tiene usuario).
-- [ ] Confirmar saldo en `/panel`.
+- [ ] Crear cuenta en `/proveedores` con celular propio y confirmar OTP.
+- [ ] Queda `APROBADO` y con 200.000 créditos, sin pasar por admin.
+- [ ] Confirmar saldo en `/panel`. Recarga = packs Flow (si
+      `FLOW_API_KEY` + `FLOW_SECRET_KEY` están; en Vercel ya están).
 - [ ] Ver un lead anónimo que calce. Tomar compartido o exclusivo.
 - [ ] Recién ahí ver teléfono / correo / RUT. Ledger con un
       `CONSUMO_LEAD` negativo.
 - [ ] Segundo proveedor: exclusivo bloquea; compartido admite hasta 3.
 
+## Flow (recarga; no bloquea el pack de arranque)
+
+En Vercel del proyecto ternio (Gard Security) **ya existen**
+`FLOW_API_KEY` y `FLOW_SECRET_KEY` (Production + Preview). No hay
+`MERCADOPAGO_*`. No pedir MercadoPago.
+
+Env que lee la app (`process.env`, sin inventar valores):
+
+- `FLOW_API_KEY`
+- `FLOW_SECRET_KEY`
+- `FLOW_API_URL` (opcional; default `https://www.flow.cl/api`)
+- `FLOW_SANDBOX` (opcional; `true`/`1` → `https://sandbox.flow.cl/api`)
+
+Confirmación: `https://ternio.cl/api/flow/confirmacion` (Flow POST
+`token` → Ternio `getStatus` → asiento `COMPRA_PACK` si status 2).
+Retorno del pagador: `/api/flow/retorno` → `/panel?pago=`.
+Sin estas env en local, el pack de arranque igual funciona; la UI de
+packs lo dice.
+
 ## Lo que NO hay que esperar mañana
 
-- Packs MercadoPago
 - WhatsApp
 - Mail automático al verificar
 - 346 comunas × rubro con página propia

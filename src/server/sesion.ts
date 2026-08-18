@@ -34,8 +34,14 @@ export async function usuarioActualId(): Promise<string | null> {
 export async function requerirProveedor(): Promise<Session> {
   const sesion = await auth()
   if (!sesion?.user?.id) redirect('/entrar')
-  if (sesion.user.rol === RolUsuario.COMPRADOR) redirect('/mis-cotizaciones')
   if (sesion.user.rol !== RolUsuario.PROVEEDOR) notFound()
+  return sesion
+}
+
+/** /panel: el comprador ve un aviso, no lo mandamos al otro lado en silencio. */
+export async function sesionParaPanel(): Promise<Session | null> {
+  const sesion = await auth()
+  if (!sesion?.user?.id) redirect('/entrar')
   return sesion
 }
 

@@ -16,7 +16,7 @@ bajo toque, todo self-serve. La apuesta de captación es SEO fuerte.
 ## Stack
 Next.js 15 App Router, TypeScript estricto, Prisma + Neon PostgreSQL,
 Tailwind + shadcn/ui, Auth.js v5 (sesión del comprador por OTP de
-teléfono; Credentials para el admin en /admin), Vercel. Pagos: MercadoPago
+teléfono; Credentials para el admin en /admin), Vercel. Pagos: Flow
 (packs de créditos). Correo transaccional para avisos (Resend o similar).
 Verificación de formulario: Cloudflare Turnstile + OTP por SMS (Twilio).
 Canal WhatsApp: Cloud API oficial de Meta, directa — diferido a Fase 5;
@@ -156,9 +156,9 @@ costo por lead verificado < 50% del precio de venta del lead.
    CompraLead. Cupos y revelación validados en servidor.
 4. Tablero de leads activos: filtros por rubro/comuna, precio según edad
    (freshness pricing determinista), compra directa.
-5. Packs de créditos con MercadoPago: webhooks idempotentes por
-   identificador de pago; nunca marcar pagado sin confirmación de la
-   pasarela. Ledger siempre cuadrado.
+5. Packs de créditos con Flow: confirmación idempotente por
+   commerceOrder/flowOrder; nunca marcar pagado sin getStatus de Flow.
+   Ledger siempre cuadrado.
 6. Flujo de reclamo/reposición con revisión en admin y asiento de reversa.
 ## Fase 4 — Paneles
 1. Proveedor: onboarding self-serve (datos, cobertura por rubro y comunas,
@@ -207,8 +207,9 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
   `control-de-plagas` como path). `/control-de-plagas` es alias 308.
 - Sitemap: nunca 500; fail-soft incluye home + `/seguridad` `/aseo`
   `/plagas`.
-- Créditos de lanzamiento: los carga el admin (`AJUSTE`). MercadoPago
-  sigue siendo fase siguiente, no bloquea operar.
+- Créditos de lanzamiento: automáticos al verificar el celular
+  (`AJUSTE` `alta:{proveedorId}`, 200.000). Recarga = packs Flow, no MercadoPago.
+  El admin no es el cajero.
 - Matching y toma de lead viven en `src/lib/matching.ts` +
   `src/server/marketplace.ts` (este prompt los dejaba en Fase 3).
 - Al aprobar un proveedor se acreditan 200.000 (idempotente). Gard

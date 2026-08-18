@@ -97,27 +97,28 @@ producción (`ternio.cl`), sin mentir.
 
 ### B. Proveedor entra y compra contactos
 
-- `/proveedores` crea cuenta (RUT con DV + OTP de celular). Estado
-  `PENDIENTE` hasta que el admin apruebe.
-- El admin aprueba **y** carga créditos (`AJUSTE`). MercadoPago es fase
-  siguiente; sin él, el admin carga. Al aprobar se acreditan 200.000
-  créditos, una sola vez por aprobación (idempotente).
-- `/panel`: si está pendiente, un mensaje claro, sin lista de leads. Si
-  está aprobado: compradores que calzan cobertura (nacional **o** fila
-  `Cobertura` activa de proveedor + rubro + comuna). Ficha anónima. Precio
-  visible. Tomar exclusivo o compartido. Recién ahí ve teléfono, correo,
-  RUT y razón social.
+- `/proveedores` crea cuenta (RUT con DV + OTP de celular).
+- Al verificar el celular, si el RUT es válido, la cuenta queda
+  **APROBADA** sola y el sistema acredita 200.000 créditos (`AJUSTE`,
+  `idempotencyKey = alta:{proveedorId}`). Carlos no carga créditos.
+- `/panel`: si el celular aún no se confirma, un mensaje claro, sin lista
+  de leads. Si está aprobado: compradores que calzan cobertura (nacional
+  **o** fila `Cobertura` activa de proveedor + rubro + comuna). Ficha
+  anónima. Precio visible. Tomar exclusivo o compartido. Recién ahí ve
+  teléfono, correo, RUT y razón social.
 - Matching respeta `coberturaNacional`. Gard 15 min en seguridad.
-- Saldo visible. Si es 0: “Pídele a Ternio que te cargue créditos”. Sin
-  botón de pago falso.
+- Saldo visible. Recarga = packs self-serve (50.000 / 200.000 / 500.000)
+  por Flow Checkout. Sin botón “pídele a Ternio”.
 - Ledger cuadrado: 1 crédito = 1 CLP. Nunca un saldo mutable sin asiento.
 
 ### C. Admin opera el negocio
 
 - `/admin` (404 si no es `ADMIN`): de un vistazo, leads por revisar,
-  proveedores pendientes, leads a la venta. Aprobar / rechazar / suspender.
-  Cargar créditos. Verificar / descartar. Ver quién compró qué. Ver PII
+  cuentas nuevas, leads a la venta. Suspender. Reversa si el lead era
+  falso. Verificar / descartar. Ver saldo y quién compró qué. Ver PII
   del comprador (el admin sí puede).
+- El admin **no** es el cajero. Un ajuste de emergencia puede existir
+  escondido; no es el flujo normal.
 - No hace falta SSH ni Prisma Studio para el día a día.
 
 ### D. Documentado en el repo
@@ -136,7 +137,6 @@ es crecimiento.
 
 Soñado (después; **no bloquea** operativa):
 
-- Packs MercadoPago self-serve
 - Aviso email < 60 s al verificar un lead
 - Auto-compra con tope mensual
 - Reposición self-serve (el asiento `REVERSA` ya está en el schema)
@@ -159,7 +159,7 @@ Soñado (después; **no bloquea** operativa):
 | SMS | Twilio (en dev sin keys el código sale en el log) |
 | Antifraude | Cloudflare Turnstile + honeypot |
 | Analítica | GTM-K3F8GGHV (no tocarlo) |
-| Pagos | MercadoPago, **fase siguiente** |
+| Pagos | Flow Checkout (packs de créditos) |
 | WhatsApp | Solo Cloud API oficial, Fase 5 |
 
 Sin dependencias nuevas salvo que sea inevitable. Migraciones solo aditivas.
@@ -202,6 +202,7 @@ Datos y venta:
 | Matching | `src/lib/matching.ts` |
 | Precio / ventana Gard / cupos | `src/lib/matching.ts` (funciones puras) |
 | Tomar lead + ledger | `src/server/marketplace.ts` |
+| Packs / Flow | `src/lib/flow.ts` + `src/server/packs.ts` + `/api/flow/confirmacion` |
 | Acciones admin | `src/server/admin.ts` |
 
 Catálogo: `Rubro.modo` es `VENTA` o `CAPTURA`. Un lead nacido en `CAPTURA`
@@ -261,18 +262,31 @@ sigue viendo la ficha anónima (o deja de verlo si no quedan cupos).
 
 ---
 
-## Créditos (sin MercadoPago)
+## Créditos (automáticos + packs)
+
+Carlos no carga créditos. El sistema sí.
 
 - Ledger: solo asientos. Tipos: `COMPRA_PACK`, `CONSUMO_LEAD`, `REVERSA`,
   `AJUSTE`.
-- Admin “Cargar créditos”: `AJUSTE` positivo con descripción.
-- Al `APROBAR` un proveedor: `AJUSTE` de 200.000, idempotente
-  (`idempotencyKey` por proveedor + motivo de aprobación). No doble-cargar
-  si ya estaba aprobado.
+- **Alta:** al confirmar el celular por OTP, si el RUT tiene DV válido,
+  estado `APROBADO` + `AJUSTE` de 200.000. Key `alta:{proveedorId}`. Si
+  el asiento ya existe, no duplicar. Si el RUT no es válido, no se aprueba
+  ni se acredita.
+- **Recarga:** packs en `/panel` — 50.000 / 200.000 / 500.000 CLP = esos
+  créditos. Flow Checkout (`flow.cl`). Confirmación: Flow POST `token`
+  a `/api/flow/confirmacion`; Ternio llama `getStatus` y solo acredita
+  status **2**. `idempotencyKey` = `flow:{commerceOrder}` (o
+  `flow:{flowOrder}`). Tipo `COMPRA_PACK`. Nunca acreditar sin
+  confirmación de Flow.
+- Si faltan `FLOW_API_KEY` / `FLOW_SECRET_KEY`, el pack de arranque igual
+  funciona. En Vercel del proyecto ternio esas keys ya están (Production
+  + Preview). Ver `docs/lanzamiento.md`.
+- Admin: puede ver saldo, Suspender y revertir un lead falso (`REVERSA`).
+  No es el flujo de recarga. Un ajuste de emergencia escondido está ok.
 - Semilla Gard Security: si no existe, crear `slug=gard-security`,
   `APROBADO`, `coberturaNacional=true`, rubro seguridad. Si ya existe una
-  fila real Gard, usarla. Si su saldo es 0, cargar 500.000. Sin reseñas
-  inventadas.
+  fila real Gard, usarla. Si su saldo es 0, `AJUSTE` 500.000
+  (`semilla-gard:{id}`). Sin reseñas inventadas.
 
 ---
 

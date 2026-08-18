@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 
+import { pathPublicoCombo, pathPublicoRubro } from '@/lib/seo-rutas'
 import { urlsSitemapFijas } from '@/lib/sitemap-publico'
 
 /**
@@ -24,21 +25,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { combinacionesPublicadas, rubrosActivos } = await import('@/lib/catalogo')
     const [rubros, combinaciones] = await Promise.all([rubrosActivos(), combinacionesPublicadas()])
 
-    return [
-      ...fijas,
+    const extra = [
       ...rubros.map((rubro) => ({
-        url: `${base}/${rubro.slug}`,
+        url: `${base}${pathPublicoRubro(rubro.slug)}`,
         lastModified: ahora,
         changeFrequency: 'weekly' as const,
         priority: 0.8,
       })),
       ...combinaciones.map((combinacion) => ({
-        url: `${base}/${combinacion.rubro}/${combinacion.comuna}`,
+        url: `${base}${pathPublicoCombo(combinacion.rubro, combinacion.comuna)}`,
         lastModified: ahora,
         changeFrequency: 'weekly' as const,
         priority: 0.7,
       })),
     ]
+    const vistos = new Set(fijas.map((item) => item.url))
+    return [...fijas, ...extra.filter((item) => !vistos.has(item.url))]
   } catch (error) {
     console.error(
       '[sitemap] no se pudo armar el catálogo; se publican solo las URLs fijas.',

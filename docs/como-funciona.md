@@ -36,17 +36,14 @@ El comprador nunca paga. Nadie le vende su teléfono a un proveedor sin
 ## B. Proveedor
 
 1. `/proveedores`: empresa, RUT, celular, correo, rubros, cobertura
-   (nacional / región / provincia / comuna). OTP al celular. Estado
-   `PENDIENTE`.
-2. Admin revisa en `/admin/proveedores`. Al **Aprobar**: estado
-   `APROBADO` + 200.000 créditos (`AJUSTE`, una vez). También puede
-   cargar otro monto a mano.
+   (nacional / región / provincia / comuna). OTP al celular.
+2. Al confirmar el código, si el RUT es válido: estado `APROBADO` +
+   200.000 créditos (`AJUSTE`, key `alta:{id}`). Carlos no interviene.
 3. `/entrar` con el mismo celular → `/panel`.
-4. Si sigue `PENDIENTE` (o lo rechazaron / suspendieron): un mensaje
-   claro. Sin lista de compradores.
+4. Si el celular no se confirmó, el RUT no calza, o lo suspendieron: un
+   mensaje claro. Sin lista de compradores.
 5. Si `APROBADO`:
-   - Saldo (suma del ledger). Si 0: “Pídele a Ternio que te cargue
-     créditos”.
+   - Saldo (suma del ledger). Recarga con packs (Flow Checkout).
    - **Compradores disponibles**: leads `VERIFICADO` que calzan
      (ver matching abajo). Ficha anónima: rubro, comuna, región, edad,
      RUT ok / teléfono ok, precio vigente, cupos. Botones “Exclusivo $X”
@@ -68,15 +65,17 @@ link a `/proveedores` (y a `/mis-cotizaciones`).
 Ruta `/admin`. Sin links en el sitio. Fuera del sitemap. **No** está en
 `robots.txt`. Si no hay rol `ADMIN`, 404.
 
-1. Home: tres números (leads por revisar, proveedores pendientes, leads
-   a la venta) + lista de pendientes (Aprobar / Rechazar) + últimos
-   leads (Verificado / Descartar).
+1. Home: tres números (leads por revisar, cuentas nuevas, leads a la
+   venta) + lista de cuentas nuevas + últimos leads (Verificado /
+   Descartar).
 2. `/admin/proveedores`: empresa, RUT, celular confirmado, cobertura,
-   estado, saldo, Aprobar, Suspender, Cargar créditos.
+   estado, saldo, Suspender. Reversa de lead falso. Ajuste de emergencia
+   escondido (no es recarga).
 3. `/admin/compradores` (y `/admin/leads` redirige acá): estado, rubro,
    comuna, RUT ok, tel ok, razón social (PII visible), quién lo compró.
    Verificar / descartar. El detalle `/admin/leads/[id]` sigue existiendo.
-4. No hace falta Prisma Studio para operar.
+4. No hace falta Prisma Studio para operar. El admin no carga el saldo
+   de nadie en el día a día.
 
 ---
 
@@ -130,7 +129,6 @@ Señales de score (correo corporativo, etc.) no excluyen.
 
 ## Qué falta (no bloquea operar)
 
-- MercadoPago (packs self-serve)
 - WhatsApp Cloud API
 - Aviso email < 60 s
 - Auto-compra

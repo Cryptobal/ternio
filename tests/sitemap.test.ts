@@ -11,6 +11,9 @@ describe('sitemap público', () => {
     expect(RUTAS_SITEMAP_FIJAS).toContain('/proveedores')
     expect(urlsSitemapFijas('https://ternio.cl')).toEqual([
       'https://ternio.cl/',
+      'https://ternio.cl/seguridad',
+      'https://ternio.cl/aseo',
+      'https://ternio.cl/plagas',
       'https://ternio.cl/privacidad',
       'https://ternio.cl/terminos',
       'https://ternio.cl/proveedores',
