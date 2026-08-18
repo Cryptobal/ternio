@@ -1,4 +1,5 @@
 import { EstadoLead, EstadoProveedor, ModoRubro } from '@prisma/client'
+import Link from 'next/link'
 
 import { AccionesRapidasLead } from '@/app/admin/acciones-rapidas'
 import { AccionesProveedor } from '@/app/admin/proveedores/acciones-proveedor'
@@ -61,6 +62,11 @@ export default async function AdminInicio() {
   return (
     <>
       <h1 className="text-2xl font-semibold">Hoy</h1>
+      <p className="mt-2 text-sm text-(--color-tinta-suave)">
+        <Link href={rutaAdmin('embudo')} className="underline underline-offset-4">
+          Ver embudo, tráfico y dinero
+        </Link>
+      </p>
       <div className="mt-6 grid gap-3">
         <Numero titulo="Leads por revisar" valor={porRevisar} />
         <Numero titulo="Cuentas nuevas" valor={proveedoresNuevos} />

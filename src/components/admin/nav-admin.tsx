@@ -8,6 +8,7 @@ import { salir } from '@/server/auth-acciones'
 
 const ENLACES = [
   { href: rutaAdmin(), etiqueta: 'Panel' },
+  { href: rutaAdmin('embudo'), etiqueta: 'Embudo' },
   { href: rutaAdmin('compradores'), etiqueta: 'Compradores' },
   { href: rutaAdmin('proveedores'), etiqueta: 'Proveedores' },
   { href: rutaAdmin('demanda'), etiqueta: 'Demanda' },

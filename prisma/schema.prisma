@@ -102,6 +102,8 @@ enum TipoEventoAnalitica {
   FORM_START
   LEAD_CREADO
   CUENTA_CREADA
+  /// Aviso a proveedores tras verificación. Solo se registra en servidor.
+  LEAD_AVISADO
 }
 
 // ---------------------------------------------------------------------------
@@ -538,4 +540,13 @@ model EventoAnalitica {
   @@index([comunaId])
   @@index([leadId])
   @@index([usuarioId])
+}
+
+/// Pares clave/valor del admin (p. ej. inversión Ads por rango del embudo).
+/// Sin secretos: solo parámetros operativos editables desde /admin.
+model ParametroAdmin {
+  clave     String   @id
+  valor     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
