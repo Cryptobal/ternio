@@ -4,18 +4,20 @@ import Link from 'next/link'
 import { MarcarContactado } from '@/app/(sitio)/panel/marcar-contactado'
 import { PacksCreditos } from '@/app/(sitio)/panel/packs'
 import { TomarLead } from '@/app/(sitio)/panel/tomar-lead'
+import { FormularioCambiarPassword } from '@/components/panel/formulario-cambiar-password'
 import { FichaLead } from '@/components/panel/ficha-lead'
 import { etiquetaModoCobertura, leerSnapshotCobertura, textoCobertura } from '@/lib/cobertura'
 import { formatearClp } from '@/lib/dinero'
 import { flowConfigurado } from '@/lib/flow'
+import { prisma } from '@/lib/prisma'
 import { formatearRut } from '@/lib/rut'
-import { ROLES } from '@/lib/roles'
 import { formatearTelefono } from '@/lib/telefono'
 import { CLASE_SUPERFICIE } from '@/lib/ui'
 import { activarProveedorTrasOtp } from '@/server/creditos'
 import { salir } from '@/server/auth-acciones'
+import { capacidadesDe } from '@/server/capacidades'
 import { cargarPanelProveedor, type MovimientoPanel } from '@/server/marketplace'
-import { sesionParaPanel } from '@/server/sesion'
+import { requerirProveedor } from '@/server/sesion'
 
 export const metadata: Metadata = {
   title: 'Tu cuenta de proveedor',
@@ -53,40 +55,21 @@ export default async function PanelProveedor({
 }: {
   searchParams: Promise<{ pago?: string; vista?: string; rubro?: string }>
 }) {
-  const sesion = await sesionParaPanel()
+  const sesion = await requerirProveedor()
   const { pago, vista: vistaBruta, rubro: rubroFiltro } = await searchParams
   const vista: Vista =
     vistaBruta === 'tomados' || vistaBruta === 'movimientos' ? vistaBruta : 'disponibles'
   const pagosListos = flowConfigurado()
 
-  if (sesion?.user.rol === ROLES.COMPRADOR) {
-    return (
-      <div className="mx-auto w-full max-w-xl px-4 py-12">
-        <h1 className="font-display text-3xl">Esta es la cuenta de proveedores</h1>
-        <p className="mt-4 text-lg text-(--color-tinta-suave)">
-          Con este teléfono cotizas servicios. Para vender contactos, crea una
-          cuenta de empresa.
-        </p>
-        <Link
-          href="/proveedores"
-          className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-(--color-marca) px-5 py-3 font-semibold text-white"
-        >
-          Crear cuenta de proveedor
-        </Link>
-        <p className="mt-4 text-sm">
-          <Link href="/mis-cotizaciones" className="underline underline-offset-4">
-            Ir a mis cotizaciones
-          </Link>
-        </p>
-      </div>
-    )
-  }
-
-  if (sesion?.user.rol !== ROLES.PROVEEDOR) {
-    return null
-  }
-
   await activarProveedorTrasOtp(sesion.user.id)
+  const [caps, usuarioAuth, panel] = await Promise.all([
+    capacidadesDe(sesion.user.id),
+    prisma.user.findUnique({
+      where: { id: sesion.user.id },
+      select: { passwordHash: true },
+    }),
+    cargarPanelProveedor(sesion.user.id),
+  ])
   const {
     proveedor,
     saldo,
@@ -96,7 +79,9 @@ export default async function PanelProveedor({
     gastoMesClp,
     comprasMes,
     contactadosMes,
-  } = await cargarPanelProveedor(sesion.user.id)
+  } = panel
+  const sinPassword = !usuarioAuth?.passwordHash
+  const enlaceCotizaciones = caps.tieneCotizaciones
 
   if (!proveedor) {
     return (
@@ -167,13 +152,30 @@ export default async function PanelProveedor({
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-4">
+        {enlaceCotizaciones ? (
+          <Link
+            href="/mis-cotizaciones"
+            className="text-sm underline underline-offset-4"
+          >
+            Ver mis cotizaciones
+          </Link>
+        ) : null}
         <form action={salir}>
           <button type="submit" className="text-sm underline underline-offset-4">
             Cerrar sesión
           </button>
         </form>
       </div>
+
+      {sinPassword ? (
+        <p
+          role="status"
+          className="mt-4 rounded-2xl border border-(--color-ambar) bg-(--color-ambar-suave) px-4 py-3 text-sm"
+        >
+          Crea una contraseña para entrar sin depender del SMS.
+        </p>
+      ) : null}
 
       <header className="mt-2 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -401,6 +403,8 @@ export default async function PanelProveedor({
       <div className="mt-10">
         <PacksCreditos pagosListos={pagosListos} />
       </div>
+
+      <FormularioCambiarPassword sinPassword={sinPassword} />
     </div>
   )
 }

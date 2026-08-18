@@ -11,6 +11,7 @@ import { esRutValido } from '@/lib/rut'
 import type { ComunaTerritorio } from '@/lib/territorio'
 import { Aparecer } from '@/components/ui/motion'
 import { crearCuentaProveedorAction, type EstadoCuentaProveedor } from '@/server/proveedores'
+import { LARGO_MIN_PASSWORD_PROVEEDOR } from '@/lib/cuenta-proveedor'
 import { CLASE_BOTON, CLASE_CAMPO, CLASE_CHIP, CLASE_SUPERFICIE } from '@/lib/ui'
 
 const ESTADO_INICIAL: EstadoCuentaProveedor = { ok: false }
@@ -38,8 +39,10 @@ export function FormularioCuentaProveedor({
   const [estado, accion] = useActionState(crearCuentaProveedorAction, ESTADO_INICIAL)
   const [cobertura, setCobertura] = useState<SeleccionCobertura>(seleccionVacia('nacional'))
   const [rut, setRut] = useState('')
+  const [password, setPassword] = useState('')
   const errores = estado.errores ?? {}
   const rutOk = rut.length > 0 && esRutValido(rut)
+  const passwordOk = password.length >= LARGO_MIN_PASSWORD_PROVEEDOR
 
   if (estado.ok && estado.requiereOtp) {
     return (
@@ -149,6 +152,49 @@ export function FormularioCuentaProveedor({
         </label>
         <input id="email-proveedor" name="email" type="email" className={CLASE_CAMPO} required />
         {errores.email ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.email}</p> : null}
+      </div>
+
+      <div>
+        <label htmlFor="password-proveedor" className="mb-1 block text-sm font-medium">
+          Contraseña
+        </label>
+        <input
+          id="password-proveedor"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          className={CLASE_CAMPO}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          required
+          minLength={LARGO_MIN_PASSWORD_PROVEEDOR}
+        />
+        {password ? (
+          <p className={`mt-1 text-sm ${passwordOk ? 'text-(--color-verde)' : 'text-(--color-tinta-suave)'}`}>
+            {passwordOk
+              ? 'Listo: cumple el mínimo.'
+              : `Mínimo ${LARGO_MIN_PASSWORD_PROVEEDOR} caracteres.`}
+          </p>
+        ) : null}
+        {errores.password ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.password}</p> : null}
+      </div>
+
+      <div>
+        <label htmlFor="password-confirmacion-proveedor" className="mb-1 block text-sm font-medium">
+          Confirma la contraseña
+        </label>
+        <input
+          id="password-confirmacion-proveedor"
+          name="passwordConfirmacion"
+          type="password"
+          autoComplete="new-password"
+          className={CLASE_CAMPO}
+          required
+          minLength={LARGO_MIN_PASSWORD_PROVEEDOR}
+        />
+        {errores.passwordConfirmacion ? (
+          <p className="mt-1 text-sm text-(--color-rojo)">{errores.passwordConfirmacion}</p>
+        ) : null}
       </div>
 
       <BotonEnviar />

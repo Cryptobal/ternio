@@ -48,16 +48,21 @@ describe('copy público sin mentiras de launch', () => {
       resolve(process.cwd(), 'src/app/(sitio)/cotizacion/enviada/page.tsx'),
       'utf8',
     )
-    expect(mis).not.toMatch(/Panel privado|Mi panel|tu panel/i)
+    // La página no se autodenomina panel; el enlace cruzado al panel de proveedor sí.
     expect(mis).toMatch(/Tus cotizaciones/)
+    expect(mis).not.toMatch(/Panel privado|tu panel/i)
+    expect(mis).not.toMatch(/title:\s*['"].*panel/i)
+    expect(mis).toContain('Ir a mi panel de proveedor')
     expect(mis).toContain('EstadoCompraLead.PAGADA')
     expect(mis).not.toContain('LeadContacto')
     expect(enviada).not.toMatch(/tu panel/i)
     expect(enviada).toMatch(/este celular para seguir la solicitud/)
 
     const marco = readFileSync(resolve(process.cwd(), 'src/components/sitio/marco-publico.tsx'), 'utf8')
-    expect(marco).toContain('Ya coticé')
+    expect(marco).toContain('Entrar')
+    expect(marco).not.toContain('Ya coticé')
     expect(marco).toContain('href="/entrar"')
+    expect(marco).toContain('Soy proveedor')
     expect(marco).not.toMatch(/Mi panel/)
 
     const otp = readFileSync(resolve(process.cwd(), 'src/components/formulario-otp.tsx'), 'utf8')

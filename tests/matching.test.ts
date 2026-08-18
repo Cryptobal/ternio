@@ -10,6 +10,7 @@ import {
   puedeTomarLead,
   precioVigente,
   proveedorCubreLead,
+  proveedorEsDuenioDelLead,
   resumenConfirmacionCompra,
   resumenCupos,
   slugsRubroDelProveedor,
@@ -271,5 +272,38 @@ describe('tomar lead · cupos', () => {
   it('sin saldo no toma', () => {
     const resultado = puedeTomarLead({ ...base, tipo: 'COMPARTIDO', compras: [], saldo: 100 })
     expect(resultado.ok).toBe(false)
+  })
+
+  it('bloquea si el RUT del proveedor es el del contacto del lead', () => {
+    const resultado = puedeTomarLead({
+      ...base,
+      tipo: 'COMPARTIDO',
+      compras: [],
+      rutProveedor: '76.482.113-0',
+      rutLeadContacto: '76482113-0',
+    })
+    expect(resultado.ok).toBe(false)
+    if (!resultado.ok) {
+      expect(resultado.motivo).toMatch(/propia empresa/i)
+    }
+  })
+
+  it('permite tomar si los RUT no calzan', () => {
+    const resultado = puedeTomarLead({
+      ...base,
+      tipo: 'COMPARTIDO',
+      compras: [],
+      rutProveedor: '76.482.113-0',
+      rutLeadContacto: '12.345.678-5',
+    })
+    expect(resultado.ok).toBe(true)
+  })
+})
+
+describe('proveedorEsDuenioDelLead', () => {
+  it('compara formas normalizadas del mismo RUT', () => {
+    expect(proveedorEsDuenioDelLead('76.482.113-0', '76482113-0')).toBe(true)
+    expect(proveedorEsDuenioDelLead('76.482.113-0', '12.345.678-5')).toBe(false)
+    expect(proveedorEsDuenioDelLead(null, '12.345.678-5')).toBe(false)
   })
 })

@@ -20,6 +20,7 @@ import {
   puedeTomarLead,
   precioVigente,
   proveedorCubreLead,
+  proveedorEsDuenioDelLead,
   resumenCupos,
   type CompraResumen,
   type LeadMatch,
@@ -170,6 +171,7 @@ export async function cargarPanelProveedor(usuarioId: string) {
       slug: true,
       nombre: true,
       estado: true,
+      rutNormalizado: true,
       coberturaNacional: true,
       solicitudEspera: true,
       coberturas: {
@@ -208,6 +210,8 @@ export async function cargarPanelProveedor(usuarioId: string) {
       },
       select: {
         ...SELECT_FICHA_ANONIMA,
+        // Solo para antifraude servidor→servidor; no se expone en la ficha.
+        contacto: { select: { rutNormalizado: true } },
         compras: {
           where: { estado: EstadoCompraLead.PAGADA },
           select: { tipo: true, estado: true, proveedorId: true },
@@ -292,6 +296,7 @@ export async function cargarPanelProveedor(usuarioId: string) {
 
   for (const lead of candidatos) {
     if (idsPropios.has(lead.id)) continue
+    if (proveedorEsDuenioDelLead(proveedor.rutNormalizado, lead.contacto?.rutNormalizado)) continue
     const matchLead = aLeadMatch(lead)
     if (!leadSePuedeVender(matchLead, ahora)) continue
     if (!proveedorCubreLead(matchProv, matchLead)) continue
@@ -428,6 +433,7 @@ export async function tomarLeadAction(
             id: true,
             slug: true,
             estado: true,
+            rutNormalizado: true,
             coberturaNacional: true,
             solicitudEspera: true,
             coberturas: {
@@ -443,6 +449,7 @@ export async function tomarLeadAction(
           where: { id: leadId },
           select: {
             ...SELECT_FICHA_ANONIMA,
+            contacto: { select: { rutNormalizado: true } },
             compras: {
               where: { estado: EstadoCompraLead.PAGADA },
               select: { tipo: true, estado: true, proveedorId: true },
@@ -472,6 +479,8 @@ export async function tomarLeadAction(
           precioClp: precio,
           hayGardQueCalza: hayGard,
           ahora,
+          rutProveedor: proveedor.rutNormalizado,
+          rutLeadContacto: lead.contacto?.rutNormalizado,
         })
         if (!decision.ok) throw new Error(decision.motivo)
         if (!precio) throw new Error('Este servicio no tiene precio de venta.')

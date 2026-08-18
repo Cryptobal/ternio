@@ -2,10 +2,12 @@ import 'server-only'
 
 import { notFound, redirect } from 'next/navigation'
 import type { Session } from 'next-auth'
-import { RolUsuario } from '@prisma/client'
+import { EstadoProveedor, RolUsuario } from '@prisma/client'
 
 import { auth } from '@/auth'
-import { destinoTrasLogin } from '@/lib/roles'
+import { prisma } from '@/lib/prisma'
+import { capacidadesDe } from '@/server/capacidades'
+import { destinoPorCapacidades } from '@/lib/capacidades'
 
 /**
  * Helpers de sesión del lado del servidor.
@@ -31,14 +33,23 @@ export async function usuarioActualId(): Promise<string | null> {
   return sesion?.user?.id ?? null
 }
 
+/**
+ * Exige perfil de proveedor (no solo el escalar rol) y estado distinto de
+ * RECHAZADO. El resto responde 404: no confirmar que /panel exista.
+ */
 export async function requerirProveedor(): Promise<Session> {
   const sesion = await auth()
   if (!sesion?.user?.id) redirect('/entrar')
-  if (sesion.user.rol !== RolUsuario.PROVEEDOR) notFound()
+
+  const proveedor = await prisma.proveedor.findUnique({
+    where: { usuarioId: sesion.user.id },
+    select: { id: true, estado: true },
+  })
+  if (!proveedor || proveedor.estado === EstadoProveedor.RECHAZADO) notFound()
   return sesion
 }
 
-/** /panel: el comprador ve un aviso, no lo mandamos al otro lado en silencio. */
+/** /panel: sesión iniciada; la página decide aviso vs contenido. */
 export async function sesionParaPanel(): Promise<Session | null> {
   const sesion = await auth()
   if (!sesion?.user?.id) redirect('/entrar')
@@ -47,5 +58,7 @@ export async function sesionParaPanel(): Promise<Session | null> {
 
 export async function redirigirSiHaySesion(): Promise<void> {
   const sesion = await auth()
-  if (sesion?.user?.id) redirect(destinoTrasLogin(sesion.user.rol))
+  if (!sesion?.user?.id) return
+  const caps = await capacidadesDe(sesion.user.id)
+  redirect(destinoPorCapacidades(caps))
 }
