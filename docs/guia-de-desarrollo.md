@@ -368,6 +368,11 @@ GTM-K3F8GGHV ya está. No tocarlo.
 
 ## Qué falta para crecer (no para operar)
 
-Ver “producto soñado”. Además: avisos por correo (Resend ya está en el
-horizonte del prompt maestro; no agregar otro proveedor), matching fino
-sobre `Cobertura.filtrosJson`, y el aviso honesto a las 24 h si nadie toma.
+Ver “producto soñado”. Además: matching fino sobre `Cobertura.filtrosJson`,
+y el aviso honesto a las 24 h si nadie toma.
+
+Avisos Resend (fail-soft si falta `RESEND_API_KEY`): al pasar un lead a
+VERIFICADO se escribe a cada proveedor APROBADO que calza (ficha anónima,
+CTA `/panel`); al tomar (`CompraLead` PAGADA) se escribe al comprador
+sin nombrar la empresa (CTA `/mis-cotizaciones`). Dedup por
+proveedor+lead. Nunca bloquean el lead ni la toma.
