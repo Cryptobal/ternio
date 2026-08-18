@@ -27,6 +27,7 @@ import {
   type TipoToma,
 } from '@/lib/matching'
 import { prisma } from '@/lib/prisma'
+import { toggleContactadoCompra } from '@/lib/contactado'
 import { avisarAdminCompraPagada, avisarCompradorCompraPagada } from '@/server/avisos'
 import { saldoProveedor } from '@/server/creditos'
 import { ensureGardSecurity } from '@/server/gard'
@@ -53,6 +54,8 @@ export type LeadPanelDisponible = {
   telefonoVerificado: boolean
   precioExclusivo: number | null
   precioCompartido: number | null
+  precioBaseExclusivo: number | null
+  precioBaseCompartido: number | null
   cuposRestantes: number
   puedeExclusivo: boolean
   puedeCompartido: boolean
@@ -61,8 +64,32 @@ export type LeadPanelDisponible = {
 }
 
 export type LeadPanelTomado = LeadPanelDisponible & {
+  compraId: string
   tipo: TipoToma
+  precioClp: number
+  compradoAt: Date
+  contactadoEn: Date | null
   contacto: ContactoRevelado
+}
+
+export type MovimientoPanel = {
+  id: string
+  createdAt: Date
+  tipo: TipoMovimientoCreditos
+  montoCreditos: number
+  saldoPosterior: number
+  descripcion: string | null
+}
+
+export type PanelProveedorVacio = {
+  proveedor: null
+  saldo: 0
+  disponibles: LeadPanelDisponible[]
+  tomados: LeadPanelTomado[]
+  movimientos: MovimientoPanel[]
+  gastoMesClp: 0
+  comprasMes: 0
+  contactadosMes: 0
 }
 
 function aLeadMatch(lead: {
@@ -152,15 +179,25 @@ export async function cargarPanelProveedor(usuarioId: string) {
   })
 
   if (!proveedor) {
-    return { proveedor: null, saldo: 0, disponibles: [] as LeadPanelDisponible[], tomados: [] as LeadPanelTomado[] }
+    return {
+      proveedor: null,
+      saldo: 0,
+      disponibles: [] as LeadPanelDisponible[],
+      tomados: [] as LeadPanelTomado[],
+      movimientos: [] as MovimientoPanel[],
+      gastoMesClp: 0,
+      comprasMes: 0,
+      contactadosMes: 0,
+    } satisfies PanelProveedorVacio
   }
 
   const saldo = await saldoProveedor(proveedor.id)
   const matchProv = aProveedorMatch(proveedor)
   const ahora = new Date()
   const desde = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
 
-  const [candidatos, comprasPropias, gards] = await Promise.all([
+  const [candidatos, comprasPropias, gards, movimientosDb, agregadosMes] = await Promise.all([
     prisma.lead.findMany({
       where: {
         estado: EstadoLead.VERIFICADO,
@@ -182,7 +219,11 @@ export async function cargarPanelProveedor(usuarioId: string) {
     prisma.compraLead.findMany({
       where: { proveedorId: proveedor.id, estado: EstadoCompraLead.PAGADA },
       select: {
+        id: true,
         tipo: true,
+        precioClp: true,
+        createdAt: true,
+        contactadoEn: true,
         lead: {
           select: {
             ...SELECT_FICHA_ANONIMA,
@@ -205,6 +246,45 @@ export async function cargarPanelProveedor(usuarioId: string) {
       orderBy: { createdAt: 'desc' },
     }),
     gardsAprobados(prisma),
+    prisma.movimientoCreditos.findMany({
+      where: { proveedorId: proveedor.id },
+      orderBy: { createdAt: 'desc' },
+      take: 60,
+      select: {
+        id: true,
+        createdAt: true,
+        tipo: true,
+        montoCreditos: true,
+        saldoPosterior: true,
+        descripcion: true,
+      },
+    }),
+    Promise.all([
+      prisma.movimientoCreditos.aggregate({
+        where: {
+          proveedorId: proveedor.id,
+          tipo: TipoMovimientoCreditos.CONSUMO_LEAD,
+          montoCreditos: { lt: 0 },
+          createdAt: { gte: inicioMes },
+        },
+        _sum: { montoCreditos: true },
+      }),
+      prisma.compraLead.count({
+        where: {
+          proveedorId: proveedor.id,
+          estado: EstadoCompraLead.PAGADA,
+          createdAt: { gte: inicioMes },
+        },
+      }),
+      prisma.compraLead.count({
+        where: {
+          proveedorId: proveedor.id,
+          estado: EstadoCompraLead.PAGADA,
+          createdAt: { gte: inicioMes },
+          contactadoEn: { not: null },
+        },
+      }),
+    ]),
   ])
 
   const idsPropios = new Set(comprasPropias.map((compra) => compra.lead.id))
@@ -237,6 +317,8 @@ export async function cargarPanelProveedor(usuarioId: string) {
       telefonoVerificado: lead.telefonoVerificado,
       precioExclusivo: precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahora),
       precioCompartido: precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahora),
+      precioBaseExclusivo: lead.rubro.precioExclusivoClp,
+      precioBaseCompartido: lead.rubro.precioCompartidoClp,
       cuposRestantes: cupos.cuposCompartidoRestantes,
       puedeExclusivo: cupos.puedeExclusivo && Boolean(precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahora)),
       puedeCompartido:
@@ -255,6 +337,7 @@ export async function cargarPanelProveedor(usuarioId: string) {
     return [
       {
         id: lead.id,
+        compraId: compra.id,
         rubro: lead.rubro.nombre,
         rubroSlug: lead.rubro.slug,
         comuna: lead.comuna.nombre,
@@ -264,18 +347,66 @@ export async function cargarPanelProveedor(usuarioId: string) {
         telefonoVerificado: lead.telefonoVerificado,
         precioExclusivo: precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahoraLocal),
         precioCompartido: precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahoraLocal),
+        precioBaseExclusivo: lead.rubro.precioExclusivoClp,
+        precioBaseCompartido: lead.rubro.precioCompartidoClp,
         cuposRestantes: cupos.cuposCompartidoRestantes,
         puedeExclusivo: false,
         puedeCompartido: false,
         reservadoGard: false,
         disponibleEnMin: 0,
         tipo: compra.tipo,
+        precioClp: compra.precioClp,
+        compradoAt: compra.createdAt,
+        contactadoEn: compra.contactadoEn,
         contacto: lead.contacto,
       },
     ]
   })
 
-  return { proveedor, saldo, disponibles, tomados }
+  const [gastoAgg, comprasMes, contactadosMes] = agregadosMes
+  const gastoMesClp = Math.abs(gastoAgg._sum.montoCreditos ?? 0)
+
+  return {
+    proveedor,
+    saldo,
+    disponibles,
+    tomados,
+    movimientos: movimientosDb,
+    gastoMesClp,
+    comprasMes,
+    contactadosMes,
+  }
+}
+
+/**
+ * Toggle de «ya contacté». Ownership en servidor; error genérico si la compra
+ * no existe o es de otro proveedor.
+ */
+export async function marcarContactadoAction(
+  _previo: ResultadoToma,
+  formData: FormData,
+): Promise<ResultadoToma> {
+  const sesion = await requerirProveedor()
+  const compraId = String(formData.get('compraId') ?? '')
+  if (!compraId) return { ok: false, mensaje: 'Falta la compra.' }
+
+  const proveedor = await prisma.proveedor.findUnique({
+    where: { usuarioId: sesion.user.id },
+    select: { id: true },
+  })
+  if (!proveedor) return { ok: false, mensaje: 'No encontramos esa compra.' }
+
+  const resultado = await toggleContactadoCompra(prisma, {
+    compraId,
+    proveedorId: proveedor.id,
+  })
+  if (!resultado.ok) return { ok: false, mensaje: resultado.mensaje }
+
+  revalidatePath('/panel')
+  return {
+    ok: true,
+    mensaje: resultado.contactadoEn ? 'Marcado como contactado.' : 'Quedó sin contactar.',
+  }
 }
 
 export async function tomarLeadAction(

@@ -450,6 +450,8 @@ model CompraLead {
   creditosConsumidos Int
   estado             EstadoCompraLead @default(PAGADA)
   contactoReveladoAt DateTime         @default(now())
+  /// Cuando el proveedor marca que ya habló con el contacto (tasa de contacto).
+  contactadoEn       DateTime?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 

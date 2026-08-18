@@ -31,7 +31,7 @@ export function PacksCreditos({ pagosListos }: { pagosListos: boolean }) {
 
   return (
     <Aparecer>
-      <section className={CLASE_SUPERFICIE}>
+      <section id="recargar" className={CLASE_SUPERFICIE}>
         <h2 className="font-display text-xl">Recargar créditos</h2>
         <p className="mt-1 text-sm text-(--color-tinta-suave)">
           1 crédito = $1. Los créditos no vencen.

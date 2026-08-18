@@ -65,6 +65,8 @@ export async function rubrosActivos() {
           nombrePlural: true,
           descripcion: true,
           modo: true,
+          precioExclusivoClp: true,
+          precioCompartidoClp: true,
         },
       }),
     [],
