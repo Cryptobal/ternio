@@ -1,6 +1,8 @@
 import Link from 'next/link'
 
 import { Isotipo, Logo } from '@/components/marca/logo'
+import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
+import { combosDestacados, enlacesCatalogo } from '@/lib/contenido-home'
 
 export function CabeceraPublica() {
   return (
@@ -28,33 +30,123 @@ export function CabeceraPublica() {
   )
 }
 
-export function PiePublico() {
+export async function PiePublico() {
+  const [filas, comunas, combinaciones] = await Promise.all([
+    rubrosConComunas(),
+    comunasActivas(),
+    combinacionesPublicadas(),
+  ])
+
+  const servicios = enlacesCatalogo(
+    filas.map((r) => ({ slug: r.slug, nombre: r.nombre })),
+    combinaciones,
+  )
+    .flatMap((g) => g.items)
+    .filter((item) => item.href)
+    .filter((item, i, arr) => arr.findIndex((x) => x.slug === item.slug) === i)
+    .slice(0, 6)
+
+  const nombreRubro = new Map(filas.map((r) => [r.slug, r.nombre]))
+  const nombreComuna = new Map(comunas.map((c) => [c.slug, c.nombre]))
+  const combos = combosDestacados(
+    combinaciones.flatMap((fila) => {
+      const rubroNombre = nombreRubro.get(fila.rubro)
+      const comunaNombre = nombreComuna.get(fila.comuna)
+      if (!rubroNombre || !comunaNombre) return []
+      return [
+        {
+          rubroSlug: fila.rubro,
+          comunaSlug: fila.comuna,
+          rubroNombre,
+          comunaNombre,
+        },
+      ]
+    }),
+    4,
+  )
+
   return (
     <footer className="border-t border-(--color-linea) bg-white">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3 text-sm text-(--color-tinta-suave)">
-          <Isotipo variante="claro" className="size-7" />
-          <p>
-            <span className="font-medium text-(--color-tinta)">ternio.cl</span>
-            <span aria-hidden="true"> · </span>
-            <Link href="/terminos" className="underline-offset-4 hover:underline">
-              Términos
-            </Link>
-            <span aria-hidden="true"> · </span>
-            <Link href="/privacidad" className="underline-offset-4 hover:underline">
-              Privacidad
-            </Link>
-            <span aria-hidden="true"> · </span>
-            <Link href="/blog" className="underline-offset-4 hover:underline">
-              Blog
-            </Link>
-            <span aria-hidden="true"> · </span>
-            <Link href="/entrar" className="underline-offset-4 hover:underline">
-              Entrar
-            </Link>
-          </p>
+      <div className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex items-start gap-3">
+            <Isotipo variante="claro" className="size-7 shrink-0" />
+            <div>
+              <p className="font-medium text-(--color-tinta)">ternio.cl</p>
+              <p className="mt-1 text-xs text-(--color-tinta-suave)">
+                Cotiza servicios para tu casa o tu empresa.
+              </p>
+            </div>
+          </div>
+
+          {servicios.length > 0 ? (
+            <div>
+              <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">Servicios</p>
+              <ul className="mt-3 space-y-2 text-sm">
+                {servicios.map((item) => (
+                  <li key={item.slug}>
+                    <Link
+                      href={item.href!}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {item.nombre}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {combos.length > 0 ? (
+            <div>
+              <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">
+                Cotiza en tu comuna
+              </p>
+              <ul className="mt-3 space-y-2 text-sm">
+                {combos.map((combo) => (
+                  <li key={combo.href}>
+                    <Link href={combo.href} className="underline-offset-4 hover:underline">
+                      {combo.etiqueta}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <div>
+            <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">Ternio</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <Link href="/proveedores" className="underline-offset-4 hover:underline">
+                  Soy proveedor
+                </Link>
+              </li>
+              <li>
+                <Link href="/entrar" className="underline-offset-4 hover:underline">
+                  Entrar
+                </Link>
+              </li>
+              <li>
+                <Link href="/terminos" className="underline-offset-4 hover:underline">
+                  Términos
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacidad" className="underline-offset-4 hover:underline">
+                  Privacidad
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="underline-offset-4 hover:underline">
+                  Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
-        <p className="text-xs text-(--color-tinta-suave)">
+
+        <p className="mt-8 text-xs text-(--color-tinta-suave)">
           Tratamos tus datos conforme a la Ley 21.719.
         </p>
       </div>

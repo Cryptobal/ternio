@@ -177,6 +177,19 @@ No es parte de “100% operativa”. Crecimiento.
 
 ---
 
+## Interlinking desde la home
+
+La home (`/`) y el footer público enlazan solo a rutas ya publicadas:
+
+- Catálogo: `/{rubro}` si el rubro tiene ≥ 1 fila en `combinacionesPublicadas()`.
+- «Cotiza en tu comuna»: hasta 10 combos `/{rubro}/{comuna}` (seguridad primero).
+- Footer: hasta 6 rubros con página + 4 combos destacados.
+
+No se inventan URLs: todo sale de `combinacionesPublicadas()` + catálogo activo.
+FAQ de la home lleva JSON-LD `FAQPage` (mismas 6 preguntas del copy).
+
+---
+
 ## Qué no hacemos
 
 - No inventar que Google ya indexó.
