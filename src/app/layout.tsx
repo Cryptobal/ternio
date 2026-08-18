@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Archivo, Spline_Sans_Mono } from 'next/font/google'
 
+import { NoscriptGtm, ScriptGtm } from '@/components/gtm'
+
 import './globals.css'
 
 const archivo = Archivo({
@@ -44,7 +46,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es-CL">
-      <body className={`${archivo.variable} ${spline.variable} antialiased`}>{children}</body>
+      <ScriptGtm />
+      <body className={`${archivo.variable} ${spline.variable} antialiased`}>
+        <NoscriptGtm />
+        {children}
+      </body>
     </html>
   )
 }
