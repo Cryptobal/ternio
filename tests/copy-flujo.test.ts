@@ -56,7 +56,7 @@ describe('copy público sin mentiras de launch', () => {
     expect(enviada).toMatch(/este celular para seguir la solicitud/)
 
     const marco = readFileSync(resolve(process.cwd(), 'src/components/sitio/marco-publico.tsx'), 'utf8')
-    expect(marco).toContain('Ya cotizé')
+    expect(marco).toContain('Ya coticé')
     expect(marco).toContain('href="/entrar"')
     expect(marco).not.toMatch(/Mi panel/)
 

@@ -475,7 +475,7 @@ function PasoTronco({
           id === 'email' ? 'email' : id === 'telefono' ? 'tel' : id === 'nombreContacto' ? 'name' : 'organization'
         }
         placeholder={
-          id === 'rut' ? '76.482.113-5' : id === 'telefono' ? '+56 9 8123 4567' : undefined
+          id === 'rut' ? '76.482.113-0' : id === 'telefono' ? '+56 9 8123 4567' : undefined
         }
         className={CLASE_CAMPO}
         value={valor}

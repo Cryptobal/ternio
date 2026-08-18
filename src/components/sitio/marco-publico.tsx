@@ -14,7 +14,7 @@ export function CabeceraPublica() {
             href="/entrar"
             className="inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-white/90 underline-offset-4 transition hover:text-white hover:underline"
           >
-            Ya cotizé
+            Ya coticé
           </Link>
           <Link
             href="/proveedores"
