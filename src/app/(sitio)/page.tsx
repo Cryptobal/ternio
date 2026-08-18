@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { ModoRubro } from '@prisma/client'
 
 import { SelectorCotizacion } from '@/components/selector-cotizacion'
-import { rubrosConComunas } from '@/lib/catalogo'
-import type { RubroSelector } from '@/lib/selector-cotizacion'
+import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
+import { claveCombo, type RubroSelector } from '@/lib/selector-cotizacion'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 function aSelector(rubro: Awaited<ReturnType<typeof rubrosConComunas>>[number]): RubroSelector {
   return {
@@ -19,7 +19,13 @@ function aSelector(rubro: Awaited<ReturnType<typeof rubrosConComunas>>[number]):
 }
 
 export default async function Inicio() {
-  const rubros = (await rubrosConComunas()).map(aSelector)
+  const [filas, comunas, combinaciones] = await Promise.all([
+    rubrosConComunas(),
+    comunasActivas(),
+    combinacionesPublicadas(),
+  ])
+  const rubros = filas.map(aSelector)
+  const publicados = combinaciones.map((fila) => claveCombo(fila.rubro, fila.comuna))
   const enVenta = rubros.filter((rubro) => rubro.modo === ModoRubro.VENTA)
   const enCaptura = rubros.filter((rubro) => rubro.modo === ModoRubro.CAPTURA)
   const rubroConComuna = rubros.find((rubro) => rubro.comunas.length > 0)
@@ -48,7 +54,9 @@ export default async function Inicio() {
           </p>
 
           <div className="mt-8 text-(--color-tinta)">
-            {rubros.length > 0 ? <SelectorCotizacion rubros={rubros} /> : null}
+            {rubros.length > 0 ? (
+              <SelectorCotizacion rubros={rubros} comunas={comunas} publicados={publicados} />
+            ) : null}
           </div>
 
           <ul className="mt-5 flex flex-wrap gap-2 text-sm">
@@ -69,7 +77,7 @@ export default async function Inicio() {
       {rubros.length === 0 ? (
         <div className="mx-auto w-full max-w-5xl px-4 py-12">
           <p className="rounded-2xl border border-(--color-borde) bg-white p-5 text-(--color-tinta-suave) shadow-sm">
-            Estamos preparando el catálogo de servicios. Vuelve en un rato.
+            Aún no hay servicios publicados. Vuelve en un rato.
           </p>
         </div>
       ) : (

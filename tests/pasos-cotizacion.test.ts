@@ -4,6 +4,7 @@ import type { CampoFormulario } from '@/lib/campos'
 import {
   avanzaSoloAlElegir,
   construirPasos,
+  errorDePaso,
   payloadDesdeValores,
 } from '@/lib/pasos-cotizacion'
 
@@ -62,6 +63,28 @@ describe('payloadDesdeValores', () => {
       comuna: 'las-condes',
       ...valores,
     })
+  })
+
+  it('no deja avanzar un paso requerido vacío o un RUT con DV incorrecto', () => {
+    const pasos = construirPasos(CAMPOS, { pideComuna: true })
+    const comuna = pasos.find((paso) => paso.tipo === 'comuna')
+    const cantidad = pasos.find((paso) => paso.id === 'cantidad')
+    const razon = pasos.find((paso) => paso.id === 'razonSocial')
+    const rut = pasos.find((paso) => paso.id === 'rut')
+    const nombre = pasos.find((paso) => paso.id === 'nombreContacto')
+    const telefono = pasos.find((paso) => paso.id === 'telefono')
+    const email = pasos.find((paso) => paso.id === 'email')
+
+    expect(comuna && errorDePaso(comuna, {})).toMatch(/comuna/i)
+    expect(cantidad && errorDePaso(cantidad, {})).toBeUndefined()
+    expect(razon && errorDePaso(razon, { razonSocial: '' })).toMatch(/razón social/i)
+    expect(rut && errorDePaso(rut, { rut: '12.345.678-4' })).toMatch(/dígito verificador/i)
+    expect(rut && errorDePaso(rut, { rut: '12.345.678-5' })).toBeUndefined()
+    expect(nombre && errorDePaso(nombre, { nombreContacto: '   ' })).toMatch(/nombre/i)
+    expect(telefono && errorDePaso(telefono, { telefono: '223456789' })).toMatch(/celular/i)
+    expect(telefono && errorDePaso(telefono, { telefono: '+56 9 1234 5678' })).toBeUndefined()
+    expect(email && errorDePaso(email, { email: 'no-es-correo' })).toMatch(/correo/i)
+    expect(email && errorDePaso(email, { email: 'ana@gmail.com' })).toBeUndefined()
   })
 
   it('conserva las respuestas al reconstruir el payload después de navegar', () => {

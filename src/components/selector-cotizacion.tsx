@@ -3,34 +3,51 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { SelectorTerritorio } from '@/components/selector-territorio'
 import {
+  claveCombo,
   destinoSelector,
   type RubroSelector,
 } from '@/lib/selector-cotizacion'
+import type { ComunaTerritorio } from '@/lib/territorio'
 
 const claseCampo =
   'w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base ' +
   'outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-(--color-ambar)'
 
-export function SelectorCotizacion({ rubros }: { rubros: RubroSelector[] }) {
+export function SelectorCotizacion({
+  rubros,
+  comunas,
+  publicados = [],
+}: {
+  rubros: RubroSelector[]
+  comunas: ComunaTerritorio[]
+  publicados?: string[]
+}) {
   const router = useRouter()
   const enVenta = rubros.filter((rubro) => rubro.modo === 'VENTA')
   const enCaptura = rubros.filter((rubro) => rubro.modo === 'CAPTURA')
   const [slug, setSlug] = useState(enVenta[0]?.slug ?? enCaptura[0]?.slug ?? '')
   const [comunaSlug, setComunaSlug] = useState('')
+  const [error, setError] = useState<string | undefined>()
 
   const rubro = useMemo(
     () => rubros.find((item) => item.slug === slug) ?? null,
     [rubros, slug],
   )
 
-  const comunas = rubro?.modo === 'VENTA' ? (rubro.comunas ?? []) : []
-  const mostrarComuna = comunas.length > 0
+  const publicadosSet = useMemo(() => new Set(publicados), [publicados])
 
   function ir(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!rubro) return
-    router.push(destinoSelector(rubro, mostrarComuna ? comunaSlug || undefined : undefined))
+    if (!comunaSlug) {
+      setError('Elige una comuna.')
+      return
+    }
+    setError(undefined)
+    const publicado = publicadosSet.has(claveCombo(rubro.slug, comunaSlug))
+    router.push(destinoSelector(rubro, comunaSlug, publicado))
   }
 
   if (rubros.length === 0) return null
@@ -40,7 +57,7 @@ export function SelectorCotizacion({ rubros }: { rubros: RubroSelector[] }) {
       onSubmit={ir}
       className="rounded-2xl border border-(--color-borde) bg-white p-4 shadow-sm sm:p-5"
     >
-      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+      <div className="grid gap-3">
         <div>
           <label htmlFor="selector-servicio" className="mb-1 block text-sm font-medium">
             Servicio
@@ -52,7 +69,7 @@ export function SelectorCotizacion({ rubros }: { rubros: RubroSelector[] }) {
             value={slug}
             onChange={(event) => {
               setSlug(event.target.value)
-              setComunaSlug('')
+              setError(undefined)
             }}
           >
             {enVenta.length > 0 ? (
@@ -76,29 +93,19 @@ export function SelectorCotizacion({ rubros }: { rubros: RubroSelector[] }) {
           </select>
         </div>
 
-        {mostrarComuna ? (
-          <div>
-            <label htmlFor="selector-comuna" className="mb-1 block text-sm font-medium">
-              Comuna
-            </label>
-            <select
-              id="selector-comuna"
-              name="comuna"
-              className={claseCampo}
-              value={comunaSlug}
-              onChange={(event) => setComunaSlug(event.target.value)}
-            >
-              <option value="">Todas las comunas</option>
-              {comunas.map((comuna) => (
-                <option key={comuna.slug} value={comuna.slug}>
-                  {comuna.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : (
-          <div className="hidden sm:block" />
-        )}
+        {comunas.length > 0 ? (
+          <SelectorTerritorio
+            comunas={comunas}
+            value={comunaSlug}
+            onChange={(siguiente) => {
+              setComunaSlug(siguiente)
+              setError(undefined)
+            }}
+            idPrefijo="selector-home"
+          />
+        ) : null}
+
+        {error ? <p className="text-sm text-(--color-rojo)">{error}</p> : null}
 
         <button
           type="submit"

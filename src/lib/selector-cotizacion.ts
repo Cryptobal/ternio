@@ -1,9 +1,9 @@
 /**
  * Destino del selector de cotización de la home.
  *
- * VENTA + comuna → /{rubro}/{comuna}
- * VENTA sin comuna → /{rubro}
- * CAPTURA → /{rubro} (lista de espera)
+ * Combo publicado (RubroComuna activa) → /{rubro}/{comuna}
+ * Comuna sin página SEO → /{rubro}?comuna=
+ * Sin comuna → /{rubro}
  */
 
 export type ModoSelector = 'VENTA' | 'CAPTURA'
@@ -20,9 +20,14 @@ export type RubroSelector = {
 export function destinoSelector(
   rubro: Pick<RubroSelector, 'slug' | 'modo'>,
   comunaSlug?: string,
+  publicado = false,
 ): string {
-  if (rubro.modo === 'VENTA' && comunaSlug) {
-    return `/${rubro.slug}/${comunaSlug}`
-  }
+  const comuna = comunaSlug?.trim()
+  if (comuna && publicado) return `/${rubro.slug}/${comuna}`
+  if (comuna) return `/${rubro.slug}?comuna=${encodeURIComponent(comuna)}`
   return `/${rubro.slug}`
+}
+
+export function claveCombo(rubroSlug: string, comunaSlug: string): string {
+  return `${rubroSlug}/${comunaSlug}`
 }

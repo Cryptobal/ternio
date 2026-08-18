@@ -8,6 +8,7 @@ import type { CampoFormulario } from '@/lib/campos'
 import {
   avanzaSoloAlElegir,
   construirPasos,
+  errorDePaso,
   valorComoTexto,
   type PasoCotizacion,
   type ValoresFormulario,
@@ -15,7 +16,9 @@ import {
 import { esRutValido } from '@/lib/rut'
 import { crearLeadAction, type EstadoFormulario } from '@/server/leads'
 import { registrarEventoCliente } from '@/components/medidor-embudo'
+import { SelectorTerritorio } from '@/components/selector-territorio'
 import { Turnstile } from '@/components/turnstile'
+import type { ComunaTerritorio } from '@/lib/territorio'
 
 const ESTADO_INICIAL: EstadoFormulario = { ok: false }
 
@@ -74,7 +77,7 @@ export function FormularioCotizacion({
 }: {
   rubroSlug: string
   comunaSlug?: string
-  comunas?: { slug: string; nombre: string }[]
+  comunas?: ComunaTerritorio[]
   campos: CampoFormulario[]
   turnstileSiteKey: string | undefined
 }) {
@@ -88,10 +91,20 @@ export function FormularioCotizacion({
   )
   const [estado, accion] = useActionState(crearLeadAction, ESTADO_INICIAL)
   const [comenzado, setComenzado] = useState(false)
+  const [errorPaso, setErrorPaso] = useState<string | undefined>()
   const errores = estado.errores ?? {}
   const resumenRef = useRef<HTMLDivElement>(null)
   const paso = pasos[indice] as PasoCotizacion
   const total = pasos.length
+  const errorServidor =
+    paso.tipo === 'modulo'
+      ? errores[paso.campo.nombre]
+      : paso.tipo === 'tronco'
+        ? errores[paso.id]
+        : paso.tipo === 'comuna'
+          ? errores.comuna
+          : undefined
+  const errorVisible = errorPaso ?? errorServidor
 
   function marcarInicio() {
     if (comenzado) return
@@ -100,11 +113,19 @@ export function FormularioCotizacion({
   }
 
   function guardar(id: string, valor: string | string[], avanzar: boolean) {
-    setValores((prev) => ({ ...prev, [id]: valor }))
-    if (avanzar && indice < total - 1) setIndice((actual) => actual + 1)
+    const siguientes = { ...valores, [id]: valor }
+    setValores(siguientes)
+    setErrorPaso(undefined)
+    if (avanzar) intentarAvanzar(siguientes)
   }
 
-  function continuar() {
+  function intentarAvanzar(siguientes: ValoresFormulario = valores) {
+    const error = errorDePaso(paso, siguientes)
+    if (error) {
+      setErrorPaso(error)
+      return
+    }
+    setErrorPaso(undefined)
     if (indice < total - 1) setIndice((actual) => actual + 1)
   }
 
@@ -150,17 +171,16 @@ export function FormularioCotizacion({
       {paso.tipo === 'comuna' ? (
         <fieldset>
           <legend className="text-lg font-medium">{paso.etiqueta}</legend>
-          <div className="mt-3 grid gap-2">
-            {comunas.map((comuna) => (
-              <Chip
-                key={comuna.slug}
-                seleccionado={comunaActual === comuna.slug}
-                onClick={() => guardar('comuna', comuna.slug, true)}
-              >
-                {comuna.nombre}
-              </Chip>
-            ))}
+          <div className="mt-3">
+            <SelectorTerritorio
+              comunas={comunas}
+              value={comunaActual}
+              onChange={(slug) => {
+                if (slug) guardar('comuna', slug, false)
+              }}
+            />
           </div>
+          <Error mensaje={errorVisible} />
         </fieldset>
       ) : null}
 
@@ -168,9 +188,9 @@ export function FormularioCotizacion({
         <PasoModulo
           campo={paso.campo}
           valor={valores[paso.campo.nombre]}
-          error={errores[paso.campo.nombre]}
+          error={errorVisible}
           onElegir={(valor, avanzar) => guardar(paso.campo.nombre, valor, avanzar)}
-          onContinuar={continuar}
+          onContinuar={() => intentarAvanzar()}
         />
       ) : null}
 
@@ -180,9 +200,9 @@ export function FormularioCotizacion({
           etiqueta={paso.etiqueta}
           requerido={paso.requerido}
           valor={valorComoTexto(valores[paso.id])}
-          error={errores[paso.id]}
+          error={errorVisible}
           onChange={(valor) => guardar(paso.id, valor, false)}
-          onContinuar={continuar}
+          onContinuar={() => intentarAvanzar()}
         />
       ) : null}
 
@@ -221,7 +241,7 @@ export function FormularioCotizacion({
         {paso.tipo !== 'envio' && !avanzaSoloAlElegir(paso) ? (
           <button
             type="button"
-            onClick={continuar}
+            onClick={() => intentarAvanzar()}
             className="min-h-11 rounded-2xl bg-(--color-marca) px-5 py-2.5 text-sm font-semibold text-white"
           >
             Continuar

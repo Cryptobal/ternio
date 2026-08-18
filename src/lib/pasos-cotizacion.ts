@@ -1,7 +1,8 @@
 import { esOpcionUnica, type CampoFormulario } from '@/lib/campos'
+import { errorCampoIdentidad } from '@/lib/validar-identidad'
 
 export const TRONCO_IDENTIDAD = [
-  { id: 'razonSocial', etiqueta: 'Razón social', requerido: false },
+  { id: 'razonSocial', etiqueta: 'Razón social', requerido: true },
   { id: 'rut', etiqueta: 'RUT de la empresa', requerido: true },
   { id: 'nombreContacto', etiqueta: 'Tu nombre', requerido: true },
   { id: 'telefono', etiqueta: 'Teléfono', requerido: true },
@@ -44,7 +45,6 @@ export function construirPasos(
 }
 
 export function avanzaSoloAlElegir(paso: PasoCotizacion): boolean {
-  if (paso.tipo === 'comuna') return true
   if (paso.tipo === 'modulo') return esOpcionUnica(paso.campo.tipo)
   return false
 }
@@ -73,4 +73,35 @@ export function payloadDesdeValores(
 
 export function clavePaso(paso: PasoCotizacion): string {
   return paso.id
+}
+
+/**
+ * Error inline del paso actual. Continuar no avanza si esto devuelve texto.
+ * El server action vuelve a aplicar las mismas reglas del tronco.
+ */
+export function errorDePaso(
+  paso: PasoCotizacion,
+  valores: ValoresFormulario,
+): string | undefined {
+  if (paso.tipo === 'comuna') {
+    if (!valorComoTexto(valores.comuna).trim()) return 'Elige una comuna.'
+    return undefined
+  }
+
+  if (paso.tipo === 'modulo') {
+    const texto = valorComoTexto(valores[paso.campo.nombre]).trim()
+    if (paso.campo.requerido && !texto) {
+      return `Completa "${paso.campo.etiqueta}".`
+    }
+    if (texto && paso.campo.tipo === 'numero' && !/^\d+([.,]\d+)?$/.test(texto)) {
+      return `"${paso.campo.etiqueta}" tiene que ser un número.`
+    }
+    return undefined
+  }
+
+  if (paso.tipo === 'tronco') {
+    return errorCampoIdentidad(paso.id, valorComoTexto(valores[paso.id]))
+  }
+
+  return undefined
 }
