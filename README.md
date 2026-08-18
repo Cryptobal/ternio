@@ -17,6 +17,7 @@ También: [`docs/como-funciona.md`](./docs/como-funciona.md) (flujos),
 La app cubre el contrato operativo de la guía: cotizar, tomar contactos
 en `/panel` y operar desde `/admin`. Flow recarga packs si hay
 `FLOW_API_KEY` / `FLOW_SECRET_KEY`; el pack de arranque no depende de eso.
+Avisos por `RESEND_API_KEY` (fail-soft: si falta, el lead y la toma siguen).
 
 ## Stack
 
@@ -67,6 +68,8 @@ Dos que conviene entender antes de desplegar:
 - **`TURNSTILE_SECRET_KEY`** es *fail-closed*: si falta en producción, la
   creación de leads falla con un mensaje explícito. Nunca se guarda un lead sin
   pasar la verificación antifraude.
+- **`RESEND_API_KEY`** es *fail-soft*: si falta, no se mandan avisos. El lead
+  y la toma no se bloquean.
 
 ## Validaciones
 
