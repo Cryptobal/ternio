@@ -23,15 +23,18 @@ export default async function AdminRubroEditar({ params }: { params: Promise<{ i
       precioExclusivoClp: true,
       precioCompartidoClp: true,
       camposFormulario: true,
+      _count: { select: { leads: true } },
     },
   })
   if (!rubro) notFound()
+
+  const { _count, ...datos } = rubro
 
   return (
     <>
       <h1 className="font-display text-3xl">Editar rubro</h1>
       <p className="mt-2 mb-6 text-sm text-(--color-tinta-suave)">{rubro.nombre}</p>
-      <FormularioRubro rubro={rubro} />
+      <FormularioRubro rubro={datos} leadCount={_count.leads} />
     </>
   )
 }

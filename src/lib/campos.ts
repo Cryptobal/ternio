@@ -41,7 +41,19 @@ export type CampoFormulario = z.infer<typeof campoFormularioSchema>
 
 export const camposFormularioSchema = z.array(campoFormularioSchema)
 
-const MAX_CAMPOS_MODULO = 6
+/** Tope del módulo del rubro (sin tronco común). Exportado para el admin. */
+export const MAX_CAMPOS_MODULO = 6
+
+/** Etiquetas legibles para el constructor del admin. */
+export const TIPOS_CAMPO_ETIQUETA: Record<TipoCampo, string> = {
+  texto: 'Texto corto',
+  textarea: 'Texto largo',
+  numero: 'Número',
+  select: 'Lista desplegable',
+  radio: 'Opción única',
+  opcion_multiple: 'Varias opciones',
+  si_no: 'Sí / No',
+}
 
 /**
  * Lee la configuración de campos de un rubro. Si el JSON quedó mal editado
