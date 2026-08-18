@@ -4,7 +4,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypt
  * Token de reclamo de leads.
  *
  * El comprador cotiza sin cuenta. Al crear el lead se deja una cookie httpOnly
- * firmada con este token; cuando después inicia sesión con Google, la server
+ * firmada con este token; cuando después confirma el teléfono por OTP, la server
  * action de reclamo usa el token para asignarle los leads creados en ese
  * navegador. La cookie sola no revela nada: en la base solo se guarda el hash.
  *
