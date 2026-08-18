@@ -4,6 +4,12 @@ import { ALIAS_SEO_308 } from './src/lib/seo-rutas'
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  outputFileTracingIncludes: {
+    '/blog': ['./content/blog/**/*'],
+    '/blog/[slug]': ['./content/blog/**/*'],
+    '/blog/rss.xml': ['./content/blog/**/*'],
+    '/sitemap.xml': ['./content/blog/**/*'],
+  },
   async redirects() {
     return ALIAS_SEO_308.map((alias) => ({
       source: alias.origen,

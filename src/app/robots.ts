@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
 
+import { urlPublicaSitio } from '@/lib/metadata-publico'
+
 /**
  * robots.txt.
  *
@@ -8,7 +10,7 @@ import type { MetadataRoute } from 'next'
  * validado en servidor, y todo lo demás responde 404.
  */
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_SITIO_URL ?? 'https://ternio.cl'
+  const base = urlPublicaSitio()
 
   return {
     rules: [

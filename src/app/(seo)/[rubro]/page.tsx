@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ModoRubro } from '@prisma/client'
 
+import { FaqRubro } from '@/components/faq-rubro'
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
 import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorCotizacion } from '@/components/selector-cotizacion'
@@ -15,7 +16,7 @@ import {
 } from '@/lib/catalogo'
 import { OG_IMAGE } from '@/lib/metadata-publico'
 import { prisma } from '@/lib/prisma'
-import { copyRubro } from '@/lib/seo-contenido'
+import { copyRubro, jsonLdFaq } from '@/lib/seo-contenido'
 import { pathPublicoRubro, RUBROS_VENTA_PUBLICOS, slugsBdCandidatos, slugPublicoDesdeBd } from '@/lib/seo-rutas'
 import { claveCombo, type RubroSelector } from '@/lib/selector-cotizacion'
 
@@ -106,16 +107,19 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
   const base = process.env.NEXT_PUBLIC_SITIO_URL ?? 'https://ternio.cl'
   const path = pathPublicoRubro(rubro.slug)
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    name: copy.h1,
-    serviceType: rubro.nombre,
-    description: copy.description,
-    areaServed: { '@type': 'Country', name: 'Chile' },
-    provider: { '@type': 'Organization', name: 'Ternio', url: base },
-    url: `${base}${path}`,
-  }
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: copy.h1,
+      serviceType: rubro.nombre,
+      description: copy.description,
+      areaServed: { '@type': 'Country', name: 'Chile' },
+      provider: { '@type': 'Organization', name: 'Ternio', url: base },
+      url: `${base}${path}`,
+    },
+    ...(copy.faq.length > 0 ? [jsonLdFaq(copy.faq)] : []),
+  ]
 
   return (
     <div>
@@ -166,6 +170,8 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
           <h2 className="font-display text-xl">Cómo funciona</h2>
           <PasosComoFunciona listaEspera={rubro.modo === ModoRubro.CAPTURA} />
         </section>
+
+        <FaqRubro items={copy.faq} />
 
         {comunaPreseleccionada ? (
           <section className="mt-10">

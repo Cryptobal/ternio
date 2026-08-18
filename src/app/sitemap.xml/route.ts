@@ -1,10 +1,11 @@
+import { urlPublicaSitio } from '@/lib/metadata-publico'
 import { armarSitemapXml, sitemapMinimoXml } from '@/lib/sitemap-publico'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 function basePublica(): string {
-  return (process.env.NEXT_PUBLIC_SITIO_URL ?? 'https://ternio.cl').replace(/\/+$/, '')
+  return urlPublicaSitio()
 }
 
 function respuestaXml(xml: string): Response {

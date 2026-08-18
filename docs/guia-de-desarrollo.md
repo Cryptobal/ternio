@@ -151,6 +151,8 @@ Soñado (después; **no bloquea** operativa):
 - 346 comunas × rubros con copy único (el piloto SEO es acotado a propósito)
 - Cruce SII de razón social
 - App nativa
+- Blog y FAQ de landings (crecimiento SEO; ya hay un primer corte en
+  `/blog` y `seo-contenido.ts`, no bloquea operar)
 
 ---
 
@@ -189,6 +191,7 @@ Captación:
 | Home | `src/app/(sitio)/page.tsx` |
 | Rubro (head term) | `src/app/(seo)/[rubro]/page.tsx` |
 | Combo publicado | `src/app/(seo)/[rubro]/[comuna]/page.tsx` |
+| Blog (crecimiento) | `src/app/(sitio)/blog/` + `content/blog/*.md` |
 | Cotizador | `src/components/formulario-cotizacion.tsx` + `src/server/leads.ts` |
 | OTP | `src/server/otp.ts` + `src/lib/otp.ts` |
 | Alta proveedor | `src/app/(sitio)/proveedores/page.tsx` + `src/server/proveedores.ts` |
@@ -405,6 +408,12 @@ GTM-K3F8GGHV ya está. No tocarlo.
 
 Ver “producto soñado”. Además: matching fino sobre `Cobertura.filtrosJson`,
 y el aviso honesto a las 24 h si nadie toma.
+
+Blog público (`/blog`, markdown en `content/blog`): mid-tail how-to y
+precios que las landings de rubro no cubren, más FAQ propias en cada
+landing. **No** forma parte de “100% operativa”. Un `.md` malo no
+tumba el sitemap (fail-soft, HTTP 200). No inventar prueba social
+ni volúmenes en los artículos.
 
 Avisos Resend (fail-soft si falta `RESEND_API_KEY`): al pasar un lead a
 VERIFICADO se escribe a cada proveedor APROBADO que calza (ficha anónima,
