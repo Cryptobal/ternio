@@ -54,7 +54,7 @@ async function ipDelCliente(): Promise<string> {
 /**
  * Crea la cotización. El formulario NUNCA se bloquea por login: si hay sesión
  * el lead queda asignado de inmediato, y si no, se deja una cookie firmada
- * para que el comprador lo reclame al crear su cuenta.
+ * para que el comprador lo reclame al confirmar el teléfono.
  */
 export async function crearLeadAction(
   _estadoPrevio: EstadoFormulario,
@@ -133,7 +133,8 @@ export async function crearLeadAction(
   const campos = parsearCampos(combinacion.rubro.camposFormulario)
   const entradaCampos: Record<string, unknown> = {}
   for (const campo of campos) {
-    entradaCampos[campo.nombre] = formData.get(campo.nombre)
+    entradaCampos[campo.nombre] =
+      campo.tipo === 'opcion_multiple' ? formData.getAll(campo.nombre) : formData.get(campo.nombre)
   }
   const valores = validarValoresCampos(campos, entradaCampos)
   if (!valores.ok) Object.assign(errores, valores.errores)
@@ -149,6 +150,15 @@ export async function crearLeadAction(
   }
 
   const compradorUsuarioId = await usuarioActualId()
+  const comprador = compradorUsuarioId
+    ? await prisma.user.findUnique({
+        where: { id: compradorUsuarioId },
+        select: { telefonoE164Verificado: true },
+      })
+    : null
+  const telefonoYaVerificado =
+    Boolean(comprador?.telefonoE164Verificado) &&
+    comprador?.telefonoE164Verificado === telefonoE164
 
   // Deduplicación: el mismo RUT o teléfono, en el mismo rubro, dentro de la
   // ventana, no genera un segundo lead vendible.
@@ -185,7 +195,7 @@ export async function crearLeadAction(
   const detalle = detalleLibre ?? ''
   const score = calcularScore({
     rutValido: true,
-    telefonoVerificado: false,
+    telefonoVerificado: telefonoYaVerificado,
     email: contacto.data.email,
     esMovil: esMovil(telefonoE164),
     razonSocialDeclarada: Boolean(contacto.data.razonSocial),
@@ -211,7 +221,7 @@ export async function crearLeadAction(
         datos: datosAnonimos,
         modoRubroAlCrear: modo,
         rutValido: true,
-        telefonoVerificado: false,
+        telefonoVerificado: telefonoYaVerificado,
         whatsappOptIn: String(formData.get('whatsappOptIn') ?? '') === 'on',
         compradorUsuarioId,
         claimTokenHash,
@@ -252,6 +262,20 @@ export async function crearLeadAction(
         nota: 'RUT con dígito verificador válido.',
       },
     })
+
+    if (telefonoYaVerificado) {
+      await tx.transicionLead.create({
+        data: {
+          leadId: creado.id,
+          tipo: TipoTransicionLead.TELEFONO_VERIFICADO,
+          estadoDesde: estado,
+          estadoHasta: estado,
+          actor: ActorTransicion.COMPRADOR,
+          actorUsuarioId: compradorUsuarioId,
+          nota: 'Teléfono ya verificado en esta cuenta; no se pide de nuevo.',
+        },
+      })
+    }
 
     if (modo === ModoRubro.CAPTURA) {
       await tx.transicionLead.create({

@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ModoRubro } from '@prisma/client'
 
+import { FormularioCotizacion } from '@/components/formulario-cotizacion'
+import { parsearCampos } from '@/lib/campos'
 import { prisma } from '@/lib/prisma'
 import { rubrosActivos } from '@/lib/catalogo'
 
@@ -20,6 +22,7 @@ async function rubroConComunas(slug: string) {
       nombrePlural: true,
       descripcion: true,
       modo: true,
+      camposFormulario: true,
       comunas: {
         where: { activa: true, comuna: { activa: true } },
         orderBy: { comuna: { orden: 'asc' } },
@@ -76,20 +79,42 @@ export default async function PaginaRubro({ params }: Props) {
         </p>
       ) : null}
 
-      <h2 className="font-display mt-10 text-xl">Elige tu comuna</h2>
-      <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {rubro.comunas.map(({ comuna }) => (
-          <li key={comuna.slug}>
-            <Link
-              href={`/${rubro.slug}/${comuna.slug}`}
-              className="block rounded-2xl border border-(--color-borde) bg-white px-4 py-3 shadow-sm transition hover:border-(--color-marca)"
-            >
-              <span className="font-medium">{comuna.nombre}</span>
-              <span className="block text-sm text-(--color-tinta-suave)">{comuna.region}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_minmax(0,26rem)] lg:items-start">
+        <div>
+          <h2 className="font-display text-xl">Elige tu comuna</h2>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {rubro.comunas.map(({ comuna }) => (
+              <li key={comuna.slug}>
+                <Link
+                  href={`/${rubro.slug}/${comuna.slug}`}
+                  className="block rounded-2xl border border-(--color-borde) bg-white px-4 py-3 shadow-sm transition hover:border-(--color-marca)"
+                >
+                  <span className="font-medium">{comuna.nombre}</span>
+                  <span className="block text-sm text-(--color-tinta-suave)">{comuna.region}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <section
+          id="cotizar"
+          className="rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm sm:p-6"
+        >
+          <h2 className="font-display text-xl">Pide tu cotización</h2>
+          <p className="mt-1 mb-5 text-sm text-(--color-tinta-suave)">
+            Empieza por la comuna. El cotizador por pasos necesita JavaScript.
+          </p>
+          <FormularioCotizacion
+            rubroSlug={rubro.slug}
+            comunas={rubro.comunas.map(({ comuna }) => ({
+              slug: comuna.slug,
+              nombre: comuna.nombre,
+            }))}
+            campos={parsearCampos(rubro.camposFormulario)}
+            turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
+          />
+        </section>
+      </div>
     </div>
   )
 }
