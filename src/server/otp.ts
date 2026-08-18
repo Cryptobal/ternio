@@ -14,6 +14,7 @@ import {
 
 import { signIn } from '@/auth'
 import { registrarEvento } from '@/lib/analitica'
+import { avisarLeadAVenta } from '@/server/avisos-email'
 import { NOMBRE_COOKIE_CLAIM, verificarClaimToken } from '@/lib/claim-token'
 import {
   OTP_EXPIRA_MS,
@@ -307,7 +308,7 @@ async function abrirSesionOtp(usuarioId: string): Promise<never> {
   redirect(destino)
 }
 
-async function aplicarTelefonoVerificado(usuarioId: string, telefonoE164: string): Promise<void> {
+async function aplicarTelefonoVerificado(usuarioId: string, telefonoE164: string): Promise<string[]> {
   await prisma.user.update({
     where: { id: usuarioId },
     data: { telefonoE164Verificado: telefonoE164, telefonoVerificadoAt: new Date() },
@@ -327,11 +328,14 @@ async function aplicarTelefonoVerificado(usuarioId: string, telefonoE164: string
     },
   })
 
+  const aVenta: string[] = []
+
   for (const lead of leads) {
     const pasaAVenta =
       lead.rutValido &&
       lead.modoRubroAlCrear === ModoRubro.VENTA &&
       (lead.estado === EstadoLead.RECIBIDO || lead.estado === EstadoLead.EN_REVISION)
+    if (pasaAVenta) aVenta.push(lead.id)
 
     await prisma.$transaction([
       prisma.lead.update({
@@ -370,6 +374,8 @@ async function aplicarTelefonoVerificado(usuarioId: string, telefonoE164: string
         : []),
     ])
   }
+
+  return aVenta
 }
 
 export async function confirmarOtpAction(
@@ -442,12 +448,13 @@ export async function confirmarOtpAction(
     select: { rol: true },
   })
 
+  let leadsAVenta: string[] = []
   if (duenio?.rol !== RolUsuario.PROVEEDOR) {
     const cookie = (await cookies()).get(NOMBRE_COOKIE_CLAIM)?.value
     const hash = verificarClaimToken(cookie)
     if (hash) await reclamarLeadsPorHash(prisma, hash, otp.usuarioId)
     await reclamarLeadsPorTelefono(prisma, telefonoE164, otp.usuarioId)
-    await aplicarTelefonoVerificado(otp.usuarioId, telefonoE164)
+    leadsAVenta = await aplicarTelefonoVerificado(otp.usuarioId, telefonoE164)
   } else {
     await prisma.user.update({
       where: { id: otp.usuarioId },
@@ -466,6 +473,10 @@ export async function confirmarOtpAction(
       usuarioId: otp.usuarioId,
       path: origen === 'reclamo' ? '/cotizacion/enviada' : '/entrar',
     })
+  }
+
+  for (const leadId of leadsAVenta) {
+    await avisarLeadAVenta(leadId)
   }
 
   await abrirSesionOtp(otp.usuarioId)

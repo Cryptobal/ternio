@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { TipoEventoAnalitica } from '@prisma/client'
+import { Prisma, TipoEventoAnalitica } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 /**
@@ -20,6 +20,7 @@ export type EntradaEvento = {
   sesionAnonId?: string | null
   path?: string | null
   metadata?: Record<string, string | number | boolean> | null
+  idempotencyKey?: string
 }
 
 /**
@@ -38,6 +39,7 @@ export async function registrarEvento(entrada: EntradaEvento): Promise<void> {
         sesionAnonId: entrada.sesionAnonId ?? null,
         path: entrada.path ?? null,
         metadata: entrada.metadata ?? undefined,
+        idempotencyKey: entrada.idempotencyKey,
       },
     })
   } catch (error) {
@@ -45,5 +47,38 @@ export async function registrarEvento(entrada: EntradaEvento): Promise<void> {
       tipo: entrada.tipo,
       error: error instanceof Error ? error.message : 'desconocido',
     })
+  }
+}
+
+export type ReservaAviso = 'creado' | 'duplicado' | 'error'
+
+/** Reserva un aviso una sola vez. Unique en `idempotencyKey`. */
+export async function reservarAvisoEmail(
+  entrada: EntradaEvento & { idempotencyKey: string },
+): Promise<ReservaAviso> {
+  try {
+    await prisma.eventoAnalitica.create({
+      data: {
+        tipo: entrada.tipo,
+        rubroId: entrada.rubroId ?? null,
+        comunaId: entrada.comunaId ?? null,
+        leadId: entrada.leadId ?? null,
+        usuarioId: entrada.usuarioId ?? null,
+        sesionAnonId: entrada.sesionAnonId ?? null,
+        path: entrada.path ?? null,
+        metadata: entrada.metadata ?? undefined,
+        idempotencyKey: entrada.idempotencyKey,
+      },
+    })
+    return 'creado'
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return 'duplicado'
+    }
+    console.error('[analitica] no se pudo reservar el aviso', {
+      tipo: entrada.tipo,
+      error: error instanceof Error ? error.message : 'desconocido',
+    })
+    return 'error'
   }
 }

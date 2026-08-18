@@ -24,10 +24,14 @@ Si algo de este archivo choca con la guía, gana la guía.
    cotizaciones siguientes no lo repiten.
 6. Si RUT válido + teléfono verificado + rubro nacido en `VENTA`, el
    lead pasa a `VERIFICADO` (`verificadoAt`). Si abandona sin OTP, queda
-   en revisión del admin.
+   en revisión del admin. En ese momento se avisa por correo (Resend,
+   fail-soft) a cada proveedor `APROBADO` que calza: ficha anónima, CTA
+   a `/panel`. Dedup por `EventoAnalitica.idempotencyKey`.
 7. `/mis-cotizaciones` (tus cotizaciones, no un panel): estado real,
    recap de lo que pidió y cuántas empresas (`CompraLead` PAGADA) ya
-   tienen los datos. Cero se dice en simple.
+   tienen los datos. Cero se dice en simple. Header: “Ya cotizé” →
+   `/entrar`. Si alguien toma el lead, el comprador recibe correo (sin
+   nombre del proveedor) y entra a `/mis-cotizaciones`.
 
 El comprador nunca paga. Nadie le vende su teléfono a un proveedor sin
 `CompraLead`.

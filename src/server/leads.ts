@@ -12,6 +12,7 @@ import {
 } from '@prisma/client'
 
 import { registrarEvento } from '@/lib/analitica'
+import { avisarLeadAVenta } from '@/server/avisos-email'
 import { parsearCampos, validarValoresCampos } from '@/lib/campos'
 import {
   NOMBRE_COOKIE_CLAIM,
@@ -305,6 +306,8 @@ export async function crearLeadAction(
     path: `/${rubroSlug}/${comunaSlug}`,
     metadata: { modo, estado },
   })
+
+  if (pasaAVenta) await avisarLeadAVenta(lead.id)
 
   redirect('/cotizacion/enviada')
 }

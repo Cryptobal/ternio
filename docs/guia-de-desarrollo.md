@@ -145,7 +145,6 @@ es crecimiento.
 
 Soñado (después; **no bloquea** operativa):
 
-- Aviso email < 60 s al verificar un lead
 - Auto-compra con tope mensual
 - Reposición self-serve (el asiento `REVERSA` ya está en el schema)
 - WhatsApp Cloud API (Fase 5; solo API oficial de Meta)
@@ -168,6 +167,7 @@ Soñado (después; **no bloquea** operativa):
 | Antifraude | Cloudflare Turnstile + honeypot |
 | Analítica | GTM-K3F8GGHV (no tocarlo) |
 | Pagos | Flow Checkout (packs de créditos) |
+| Correo | Resend (`RESEND_API_KEY`). Sin key, fail-soft: log y sigue. |
 | WhatsApp | Solo Cloud API oficial, Fase 5 |
 
 Sin dependencias nuevas salvo que sea inevitable. Migraciones solo aditivas.
@@ -212,6 +212,7 @@ Datos y venta:
 | Ensure Gard | `src/lib/gard.ts` + `src/server/gard.ts` |
 | Tomar lead + ledger | `src/server/marketplace.ts` |
 | Packs / Flow | `src/lib/flow.ts` + `src/server/packs.ts` + `/api/flow/confirmacion` |
+| Avisos email | `src/lib/email.ts` + `src/lib/email-avisos.ts` + `src/server/avisos-email.ts` |
 | Acciones admin | `src/server/admin.ts` |
 | Rubros admin | `src/lib/admin-rubros.ts` + `src/server/admin-rubros.ts` + `/admin/rubros` |
 
