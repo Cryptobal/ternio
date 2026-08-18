@@ -4,6 +4,7 @@ import { ModoRubro } from '@prisma/client'
 import {
   cambioActivacionVenta,
   contenidoSeoEsListaEspera,
+  esPrecioLanzamientoAnterior,
   esRubroPruebaE2E,
   esSlugActivarVenta,
   precioVentaSinPisar,
@@ -76,10 +77,40 @@ describe('activar rubros de lista de espera a VENTA', () => {
     )
     expect(cambio).toEqual({
       modo: 'VENTA',
-      precioExclusivoClp: 15_000,
-      precioCompartidoClp: 6_000,
+      precioExclusivoClp: 12_000,
+      precioCompartidoClp: 5_000,
       actualizarContenidoSeo: true,
     })
+  })
+
+  it('pisa el default anterior 15/6 y 25/10, no un precio custom', () => {
+    expect(esPrecioLanzamientoAnterior('banos-quimicos', 15_000, 6_000)).toBe(true)
+    expect(esPrecioLanzamientoAnterior('generadores', 25_000, 10_000)).toBe(true)
+    expect(esPrecioLanzamientoAnterior('generadores', 40_000, 12_000)).toBe(false)
+    const banos = cambioActivacionVenta(
+      {
+        slug: 'banos-quimicos',
+        modo: ModoRubro.VENTA,
+        activo: true,
+        precioExclusivoClp: 15_000,
+        precioCompartidoClp: 6_000,
+        contenidoSeo: { intro: 'Te contactan empresas.' },
+      },
+      PRECIOS_ACTIVAR_VENTA['banos-quimicos'],
+    )
+    expect(banos).toMatchObject({ precioExclusivoClp: 12_000, precioCompartidoClp: 5_000 })
+    const gens = cambioActivacionVenta(
+      {
+        slug: 'generadores',
+        modo: ModoRubro.VENTA,
+        activo: true,
+        precioExclusivoClp: 25_000,
+        precioCompartidoClp: 10_000,
+        contenidoSeo: { intro: 'Te contactan empresas.' },
+      },
+      PRECIOS_ACTIVAR_VENTA.generadores,
+    )
+    expect(gens).toMatchObject({ precioExclusivoClp: 20_000, precioCompartidoClp: 8_000 })
   })
 
   it('respeta precios ya cargados en admin', () => {

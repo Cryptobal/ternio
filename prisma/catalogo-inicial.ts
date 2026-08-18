@@ -358,8 +358,8 @@ export const RUBROS: SemillaRubro[] = [
     descripcion: 'Baños químicos para obras, faenas y eventos.',
     modo: ModoRubro.VENTA,
     orden: 4,
-    precioExclusivoClp: 15_000,
-    precioCompartidoClp: 6_000,
+    precioExclusivoClp: 12_000,
+    precioCompartidoClp: 5_000,
     campos: CAMPOS_BANOS_QUIMICOS,
     contenidoSeo: {
       intro:
@@ -375,8 +375,8 @@ export const RUBROS: SemillaRubro[] = [
     descripcion: 'Generadores eléctricos para obras, respaldo y eventos.',
     modo: ModoRubro.VENTA,
     orden: 5,
-    precioExclusivoClp: 25_000,
-    precioCompartidoClp: 10_000,
+    precioExclusivoClp: 20_000,
+    precioCompartidoClp: 8_000,
     campos: CAMPOS_GENERADORES,
     contenidoSeo: {
       intro:

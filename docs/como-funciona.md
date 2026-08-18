@@ -120,8 +120,8 @@ Desde `verificadoAt`, sobre el precio del rubro:
 | seguridad | 50.000 | 20.000 |
 | aseo | 25.000 | 10.000 |
 | plagas | 15.000 | 6.000 |
-| baños químicos | 15.000 | 6.000 |
-| generadores | 25.000 | 10.000 |
+| baños químicos | 12.000 | 5.000 |
+| generadores | 20.000 | 8.000 |
 | transporte de personal | 20.000 | 8.000 |
 | transporte de carga | 20.000 | 8.000 |
 | climatización industrial | 25.000 | 10.000 |

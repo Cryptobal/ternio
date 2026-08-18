@@ -18,8 +18,8 @@ export const PRECIOS_ACTIVAR_VENTA: Record<
   SlugActivarVenta,
   { precioExclusivoClp: number; precioCompartidoClp: number }
 > = {
-  'banos-quimicos': { precioExclusivoClp: 15_000, precioCompartidoClp: 6_000 },
-  generadores: { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
+  'banos-quimicos': { precioExclusivoClp: 12_000, precioCompartidoClp: 5_000 },
+  generadores: { precioExclusivoClp: 20_000, precioCompartidoClp: 8_000 },
   'transporte-de-personal': { precioExclusivoClp: 20_000, precioCompartidoClp: 8_000 },
   'transporte-de-carga': { precioExclusivoClp: 20_000, precioCompartidoClp: 8_000 },
   'climatizacion-industrial': { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
@@ -35,9 +35,32 @@ export function esRubroPruebaE2E(slug: string, nombre?: string | null): boolean 
   return s === 'prueba-e2e' || s.startsWith('prueba-e2e') || n.includes('prueba e2e')
 }
 
+/**
+ * Defaults que este PR ya escribió y Carlos bajó. Se pueden pisar.
+ * Cualquier otro número > 0 (admin) se respeta.
+ */
+export const PRECIOS_ACTIVAR_ANTERIORES: Partial<
+  Record<SlugActivarVenta, { precioExclusivoClp: number; precioCompartidoClp: number }[]>
+> = {
+  'banos-quimicos': [{ precioExclusivoClp: 15_000, precioCompartidoClp: 6_000 }],
+  generadores: [{ precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 }],
+}
+
 /** Si admin/seed ya tiene un precio > 0, se respeta. */
 export function precioVentaSinPisar(actual: number | null | undefined, semilla: number): number {
   return typeof actual === 'number' && actual > 0 ? actual : semilla
+}
+
+export function esPrecioLanzamientoAnterior(
+  slug: string,
+  exclusivo: number | null | undefined,
+  compartido: number | null | undefined,
+): boolean {
+  if (!esSlugActivarVenta(slug)) return false
+  if (typeof exclusivo !== 'number' || typeof compartido !== 'number') return false
+  return (PRECIOS_ACTIVAR_ANTERIORES[slug] ?? []).some(
+    (precio) => precio.precioExclusivoClp === exclusivo && precio.precioCompartidoClp === compartido,
+  )
 }
 
 export function contenidoSeoEsListaEspera(valor: unknown): boolean {
@@ -83,18 +106,32 @@ export function cambioActivacionVenta(
   if (!esSlugActivarVenta(existente.slug)) return null
 
   const fallback = PRECIOS_ACTIVAR_VENTA[existente.slug]
-  const exclusivo = precioVentaSinPisar(
-    existente.precioExclusivoClp,
-    semilla.precioExclusivoClp && semilla.precioExclusivoClp > 0
-      ? semilla.precioExclusivoClp
-      : fallback.precioExclusivoClp,
-  )
-  const compartido = precioVentaSinPisar(
-    existente.precioCompartidoClp,
-    semilla.precioCompartidoClp && semilla.precioCompartidoClp > 0
-      ? semilla.precioCompartidoClp
-      : fallback.precioCompartidoClp,
-  )
+  const objetivo = {
+    precioExclusivoClp:
+      semilla.precioExclusivoClp && semilla.precioExclusivoClp > 0
+        ? semilla.precioExclusivoClp
+        : fallback.precioExclusivoClp,
+    precioCompartidoClp:
+      semilla.precioCompartidoClp && semilla.precioCompartidoClp > 0
+        ? semilla.precioCompartidoClp
+        : fallback.precioCompartidoClp,
+  }
+  const placeholder =
+    esPrecioLanzamientoAnterior(
+      existente.slug,
+      existente.precioExclusivoClp,
+      existente.precioCompartidoClp,
+    ) ||
+    existente.precioExclusivoClp == null ||
+    existente.precioExclusivoClp <= 0 ||
+    existente.precioCompartidoClp == null ||
+    existente.precioCompartidoClp <= 0
+  const exclusivo = placeholder
+    ? objetivo.precioExclusivoClp
+    : precioVentaSinPisar(existente.precioExclusivoClp, objetivo.precioExclusivoClp)
+  const compartido = placeholder
+    ? objetivo.precioCompartidoClp
+    : precioVentaSinPisar(existente.precioCompartidoClp, objetivo.precioCompartidoClp)
 
   const yaVenta = existente.modo === ModoRubro.VENTA || existente.modo === 'VENTA'
   const preciosListos =
