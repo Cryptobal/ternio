@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
+import {
+  audienciaPorDefecto,
+  filtrarServiciosPorAudiencia,
+  pasoCotizador,
+  rubroCalzaAudiencia,
+} from '@/lib/audiencia'
 import { claveCombo, destinoSelector, rubrosEnVenta } from '@/lib/selector-cotizacion'
 
 describe('destinoSelector', () => {
@@ -40,5 +46,33 @@ describe('destinoSelector', () => {
       { modo: 'VENTA', slug: 'seguridad' },
     ])
     expect(lista.map((item) => item.slug)).toEqual(['aseo', 'seguridad'])
+  })
+})
+
+describe('cascada del cotizador', () => {
+  it('pide audiencia, después servicio, después territorio', () => {
+    expect(pasoCotizador('', '')).toBe('audiencia')
+    expect(pasoCotizador('casa', '')).toBe('servicio')
+    expect(pasoCotizador('casa', 'gasfiteria')).toBe('territorio')
+  })
+
+  it('casa y empresa filtran sin inventar dos productos', () => {
+    expect(rubroCalzaAudiencia('aseo-hogar', 'casa')).toBe(true)
+    expect(rubroCalzaAudiencia('aseo-hogar', 'empresa')).toBe(false)
+    expect(rubroCalzaAudiencia('aseo', 'empresa')).toBe(true)
+    expect(rubroCalzaAudiencia('aseo', 'casa')).toBe(false)
+    expect(rubroCalzaAudiencia('gasfiteria', 'casa')).toBe(true)
+    expect(rubroCalzaAudiencia('gasfiteria', 'empresa')).toBe(true)
+    expect(audienciaPorDefecto('seguridad')).toBe('empresa')
+    const lista = [
+      { slug: 'aseo' },
+      { slug: 'aseo-hogar' },
+      { slug: 'gasfiteria' },
+      { slug: 'seguridad' },
+    ]
+    expect(filtrarServiciosPorAudiencia(lista, 'casa').map((r) => r.slug)).toEqual([
+      'aseo-hogar',
+      'gasfiteria',
+    ])
   })
 })

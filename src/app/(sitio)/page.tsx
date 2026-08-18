@@ -32,19 +32,17 @@ export default async function Inicio() {
       <section className="bg-(--color-tinta) text-white">
         <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
           <h1 className="font-display text-4xl leading-tight sm:text-5xl">
-            Cotiza servicios para tu empresa
+            Cotiza servicios para tu casa o tu empresa
           </h1>
           <p className="mt-4 text-lg text-white/80">
             Una solicitud. Hasta tres empresas te contactan. Tú no pagas.
           </p>
 
-          <div className="mt-8 text-(--color-tinta)">
+          <div className="mt-8">
             {rubros.length > 0 ? (
               <SelectorCotizacion rubros={rubros} comunas={comunas} publicados={publicados} />
             ) : (
-              <p className="rounded-2xl bg-white p-5 text-(--color-tinta-suave)">
-                Aún no hay servicios publicados.
-              </p>
+              <p className="text-white/70">Aún no hay servicios publicados.</p>
             )}
           </div>
         </div>
