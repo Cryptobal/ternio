@@ -43,7 +43,10 @@ El comprador nunca paga. Nadie le vende su teléfono a un proveedor sin
 4. Si el celular no se confirmó, el RUT no calza, o lo suspendieron: un
    mensaje claro. Sin lista de compradores.
 5. Si `APROBADO`:
-   - Saldo (suma del ledger). Recarga con packs (Flow Checkout).
+   - Saldo (suma del ledger). Recarga con packs (Flow Checkout:
+     create → redirect `url?token=` → confirmación 200 + getStatus
+     status 2 → `COMPRA_PACK`). El pack de arranque al OTP no depende
+     de Flow.
    - **Compradores disponibles**: leads `VERIFICADO` que calzan
      (ver matching abajo). Ficha anónima: rubro, comuna, región, edad,
      RUT ok / teléfono ok, precio vigente, cupos. Botones “Exclusivo $X”

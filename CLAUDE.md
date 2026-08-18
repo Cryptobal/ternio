@@ -208,7 +208,8 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
 - Sitemap www ya es 200; fail-soft sin Prisma si la DB falla. Mínimo:
   home + `/seguridad` `/aseo` `/control-de-plagas` `/proveedores`.
 - Créditos de lanzamiento: automáticos al verificar el celular
-  (`AJUSTE` `alta:{proveedorId}`, 200.000). Recarga = packs Flow, no MercadoPago.
+  (`AJUSTE` `alta:{proveedorId}`, 200.000). Recarga = packs Flow
+  (receta oficial create-order + order-confirmation; no MercadoPago).
   El admin no es el cajero.
 - Matching y toma de lead viven en `src/lib/matching.ts` +
   `src/server/marketplace.ts` (este prompt los dejaba en Fase 3).

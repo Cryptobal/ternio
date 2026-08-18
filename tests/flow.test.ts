@@ -12,7 +12,10 @@ import {
   leerComercioOrderPack,
   pagoFlowPagado,
   paramsConFirma,
+  paramsCreatePagoFlow,
+  statusHttpConfirmacionFlow,
   urlApiFlow,
+  urlCheckoutFlow,
 } from '@/lib/flow'
 
 const SECRET = 'test-secret'
@@ -41,6 +44,45 @@ describe('firma Flow', () => {
     expect(firmados.apiKey).toBe('k')
     expect(firmados.token).toBe('t')
   })
+
+  it('el string a firmar calza el ejemplo oficial de Flow', () => {
+    const params = { amount: 5000, apiKey: 'XXXX-XXXX-XXXX', currency: 'CLP' }
+    const toSign = 'amount5000apiKeyXXXX-XXXX-XXXXcurrencyCLP'
+    expect(firmarParamsFlow(params, SECRET)).toBe(createHmac('sha256', SECRET).update(toSign).digest('hex'))
+  })
+})
+
+describe('payment/create oficial', () => {
+  it('manda solo los params de la receta + s', () => {
+    const crudos = paramsCreatePagoFlow({
+      apiKey: 'k',
+      commerceOrder: 'pack:p:50:n',
+      amount: 50_000,
+      email: 'a@b.cl',
+      subject: 'Pack 50 mil',
+      urlReturn: 'https://ternio.cl/api/flow/retorno',
+      urlConfirmation: 'https://ternio.cl/api/flow/confirmacion',
+    })
+    expect(Object.keys(crudos).sort()).toEqual(
+      ['amount', 'apiKey', 'commerceOrder', 'email', 'subject', 'urlConfirmation', 'urlReturn'].sort(),
+    )
+    const firmados = paramsConFirma(crudos, SECRET)
+    expect(firmados.s).toBeTruthy()
+    expect(firmados.s).toBe(firmarParamsFlow(crudos, SECRET))
+  })
+
+  it('arma el checkout como url+"?token="+token', () => {
+    expect(urlCheckoutFlow('https://www.flow.cl/app/web/pay.php', 'TOK')).toBe(
+      'https://www.flow.cl/app/web/pay.php?token=TOK',
+    )
+  })
+})
+
+describe('urlConfirmation', () => {
+  it('responde 200 si llegó el token (Flow <15s)', () => {
+    expect(statusHttpConfirmacionFlow(true)).toBe(200)
+    expect(statusHttpConfirmacionFlow(false)).toBe(400)
+  })
 })
 
 describe('commerceOrder de pack', () => {
@@ -60,13 +102,11 @@ describe('commerceOrder de pack', () => {
 
 describe('idempotencyKey Flow', () => {
   it('prioriza commerceOrder', () => {
-    expect(clavePagoFlow({ commerceOrder: 'pack:p:50:n', flowOrder: 99 })).toBe(
-      'flow:pack:p:50:n',
-    )
+    expect(clavePagoFlow({ commerceOrder: 'pack:p:50:n', flowOrder: 99 })).toBe('pack:p:50:n')
   })
 
   it('cae a flowOrder si no hay commerceOrder', () => {
-    expect(clavePagoFlow({ flowOrder: 441122 })).toBe('flow:441122')
+    expect(clavePagoFlow({ flowOrder: 441122 })).toBe('441122')
   })
 })
 
@@ -84,7 +124,7 @@ describe('acreditar solo si Flow confirma status 2', () => {
       proveedorId: 'prov1',
       packId: '50',
       montoClp: 50_000,
-      idempotencyKey: 'flow:pack:prov1:50:n1',
+      idempotencyKey: 'pack:prov1:50:n1',
     })
   })
 
@@ -146,5 +186,6 @@ describe('urlApiFlow', () => {
 
     process.env.FLOW_SANDBOX = '0'
     expect(urlApiFlow()).toBe(FLOW_API_URL_PRODUCCION)
+    expect(FLOW_API_URL_PRODUCCION).toBe('https://www.flow.cl/api')
   })
 })

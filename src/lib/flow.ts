@@ -21,8 +21,13 @@ export function urlApiFlow(): string {
 }
 
 /**
- * Firma Flow: parámetros ordenados por nombre, concatenados
- * `nombrevalor`, HMAC-SHA256 hex con la secret key. El campo `s` no se firma.
+ * Receta oficial Flow (no inventar):
+ * https://developers.flow.cl/docs/tutorial-basics/create-order
+ * https://developers.flow.cl/docs/tutorial-basics/order-confirmation
+ * https://developers.flow.cl/docs/tutorial-basics/status
+ *
+ * Firma: keys sort + concat key+value, HMAC-SHA256 hex con FLOW_SECRET_KEY.
+ * El campo `s` no se firma.
  */
 export function firmarParamsFlow(
   params: Record<string, string | number>,
@@ -32,6 +37,37 @@ export function firmarParamsFlow(
   firmables.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
   const toSign = firmables.map(([clave, valor]) => `${clave}${valor}`).join('')
   return createHmac('sha256', secretKey).update(toSign).digest('hex')
+}
+
+/** Params oficiales de `POST /payment/create` (application/x-www-form-urlencoded). */
+export function paramsCreatePagoFlow(args: {
+  apiKey: string
+  commerceOrder: string
+  amount: number
+  email: string
+  subject: string
+  urlReturn: string
+  urlConfirmation: string
+}): Record<string, string | number> {
+  return {
+    apiKey: args.apiKey,
+    commerceOrder: args.commerceOrder,
+    amount: args.amount,
+    email: args.email,
+    subject: args.subject,
+    urlReturn: args.urlReturn,
+    urlConfirmation: args.urlConfirmation,
+  }
+}
+
+/** Receta oficial: url + "?token=" + token */
+export function urlCheckoutFlow(url: string, token: string): string {
+  return `${url}?token=${token}`
+}
+
+/** urlConfirmation: 200 si llegó el token (Flow exige <15s). */
+export function statusHttpConfirmacionFlow(hayToken: boolean): 200 | 400 {
+  return hayToken ? 200 : 400
 }
 
 export function paramsConFirma(
@@ -61,12 +97,13 @@ export function leerComercioOrderPack(
   return { proveedorId: partes[1], packId: pack.id }
 }
 
+/** idempotencyKey oficial: commerceOrder, o flowOrder si falta. */
 export function clavePagoFlow(args: { commerceOrder?: string | null; flowOrder?: string | number | null }): string {
   const commerce = args.commerceOrder?.trim()
-  if (commerce) return `flow:${commerce}`
+  if (commerce) return commerce
   const flowOrder = args.flowOrder
   if (flowOrder !== undefined && flowOrder !== null && String(flowOrder).trim() !== '') {
-    return `flow:${String(flowOrder)}`
+    return String(flowOrder)
   }
   throw new Error('Falta commerceOrder o flowOrder para el asiento.')
 }

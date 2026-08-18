@@ -1,6 +1,12 @@
 import 'server-only'
 
-import { flowConfigurado, paramsConFirma, urlApiFlow } from '@/lib/flow'
+import {
+  flowConfigurado,
+  paramsConFirma,
+  paramsCreatePagoFlow,
+  urlApiFlow,
+  urlCheckoutFlow,
+} from '@/lib/flow'
 
 export type EstadoFlowPago = {
   flowOrder: number
@@ -40,16 +46,15 @@ export async function crearPagoFlow(args: {
   }
 
   const body = paramsConFirma(
-    {
+    paramsCreatePagoFlow({
       apiKey: creds.apiKey,
       commerceOrder: args.commerceOrder,
-      subject: args.subject,
-      currency: 'CLP',
       amount: args.amount,
       email: args.email,
-      urlConfirmation: args.urlConfirmation,
+      subject: args.subject,
       urlReturn: args.urlReturn,
-    },
+      urlConfirmation: args.urlConfirmation,
+    }),
     creds.secretKey,
   )
 
@@ -72,7 +77,7 @@ export async function crearPagoFlow(args: {
   }
 
   return {
-    url: `${data.url}?token=${data.token}`,
+    url: urlCheckoutFlow(data.url, data.token),
     token: data.token,
     flowOrder: data.flowOrder ?? 0,
   }
@@ -88,7 +93,7 @@ export async function estadoPagoFlow(token: string): Promise<EstadoFlowPago> {
     url.searchParams.set(clave, valor)
   }
 
-  const respuesta = await fetch(url)
+  const respuesta = await fetch(url, { method: 'GET' })
   const data = (await leerJson(respuesta)) as {
     flowOrder?: number
     commerceOrder?: string

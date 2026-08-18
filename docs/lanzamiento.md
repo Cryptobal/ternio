@@ -79,9 +79,11 @@ Env que lee la app (`process.env`, sin inventar valores):
 - `FLOW_API_URL` (opcional; default `https://www.flow.cl/api`)
 - `FLOW_SANDBOX` (opcional; `true`/`1` → `https://sandbox.flow.cl/api`)
 
+Receta oficial: create-order + order-confirmation + status (developers.flow.cl).
 Confirmación: `https://ternio.cl/api/flow/confirmacion` (Flow POST
-`token` → Ternio `getStatus` → asiento `COMPRA_PACK` si status 2).
-Retorno del pagador: `/api/flow/retorno` → `/panel?pago=`.
+`token` → 200 en <15s → `getStatus` → `COMPRA_PACK` solo si status 2;
+`idempotencyKey` = commerceOrder o flowOrder).
+Retorno: `/api/flow/retorno` → `/panel?pago=`.
 Sin estas env en local, el pack de arranque igual funciona; la UI de
 packs lo dice.
 

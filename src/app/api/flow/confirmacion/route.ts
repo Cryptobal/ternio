@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { statusHttpConfirmacionFlow } from '@/lib/flow'
 import { acreditarPackSiPagado } from '@/server/packs'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+/**
+ * Receta oficial: Flow POST application/x-www-form-urlencoded `token`.
+ * Responder 200 en <15s. Con el token: payment/getStatus (firmado).
+ * https://developers.flow.cl/docs/tutorial-basics/order-confirmation
+ */
 async function tokenDesde(request: NextRequest): Promise<string | null> {
   const query = request.nextUrl.searchParams.get('token')?.trim()
   if (query) return query
@@ -22,24 +28,17 @@ async function tokenDesde(request: NextRequest): Promise<string | null> {
 
 async function confirmar(request: NextRequest) {
   const token = await tokenDesde(request)
+  const status = statusHttpConfirmacionFlow(Boolean(token))
   if (!token) {
-    return NextResponse.json({ error: 'token requerido' }, { status: 400 })
+    return NextResponse.json({ error: 'token requerido' }, { status })
   }
 
-  const result = await acreditarPackSiPagado(token)
-  if (result.ok) {
-    return NextResponse.json({ ok: true, duplicado: result.duplicado })
+  try {
+    await acreditarPackSiPagado(token)
+  } catch {
+    // Flow exige 200. urlReturn reintenta getStatus.
   }
-  if ('pendiente' in result && result.pendiente) {
-    return NextResponse.json({ ok: true, pendiente: true })
-  }
-  if ('error' in result && result.reintentar) {
-    return NextResponse.json({ error: result.error }, { status: 502 })
-  }
-  if ('error' in result) {
-    return NextResponse.json({ error: result.error }, { status: 400 })
-  }
-  return NextResponse.json({ error: 'pago no confirmado' }, { status: 400 })
+  return NextResponse.json({ ok: true }, { status: 200 })
 }
 
 export async function POST(request: NextRequest) {

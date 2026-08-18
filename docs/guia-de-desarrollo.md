@@ -280,11 +280,21 @@ Carlos no carga créditos. El sistema sí.
   el asiento ya existe, no duplicar. Si el RUT no es válido, no se aprueba
   ni se acredita.
 - **Recarga:** packs en `/panel` — 50.000 / 200.000 / 500.000 CLP = esos
-  créditos. Flow Checkout (`flow.cl`). Confirmación: Flow POST `token`
-  a `/api/flow/confirmacion`; Ternio llama `getStatus` y solo acredita
-  status **2**. `idempotencyKey` = `flow:{commerceOrder}` (o
-  `flow:{flowOrder}`). Tipo `COMPRA_PACK`. Nunca acreditar sin
-  confirmación de Flow.
+  créditos. Receta oficial Flow (no inventar):
+  [create-order](https://developers.flow.cl/docs/tutorial-basics/create-order)
+  y
+  [order-confirmation](https://developers.flow.cl/docs/tutorial-basics/order-confirmation).
+  `POST application/x-www-form-urlencoded` a
+  `https://www.flow.cl/api/payment/create` con `apiKey`, `commerceOrder`,
+  `amount`, `email`, `subject`, `urlReturn`, `urlConfirmation`. Firma
+  HMAC-SHA256 (keys sort + concat key+value) con `FLOW_SECRET_KEY`;
+  campo `s`. Respuesta `{ url, token, flowOrder }`. Redirect
+  `url+"?token="+token`. `urlConfirmation`: Flow POST `token`;
+  responder **200** en <15s; con el token `GET /payment/getStatus`
+  (también firmado); acreditar **solo** si `status === 2` (pagada).
+  `idempotencyKey` = `commerceOrder` o `flowOrder`. Asiento
+  `COMPRA_PACK`. `urlReturn` → `/panel` con créditos actualizados.
+  Nunca acreditar sin `getStatus`.
 - Si faltan `FLOW_API_KEY` / `FLOW_SECRET_KEY`, el pack de arranque igual
   funciona. En Vercel del proyecto ternio esas keys ya están (Production
   + Preview). Ver `docs/lanzamiento.md`.
