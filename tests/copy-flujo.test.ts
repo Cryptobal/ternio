@@ -50,6 +50,8 @@ describe('copy público sin mentiras de launch', () => {
     )
     expect(mis).not.toMatch(/Panel privado|Mi panel|tu panel/i)
     expect(mis).toMatch(/Tus cotizaciones/)
+    expect(mis).toContain('EstadoCompraLead.PAGADA')
+    expect(mis).not.toContain('LeadContacto')
     expect(enviada).not.toMatch(/tu panel/i)
   })
 
