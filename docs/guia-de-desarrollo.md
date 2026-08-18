@@ -353,10 +353,14 @@ Carlos no carga créditos. El sistema sí.
 - Región → Provincia → Comuna. Un solo nivel visible a la vez. Sin typeahead.
 - “Saltar” solo en pasos opcionales. Continuar bloquea identidad.
 - Móvil primero. Targets grandes (`min-h-11`).
-- Home: una frase (“Cotiza servicios para tu casa o tu empresa”) y un
-  solo cotizador sobre el navy. Cascada: casa/empresa → combobox de
-  servicio → región → provincia → comuna. Sin pastillas de atajo, sin
-  losa blanca, sin lista de botones de rubro. Naranja solo en Cotizar.
+- Home: frase canónica (“Cotiza servicios para tu casa o tu empresa”) y
+  cotizador en cascada sobre el navy (casa/empresa → servicio → región →
+  provincia → comuna). En desktop el hero va a dos columnas (mensaje +
+  cotizador); en móvil, apilado. Naranja solo en Cotizar. Bajo el hero:
+  cifras honestas desde la DB, catálogo por audiencia con enlaces a
+  `/{rubro}` solo si hay combinación publicada, combos `/{rubro}/{comuna}`,
+  FAQ + JSON-LD. Sin typeahead ni pastillas de atajo en el cotizador.
+  Sin inventar métricas.
 - `/panel` de un comprador: “esta es la cuenta de proveedores” + link a
   `/proveedores`. No fingir que es el otro lado.
 
