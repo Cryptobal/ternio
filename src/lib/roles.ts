@@ -6,7 +6,16 @@
  * (incluso solo un enum) hace fallar el deploy en Vercel con
  * "Edge Function is referencing unsupported modules: .prisma", aunque
  * `next build` pase en local.
+ *
+ * El destino tras login ya no usa el escalar `rol`: usa capacidades
+ * (`destinoPorCapacidades` / `destinoTrasLogin`).
  */
+import {
+  destinoPorCapacidades,
+  type CapacidadesUsuario,
+  type DestinoPostLogin,
+} from '@/lib/capacidades'
+
 export const ROLES = {
   COMPRADOR: 'COMPRADOR',
   PROVEEDOR: 'PROVEEDOR',
@@ -15,6 +24,9 @@ export const ROLES = {
 
 export type Rol = (typeof ROLES)[keyof typeof ROLES]
 
-export function destinoTrasLogin(rol: Rol | string | null | undefined): string {
-  return rol === ROLES.PROVEEDOR ? '/panel' : '/mis-cotizaciones'
+export type { CapacidadesUsuario, DestinoPostLogin }
+
+/** Destino post-login por capacidades (cotizaciones / perfil proveedor / admin). */
+export function destinoTrasLogin(caps: CapacidadesUsuario): DestinoPostLogin {
+  return destinoPorCapacidades(caps)
 }

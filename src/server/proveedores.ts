@@ -11,11 +11,14 @@ import {
   GARD_SLUG,
   slugAltaProveedor,
 } from '@/lib/gard'
+import { hashPassword } from '@/lib/password'
 import { prisma } from '@/lib/prisma'
 import { consumirRateLimit } from '@/lib/rate-limit'
 import { normalizarRut, variantesRutPersistido } from '@/lib/rut'
 import { normalizarTelefonoE164 } from '@/lib/telefono'
-import { enviarOtpAUsuario } from '@/server/otp'
+import { avisarAdminAltaProveedor } from '@/server/avisos'
+import { activarProveedorTrasOtp } from '@/server/creditos'
+import { abrirSesionUsuario, enviarOtpAUsuario } from '@/server/otp'
 
 export type EstadoCuentaProveedor = {
   ok: boolean
@@ -33,7 +36,8 @@ async function ipDelCliente(): Promise<string> {
 }
 
 /**
- * Crea User (PROVEEDOR) + Proveedor, persiste cobertura y envía OTP.
+ * Crea o reutiliza User + Proveedor, persiste cobertura y envía OTP
+ * (o abre sesión si el celular ya estaba verificado).
  * Si el RUT ya existe (canónico o solo dígitos), reclama esa fila.
  * El RUT de Gard ancla a `gard-security`; no se inventa un segundo Gard.
  */
@@ -56,6 +60,8 @@ export async function crearCuentaProveedorAction(
     rut: formData.get('rut'),
     telefono: formData.get('telefono'),
     email: formData.get('email'),
+    password: formData.get('password'),
+    passwordConfirmacion: formData.get('passwordConfirmacion'),
     rubros: formData.getAll('rubros'),
     modoCobertura: formData.get('modoCobertura'),
     regiones: formData.getAll('regiones'),
@@ -67,23 +73,14 @@ export async function crearCuentaProveedorAction(
     return { ok: false, mensaje: 'Revisa los datos marcados.', errores: validacion.errores }
   }
 
-  const { nombreEmpresa, rubros, cobertura, email } = validacion.datos
+  const { nombreEmpresa, rubros, cobertura, email, password } = validacion.datos
   const rutNormalizado = normalizarRut(validacion.datos.rut)
   const telefonoE164 = normalizarTelefonoE164(validacion.datos.telefono)
   if (!rutNormalizado || !telefonoE164) {
     return { ok: false, mensaje: 'Revisa el RUT y el celular.' }
   }
 
-  const telefonoDeComprador = await prisma.user.findFirst({
-    where: { telefonoE164Verificado: telefonoE164, rol: RolUsuario.COMPRADOR },
-    select: { id: true },
-  })
-  if (telefonoDeComprador) {
-    return {
-      ok: false,
-      mensaje: 'Este celular ya tiene una cuenta de cotizaciones. Usa otro o entra como comprador.',
-    }
-  }
+  const passwordHash = await hashPassword(password)
 
   const rubrosActivos = await prisma.rubro.findMany({
     where: { slug: { in: rubros }, activo: true },
@@ -142,8 +139,9 @@ export async function crearCuentaProveedorAction(
     }
   }
 
+  // Cualquier User con este teléfono (comprador o proveedor): se reutiliza.
   const usuarioExistentePorTelefono = await prisma.user.findFirst({
-    where: { telefonoE164Verificado: telefonoE164, rol: RolUsuario.PROVEEDOR },
+    where: { telefonoE164Verificado: telefonoE164 },
   })
 
   const emailOcupado = await prisma.user.findUnique({
@@ -153,23 +151,33 @@ export async function crearCuentaProveedorAction(
 
   let usuarioId = existente?.usuarioId ?? usuarioExistentePorTelefono?.id ?? null
 
+  if (emailOcupado && emailOcupado.id !== usuarioId) {
+    return {
+      ok: false,
+      errores: { email: 'Ese correo ya está en uso. Entra con tu cuenta o usa otro.' },
+      mensaje: 'Ese correo ya está en uso.',
+    }
+  }
+
   if (!usuarioId) {
-    const emailLibre = !emailOcupado || emailOcupado.rol === RolUsuario.PROVEEDOR
     const creado = await prisma.user.create({
       data: {
         name: nombreEmpresa,
-        email: emailLibre && !emailOcupado ? email : undefined,
+        email,
+        passwordHash,
         rol: RolUsuario.PROVEEDOR,
       },
     })
     usuarioId = creado.id
   } else {
+    // Eleva comprador→proveedor (rol = capacidad máxima) y guarda contraseña.
     await prisma.user.update({
       where: { id: usuarioId },
       data: {
         name: nombreEmpresa,
         rol: RolUsuario.PROVEEDOR,
-        email: !emailOcupado || emailOcupado.id === usuarioId ? email : undefined,
+        email,
+        passwordHash,
       },
     })
   }
@@ -232,6 +240,22 @@ export async function crearCuentaProveedorAction(
       ),
       skipDuplicates: true,
     })
+  }
+
+  const usuario = await prisma.user.findUnique({
+    where: { id: usuarioId },
+    select: { telefonoE164Verificado: true },
+  })
+  const telefonoYaVerificado = usuario?.telefonoE164Verificado === telefonoE164
+
+  if (telefonoYaVerificado) {
+    // OTP una sola vez por cuenta: no se vuelve a pedir. Pack de arranque
+    // idempotente por `alta:{proveedorId}`.
+    const alta = await activarProveedorTrasOtp(usuarioId)
+    if (alta.recienAprobado && alta.proveedorId) {
+      await avisarAdminAltaProveedor(alta.proveedorId)
+    }
+    await abrirSesionUsuario(usuarioId)
   }
 
   const otp = await enviarOtpAUsuario({

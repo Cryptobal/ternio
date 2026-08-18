@@ -6,6 +6,7 @@
  */
 
 import { leerSnapshotCobertura } from '@/lib/cobertura'
+import { normalizarRut } from '@/lib/rut'
 
 export const GARD_VENTANA_MS = 15 * 60 * 1000
 export const VIDA_LEAD_MS = 7 * 24 * 60 * 60 * 1000
@@ -226,6 +227,20 @@ export function minutosRestantes(ms: number): number {
   return Math.max(1, Math.ceil(ms / 60_000))
 }
 
+/**
+ * Antifraude: el mismo RUT de empresa no puede comprar el lead que cotizó.
+ * Compara formas normalizadas; sin RUT válido en alguno de los lados, no bloquea.
+ */
+export function proveedorEsDuenioDelLead(
+  rutProveedor: string | null | undefined,
+  rutLeadContacto: string | null | undefined,
+): boolean {
+  const a = normalizarRut(rutProveedor)
+  const b = normalizarRut(rutLeadContacto)
+  if (!a || !b) return false
+  return a === b
+}
+
 export function puedeTomarLead(args: {
   proveedor: ProveedorMatch
   lead: LeadMatch
@@ -235,8 +250,14 @@ export function puedeTomarLead(args: {
   precioClp: number | null
   hayGardQueCalza: boolean
   ahora?: Date
+  /** RUT del proveedor (empresa). Si calza con el contacto del lead, se bloquea. */
+  rutProveedor?: string | null
+  rutLeadContacto?: string | null
 }): { ok: true } | { ok: false; motivo: string } {
   const ahora = args.ahora ?? new Date()
+  if (proveedorEsDuenioDelLead(args.rutProveedor, args.rutLeadContacto)) {
+    return { ok: false, motivo: 'No puedes comprar un contacto de tu propia empresa.' }
+  }
   if (!leadSePuedeVender(args.lead, ahora)) {
     return { ok: false, motivo: 'Este comprador ya no está a la venta.' }
   }

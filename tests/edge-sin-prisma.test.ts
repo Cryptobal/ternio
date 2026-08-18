@@ -12,6 +12,7 @@ const ARCHIVOS_EDGE = [
   'src/auth.config.ts',
   'src/lib/admin-ruta.ts',
   'src/lib/roles.ts',
+  'src/lib/capacidades.ts',
 ]
 
 describe('bundle Edge sin Prisma', () => {

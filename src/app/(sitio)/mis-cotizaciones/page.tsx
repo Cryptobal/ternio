@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { EstadoCompraLead } from '@prisma/client'
 
 import { parsearCampos } from '@/lib/campos'
@@ -10,9 +9,9 @@ import {
   textoEmpresasTomaron,
 } from '@/lib/estado-comprador'
 import { prisma } from '@/lib/prisma'
-import { ROLES } from '@/lib/roles'
 import { textoEstadoComprador } from '@/lib/rubros'
 import { salir } from '@/server/auth-acciones'
+import { capacidadesDe } from '@/server/capacidades'
 import { reclamarLeadsAction } from '@/server/leads'
 import { sesionActual } from '@/server/sesion'
 
@@ -50,42 +49,50 @@ export default async function MisCotizaciones() {
     )
   }
 
-  if (sesion.user.rol === ROLES.PROVEEDOR) redirect('/panel')
-
   await reclamarLeadsAction()
 
-  const cotizaciones = await prisma.lead.findMany({
-    where: { compradorUsuarioId: sesion.user.id },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      estado: true,
-      createdAt: true,
-      rutValido: true,
-      telefonoVerificado: true,
-      datos: true,
-      rubro: { select: { nombre: true, slug: true, camposFormulario: true } },
-      comuna: { select: { nombre: true, slug: true } },
-      _count: {
-        select: {
-          compras: { where: { estado: EstadoCompraLead.PAGADA } },
+  const [caps, cotizaciones] = await Promise.all([
+    capacidadesDe(sesion.user.id),
+    prisma.lead.findMany({
+      where: { compradorUsuarioId: sesion.user.id },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        estado: true,
+        createdAt: true,
+        rutValido: true,
+        telefonoVerificado: true,
+        datos: true,
+        rubro: { select: { nombre: true, slug: true, camposFormulario: true } },
+        comuna: { select: { nombre: true, slug: true } },
+        _count: {
+          select: {
+            compras: { where: { estado: EstadoCompraLead.PAGADA } },
+          },
         },
       },
-    },
-  })
+    }),
+  ])
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:py-14">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl sm:text-3xl">Tus cotizaciones</h1>
-        <form action={salir}>
-          <button
-            type="submit"
-            className="text-sm text-(--color-tinta-suave) underline underline-offset-4"
-          >
-            Cerrar sesión
-          </button>
-        </form>
+        <div className="flex flex-wrap items-center gap-4">
+          {caps.tienePerfilProveedor ? (
+            <Link href="/panel" className="text-sm underline underline-offset-4">
+              Ir a mi panel de proveedor
+            </Link>
+          ) : null}
+          <form action={salir}>
+            <button
+              type="submit"
+              className="text-sm text-(--color-tinta-suave) underline underline-offset-4"
+            >
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
       </div>
 
       {cotizaciones.length === 0 ? (
