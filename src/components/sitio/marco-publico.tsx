@@ -4,7 +4,7 @@ import { Isotipo, Logo } from '@/components/marca/logo'
 
 export function CabeceraPublica() {
   return (
-    <header className="bg-(--color-tinta) text-white">
+    <header className="sticky top-0 z-20 bg-(--color-tinta)/95 text-white backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
         <Link href="/" aria-label="Ternio, ir al inicio">
           <Logo variante="oscuro" />

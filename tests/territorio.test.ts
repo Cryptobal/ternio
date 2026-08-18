@@ -5,6 +5,7 @@ import {
   comunaPorSlug,
   comunasDe,
   filtrarComunas,
+  pasoTerritorio,
   provinciasDe,
   regionesDe,
   slugificarNombre,
@@ -26,5 +27,12 @@ describe('territorio CUT', () => {
     expect(filtrarComunas(COMUNAS_CHILE, 'Valdivia').some((c) => c.slug === 'valdivia')).toBe(true)
     expect(slugificarNombre('Ñuñoa')).toBe('nunoa')
     expect(slugificarNombre("O'Higgins")).toBe('o-higgins')
+  })
+
+  it('la cascada pide región, después provincia, después comuna', () => {
+    expect(pasoTerritorio('', '', '')).toBe('region')
+    expect(pasoTerritorio('Región Metropolitana', '', '')).toBe('provincia')
+    expect(pasoTerritorio('Región Metropolitana', 'Santiago', '')).toBe('comuna')
+    expect(pasoTerritorio('Región Metropolitana', 'Santiago', 'providencia')).toBe('listo')
   })
 })

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 
 function Numero({ titulo, valor }: { titulo: string; valor: number }) {
   return (
-    <div className="rounded-2xl border border-(--color-borde) bg-white p-5">
+    <div className="rounded-3xl border border-(--color-borde) bg-white p-5 shadow-[0_12px_32px_-20px_rgb(14_27_44/0.18)]">
       <p className="text-sm text-(--color-tinta-suave)">{titulo}</p>
       <p className="mt-1 text-4xl font-semibold">{valor}</p>
     </div>

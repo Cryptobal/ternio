@@ -10,9 +10,7 @@ import {
 } from '@/lib/cobertura'
 import { provinciasDe, regionesDe, type ComunaTerritorio } from '@/lib/territorio'
 import { SelectorTerritorio } from '@/components/selector-territorio'
-
-const claseChip =
-  'min-h-11 rounded-2xl border border-(--color-borde) bg-white px-4 py-3 text-left text-base transition hover:border-(--color-marca)'
+import { CLASE_CAMPO, CLASE_CHIP, CLASE_CHIP_ACTIVO } from '@/lib/ui'
 
 const MODOS: ModoCobertura[] = ['nacional', 'region', 'provincia', 'comuna']
 
@@ -29,7 +27,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`${claseChip} ${seleccionado ? 'border-(--color-marca) bg-(--color-ambar-suave)' : ''}`}
+      className={`${CLASE_CHIP} ${seleccionado ? CLASE_CHIP_ACTIVO : ''}`}
     >
       {children}
     </button>
@@ -118,7 +116,7 @@ export function SelectorCobertura({
             </label>
             <select
               id="cobertura-region"
-              className="w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base"
+              className={CLASE_CAMPO}
               value={value.regiones[0] ?? ''}
               onChange={(event) => elegirRegionProvincia(event.target.value)}
             >

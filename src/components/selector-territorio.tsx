@@ -5,13 +5,12 @@ import { useMemo, useState } from 'react'
 import {
   comunaPorSlug,
   comunasDe,
+  pasoTerritorio,
   provinciasDe,
   regionesDe,
   type ComunaTerritorio,
 } from '@/lib/territorio'
-
-const claseCampo =
-  'w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base outline-none'
+import { CLASE_CAMPO, CLASE_CHIP, CLASE_CHIP_ACTIVO, CLASE_PASO_ACTIVO } from '@/lib/ui'
 
 export function SelectorTerritorio({
   comunas,
@@ -45,6 +44,7 @@ export function SelectorTerritorio({
   )
 
   const seleccionadas = new Set(multiple ? values : value ? [value] : [])
+  const paso = pasoTerritorio(region, provincia, multiple ? (values[0] ?? '') : (value ?? ''))
 
   function elegir(comuna: ComunaTerritorio) {
     setRegion(comuna.region)
@@ -60,14 +60,14 @@ export function SelectorTerritorio({
   }
 
   return (
-    <div className="grid gap-3">
-      <div>
+    <div className="grid gap-4">
+      <div className={paso === 'region' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
         <label htmlFor={`${idPrefijo}-region`} className="mb-1 block text-sm font-medium">
           Región
         </label>
         <select
           id={`${idPrefijo}-region`}
-          className={claseCampo}
+          className={CLASE_CAMPO}
           value={region}
           onChange={(event) => {
             setRegion(event.target.value)
@@ -84,13 +84,13 @@ export function SelectorTerritorio({
         </select>
       </div>
 
-      <div>
+      <div className={paso === 'provincia' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
         <label htmlFor={`${idPrefijo}-provincia`} className="mb-1 block text-sm font-medium">
           Provincia
         </label>
         <select
           id={`${idPrefijo}-provincia`}
-          className={claseCampo}
+          className={CLASE_CAMPO}
           value={provincia}
           disabled={!region}
           onChange={(event) => {
@@ -108,7 +108,7 @@ export function SelectorTerritorio({
       </div>
 
       {multiple ? (
-        <fieldset>
+        <fieldset className={paso === 'comuna' || paso === 'listo' ? `rounded-2xl ${paso === 'comuna' ? CLASE_PASO_ACTIVO : ''} p-1` : ''}>
           <legend className="mb-1 text-sm font-medium">Comunas</legend>
           {listaComunas.length === 0 ? (
             <p className="text-sm text-(--color-tinta-suave)">
@@ -118,7 +118,9 @@ export function SelectorTerritorio({
             <ul className="grid gap-2">
               {listaComunas.map((comuna) => (
                 <li key={comuna.slug}>
-                  <label className="flex min-h-11 items-center gap-3 rounded-2xl border border-(--color-borde) bg-white px-3 py-2">
+                  <label
+                    className={`${CLASE_CHIP} flex items-center gap-3 ${seleccionadas.has(comuna.slug) ? CLASE_CHIP_ACTIVO : ''}`}
+                  >
                     <input
                       type="checkbox"
                       checked={seleccionadas.has(comuna.slug)}
@@ -137,20 +139,18 @@ export function SelectorTerritorio({
           ) : null}
         </fieldset>
       ) : (
-        <div>
+        <div className={paso === 'comuna' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
           <label htmlFor={`${idPrefijo}-comuna`} className="mb-1 block text-sm font-medium">
             Comuna
           </label>
           <select
             id={`${idPrefijo}-comuna`}
-            className={claseCampo}
+            className={CLASE_CAMPO}
             value={value ?? ''}
             disabled={!provincia}
             onChange={(event) => onChange?.(event.target.value)}
           >
-            <option value="">
-              {provincia ? 'Elige una comuna' : 'Primero elige la provincia'}
-            </option>
+            <option value="">{provincia ? 'Elige una comuna' : 'Primero elige la provincia'}</option>
             {listaComunas.map((comuna) => (
               <option key={comuna.slug} value={comuna.slug}>
                 {comuna.nombre}

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { SelectorTerritorio } from '@/components/selector-territorio'
 import { destinoSelector } from '@/lib/selector-cotizacion'
 import type { ComunaTerritorio } from '@/lib/territorio'
+import { CLASE_BOTON, CLASE_SUPERFICIE } from '@/lib/ui'
 
 export function SelectorComunaCta({
   rubroSlug,

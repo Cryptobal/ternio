@@ -74,7 +74,7 @@ export default async function Inicio() {
               <li key={rubro.slug}>
                 <Link
                   href={pathPublicoRubro(rubro.slug)}
-                  className="block rounded-2xl border border-(--color-borde) bg-white p-5"
+                  className="block rounded-3xl border border-(--color-borde) bg-white p-5 shadow-[0_12px_32px_-20px_rgb(14_27_44/0.2)] transition hover:-translate-y-0.5"
                 >
                   <span className="font-medium">{rubro.nombrePlural ?? rubro.nombre}</span>
                   <span className="mt-1 block text-sm text-(--color-tinta-suave)">

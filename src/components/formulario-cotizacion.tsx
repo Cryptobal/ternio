@@ -19,18 +19,12 @@ import { esRutValido } from '@/lib/rut'
 import { crearLeadAction, type EstadoFormulario } from '@/server/leads'
 import { registrarEventoCliente } from '@/components/medidor-embudo'
 import { SelectorTerritorio } from '@/components/selector-territorio'
+import { PasoAnimado } from '@/components/ui/motion'
 import { Turnstile } from '@/components/turnstile'
 import type { ComunaTerritorio } from '@/lib/territorio'
+import { CLASE_BOTON, CLASE_CAMPO, CLASE_CHIP, CLASE_CHIP_ACTIVO, CLASE_SUPERFICIE } from '@/lib/ui'
 
 const ESTADO_INICIAL: EstadoFormulario = { ok: false }
-
-const claseCampo =
-  'w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base ' +
-  'outline-none'
-
-const claseChip =
-  'min-h-11 rounded-2xl border border-(--color-borde) bg-white px-4 py-3 text-left text-base ' +
-  'transition hover:border-(--color-marca)'
 
 function BotonEnviar() {
   const { pending } = useFormStatus()
@@ -38,7 +32,7 @@ function BotonEnviar() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full min-h-11 rounded-2xl bg-(--color-marca) px-5 py-3.5 text-base font-medium text-white transition hover:bg-(--color-tinta) disabled:opacity-60"
+      className={CLASE_BOTON}
     >
       {pending ? 'Enviando tu cotización…' : 'Pedir cotización gratis'}
     </button>
@@ -63,7 +57,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`${claseChip} ${seleccionado ? 'border-(--color-marca) bg-(--color-ambar-suave)' : ''}`}
+      className={`${CLASE_CHIP} ${seleccionado ? CLASE_CHIP_ACTIVO : ''}`}
     >
       {children}
     </button>
@@ -180,62 +174,74 @@ export function FormularioCotizacion({
         </div>
       ) : null}
 
-      {paso.tipo === 'comuna' ? (
-        <fieldset>
-          <legend className="text-lg font-medium">{paso.etiqueta}</legend>
-          <div className="mt-3">
-            <SelectorTerritorio
-              comunas={comunas}
-              value={comunaActual}
-              onChange={(slug) => {
-                if (slug) guardar('comuna', slug, false)
-              }}
+      <PasoAnimado
+        id={
+          paso.tipo === 'modulo'
+            ? paso.campo.nombre
+            : paso.tipo === 'tronco'
+              ? paso.id
+              : paso.tipo
+        }
+      >
+        <div className={CLASE_SUPERFICIE}>
+          {paso.tipo === 'comuna' ? (
+            <fieldset>
+              <legend className="text-lg font-medium">{paso.etiqueta}</legend>
+              <div className="mt-3">
+                <SelectorTerritorio
+                  comunas={comunas}
+                  value={comunaActual}
+                  onChange={(slug) => {
+                    if (slug) guardar('comuna', slug, false)
+                  }}
+                />
+              </div>
+              <Error mensaje={errorVisible} />
+            </fieldset>
+          ) : null}
+
+          {paso.tipo === 'modulo' ? (
+            <PasoModulo
+              campo={paso.campo}
+              valor={valores[paso.campo.nombre]}
+              error={errorVisible}
+              onElegir={(valor, avanzar) => guardar(paso.campo.nombre, valor, avanzar)}
             />
-          </div>
-          <Error mensaje={errorVisible} />
-        </fieldset>
-      ) : null}
+          ) : null}
 
-      {paso.tipo === 'modulo' ? (
-        <PasoModulo
-          campo={paso.campo}
-          valor={valores[paso.campo.nombre]}
-          error={errorVisible}
-          onElegir={(valor, avanzar) => guardar(paso.campo.nombre, valor, avanzar)}
-        />
-      ) : null}
-
-      {paso.tipo === 'tronco' ? (
-        <PasoTronco
-          id={paso.id}
-          etiqueta={paso.etiqueta}
-          requerido={paso.requerido}
-          valor={valorComoTexto(valores[paso.id])}
-          error={errorVisible}
-          onChange={(valor) => guardar(paso.id, valor, false)}
-          onContinuar={() => intentarAvanzar()}
-        />
-      ) : null}
-
-      {paso.tipo === 'envio' ? (
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium">Listo para enviar</h2>
-          <p className="text-sm text-(--color-tinta-suave)">
-            Revisamos el RUT y te vamos a pedir confirmar el teléfono con un código. Tus datos
-            no se muestran a nadie hasta que una empresa tome tu solicitud.
-          </p>
-          <label className="flex items-start gap-3 text-sm">
-            <input
-              type="checkbox"
-              name="whatsappOptIn"
-              className="mt-1 size-4 rounded border-(--color-borde)"
+          {paso.tipo === 'tronco' ? (
+            <PasoTronco
+              id={paso.id}
+              etiqueta={paso.etiqueta}
+              requerido={paso.requerido}
+              valor={valorComoTexto(valores[paso.id])}
+              error={errorVisible}
+              onChange={(valor) => guardar(paso.id, valor, false)}
+              onContinuar={() => intentarAvanzar()}
             />
-            <span>Quiero que me escriban por WhatsApp para coordinar más rápido.</span>
-          </label>
-          <Turnstile siteKey={turnstileSiteKey} />
-          <BotonEnviar />
+          ) : null}
+
+          {paso.tipo === 'envio' ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-medium">Listo para enviar</h2>
+              <p className="text-sm text-(--color-tinta-suave)">
+                Revisamos el RUT y te vamos a pedir confirmar el teléfono con un código. Tus
+                datos no se muestran a nadie hasta que una empresa tome tu solicitud.
+              </p>
+              <label className="flex items-start gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  name="whatsappOptIn"
+                  className="mt-1 size-4 rounded border-(--color-borde)"
+                />
+                <span>Quiero que me escriban por WhatsApp para coordinar más rápido.</span>
+              </label>
+              <Turnstile siteKey={turnstileSiteKey} />
+              <BotonEnviar />
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </PasoAnimado>
 
       <div className="flex items-center justify-between gap-3">
         {indice > 0 ? (
@@ -380,7 +386,7 @@ function PasoModulo({
           id={`campo-${campo.nombre}`}
           rows={4}
           placeholder={campo.placeholder}
-          className={claseCampo}
+          className={CLASE_CAMPO}
           value={texto}
           onChange={(event) => onElegir(event.target.value, false)}
         />
@@ -390,7 +396,7 @@ function PasoModulo({
           type={campo.tipo === 'numero' ? 'text' : 'text'}
           inputMode={campo.tipo === 'numero' ? 'numeric' : undefined}
           placeholder={campo.placeholder}
-          className={claseCampo}
+          className={CLASE_CAMPO}
           value={texto}
           onChange={(event) => onElegir(event.target.value, false)}
         />
@@ -436,7 +442,7 @@ function PasoTronco({
         placeholder={
           id === 'rut' ? '76.482.113-5' : id === 'telefono' ? '+56 9 8123 4567' : undefined
         }
-        className={claseCampo}
+        className={CLASE_CAMPO}
         value={valor}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {

@@ -217,3 +217,6 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
   `ensureGardSecurity` (seed / `/admin` / `/panel`) crea
   `gard-security` nacional + seguridad; pack de arranque 200.000 si
   saldo 0.
+- `/admin/rubros` crea y edita rubros (desactivar, no borrar).
+  VENTA exige ambos precios > 0. El sitio usa `motion` con
+  `prefers-reduced-motion`.

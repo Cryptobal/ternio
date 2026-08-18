@@ -120,7 +120,9 @@ producción (`ternio.cl`), sin mentir.
 - `/admin` (404 si no es `ADMIN`): de un vistazo, leads por revisar,
   cuentas nuevas, leads a la venta. Suspender. Reversa si el lead era
   falso. Verificar / descartar. Ver saldo y quién compró qué. Ver PII
-  del comprador (el admin sí puede).
+  del comprador (el admin sí puede). `/admin/rubros` crea y edita
+  rubros (desactivar, no borrar). VENTA exige ambos precios > 0 y
+  aparece en el cotizador y `/proveedores` sin tocar código.
 - El admin **no** es el cajero. Un ajuste de emergencia puede existir
   escondido; no es el flujo normal.
 - No hace falta SSH ni Prisma Studio para el día a día.
@@ -209,6 +211,7 @@ Datos y venta:
 | Tomar lead + ledger | `src/server/marketplace.ts` |
 | Packs / Flow | `src/lib/flow.ts` + `src/server/packs.ts` + `/api/flow/confirmacion` |
 | Acciones admin | `src/server/admin.ts` |
+| Rubros admin | `src/lib/admin-rubros.ts` + `src/server/admin-rubros.ts` + `/admin/rubros` |
 
 Catálogo: `Rubro.modo` es `VENTA` o `CAPTURA`. Un lead nacido en `CAPTURA`
 (`modoRubroAlCrear`) **nunca** se ofrece a la venta aunque el rubro cambie

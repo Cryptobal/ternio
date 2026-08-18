@@ -11,6 +11,7 @@ const ENLACES = [
   { href: rutaAdmin('compradores'), etiqueta: 'Compradores' },
   { href: rutaAdmin('proveedores'), etiqueta: 'Proveedores' },
   { href: rutaAdmin('demanda'), etiqueta: 'Demanda' },
+  { href: rutaAdmin('rubros'), etiqueta: 'Rubros' },
 ]
 
 export function NavAdmin() {
@@ -21,7 +22,9 @@ export function NavAdmin() {
     <nav className="mb-8 flex flex-wrap items-center justify-between gap-3 border-b border-(--color-borde) pb-4">
       <ul className="flex flex-wrap gap-4 text-sm">
         {ENLACES.map((enlace) => {
-          const activo = path === enlace.href
+          const activo =
+            path === enlace.href ||
+            (enlace.href !== rutaAdmin() && path.startsWith(`${enlace.href}/`))
           return (
             <li key={enlace.href}>
               <Link
