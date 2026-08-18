@@ -2,10 +2,6 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
-export function usarPrefiereMenosMovimiento(): boolean {
-  return Boolean(useReducedMotion())
-}
-
 export function Aparecer({
   children,
   className,
