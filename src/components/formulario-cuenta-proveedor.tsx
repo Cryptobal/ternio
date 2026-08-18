@@ -84,7 +84,7 @@ export function FormularioCuentaProveedor({
           id="rut-proveedor"
           name="rut"
           className={CLASE_CAMPO}
-          placeholder="76.482.113-5"
+          placeholder="76.482.113-0"
           value={rut}
           onChange={(event) => setRut(event.target.value)}
           required

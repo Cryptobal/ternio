@@ -54,7 +54,7 @@ describe('payloadDesdeValores', () => {
       tipo_servicio: 'guardias',
       cantidad: '2',
       razonSocial: 'Ejemplo SpA',
-      rut: '76.482.113-5',
+      rut: '76.482.113-0',
       nombreContacto: 'Ana',
       telefono: '+56 9 8123 4567',
       email: 'ana@empresa.cl',
