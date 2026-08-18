@@ -6,12 +6,15 @@ import { ModoRubro } from '@prisma/client'
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
 import { parsearCampos } from '@/lib/campos'
 import { prisma } from '@/lib/prisma'
-import { rubrosActivos } from '@/lib/catalogo'
+import { comunasActivas, rubrosActivos } from '@/lib/catalogo'
 
 export const revalidate = 3600
 export const dynamicParams = true
 
-type Props = { params: Promise<{ rubro: string }> }
+type Props = {
+  params: Promise<{ rubro: string }>
+  searchParams: Promise<{ comuna?: string }>
+}
 
 async function rubroConComunas(slug: string) {
   return prisma.rubro.findFirst({
@@ -26,7 +29,7 @@ async function rubroConComunas(slug: string) {
       comunas: {
         where: { activa: true, comuna: { activa: true } },
         orderBy: { comuna: { orden: 'asc' } },
-        select: { comuna: { select: { slug: true, nombre: true, region: true } } },
+        select: { comuna: { select: { slug: true, nombre: true, region: true, provincia: true } } },
       },
     },
   })
@@ -49,11 +52,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function PaginaRubro({ params }: Props) {
+export default async function PaginaRubro({ params, searchParams }: Props) {
   const { rubro: slug } = await params
-  const rubro = await rubroConComunas(slug)
+  const { comuna: comunaQuery } = await searchParams
+  const [rubro, comunas] = await Promise.all([rubroConComunas(slug), comunasActivas()])
 
   if (!rubro) notFound()
+
+  const comunaPreseleccionada = comunas.some((comuna) => comuna.slug === comunaQuery)
+    ? comunaQuery
+    : undefined
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-12">
@@ -106,10 +114,8 @@ export default async function PaginaRubro({ params }: Props) {
           </p>
           <FormularioCotizacion
             rubroSlug={rubro.slug}
-            comunas={rubro.comunas.map(({ comuna }) => ({
-              slug: comuna.slug,
-              nombre: comuna.nombre,
-            }))}
+            comunaSlug={comunaPreseleccionada}
+            comunas={comunas}
             campos={parsearCampos(rubro.camposFormulario)}
             turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
           />

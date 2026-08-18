@@ -10,7 +10,6 @@ import {
   TipoEventoAnalitica,
   TipoTransicionLead,
 } from '@prisma/client'
-import { z } from 'zod'
 
 import { registrarEvento } from '@/lib/analitica'
 import { parsearCampos, validarValoresCampos } from '@/lib/campos'
@@ -24,10 +23,10 @@ import { prisma } from '@/lib/prisma'
 import { consumirRateLimit } from '@/lib/rate-limit'
 import { reclamarLeadsPorHash } from '@/lib/reclamo'
 import { estadoInicialLead } from '@/lib/rubros'
-import { normalizarRut } from '@/lib/rut'
 import { calcularScore } from '@/lib/score'
-import { esMovil, normalizarTelefonoE164 } from '@/lib/telefono'
+import { esMovil } from '@/lib/telefono'
 import { verificarTurnstile } from '@/lib/turnstile'
+import { validarIdentidadTronco } from '@/lib/validar-identidad'
 import { usuarioActualId } from '@/server/sesion'
 
 /** Ventana de deduplicación por RUT o teléfono dentro del mismo rubro. */
@@ -38,12 +37,6 @@ export type EstadoFormulario = {
   mensaje?: string
   errores?: Record<string, string>
 }
-
-const contactoSchema = z.object({
-  nombreContacto: z.string().trim().min(2, 'Escribe tu nombre.').max(120),
-  email: z.string().trim().toLowerCase().email('Revisa tu correo.').max(160),
-  razonSocial: z.string().trim().max(160).optional(),
-})
 
 async function ipDelCliente(): Promise<string> {
   const cabeceras = await headers()
@@ -80,20 +73,22 @@ export async function crearLeadAction(
     }
   }
 
-  const combinacion = await prisma.rubroComuna.findFirst({
-    where: {
-      activa: true,
-      rubro: { slug: rubroSlug, activo: true },
-      comuna: { slug: comunaSlug, activa: true },
-    },
-    select: {
-      rubro: { select: { id: true, modo: true, camposFormulario: true } },
-      comuna: { select: { id: true } },
-    },
-  })
+  const [rubro, comuna] = await Promise.all([
+    prisma.rubro.findFirst({
+      where: { slug: rubroSlug, activo: true },
+      select: { id: true, modo: true, camposFormulario: true },
+    }),
+    prisma.comuna.findFirst({
+      where: { slug: comunaSlug, activa: true },
+      select: { id: true },
+    }),
+  ])
 
-  if (!combinacion) {
-    return { ok: false, mensaje: 'Esta página ya no está disponible. Vuelve a intentar.' }
+  if (!rubro || !comuna) {
+    return {
+      ok: false,
+      mensaje: 'No encontramos ese servicio o comuna. Revisa e inténtalo de nuevo.',
+    }
   }
 
   // Turnstile fail-closed: sin verificación no hay lead.
@@ -107,30 +102,16 @@ export async function crearLeadAction(
 
   const errores: Record<string, string> = {}
 
-  const contacto = contactoSchema.safeParse({
+  const identidad = validarIdentidadTronco({
+    razonSocial: formData.get('razonSocial'),
+    rut: formData.get('rut'),
     nombreContacto: formData.get('nombreContacto'),
+    telefono: formData.get('telefono'),
     email: formData.get('email'),
-    razonSocial: formData.get('razonSocial') ?? undefined,
   })
+  if (!identidad.ok) Object.assign(errores, identidad.errores)
 
-  if (!contacto.success) {
-    for (const issue of contacto.error.issues) {
-      const campo = String(issue.path[0] ?? 'formulario')
-      errores[campo] = issue.message
-    }
-  }
-
-  const rutNormalizado = normalizarRut(String(formData.get('rut') ?? ''))
-  if (!rutNormalizado) {
-    errores.rut = 'Revisa el RUT de la empresa: el dígito verificador no cuadra.'
-  }
-
-  const telefonoE164 = normalizarTelefonoE164(String(formData.get('telefono') ?? ''))
-  if (!telefonoE164) {
-    errores.telefono = 'Revisa el teléfono: usa un número chileno, por ejemplo +56 9 1234 5678.'
-  }
-
-  const campos = parsearCampos(combinacion.rubro.camposFormulario)
+  const campos = parsearCampos(rubro.camposFormulario)
   const entradaCampos: Record<string, unknown> = {}
   for (const campo of campos) {
     entradaCampos[campo.nombre] =
@@ -139,15 +120,11 @@ export async function crearLeadAction(
   const valores = validarValoresCampos(campos, entradaCampos)
   if (!valores.ok) Object.assign(errores, valores.errores)
 
-  if (
-    Object.keys(errores).length > 0 ||
-    !contacto.success ||
-    !rutNormalizado ||
-    !telefonoE164 ||
-    !valores.ok
-  ) {
+  if (Object.keys(errores).length > 0 || !identidad.ok || !valores.ok) {
     return { ok: false, mensaje: 'Revisa los datos marcados.', errores }
   }
+
+  const { razonSocial, rutNormalizado, nombreContacto, telefonoE164, email } = identidad.datos
 
   const compradorUsuarioId = await usuarioActualId()
   const comprador = compradorUsuarioId
@@ -167,7 +144,7 @@ export async function crearLeadAction(
     where: {
       OR: [{ rutNormalizado }, { telefonoE164 }],
       lead: {
-        rubroId: combinacion.rubro.id,
+        rubroId: rubro.id,
         createdAt: { gte: desde },
         estado: { notIn: [EstadoLead.DESCARTADO, EstadoLead.ARCHIVADO] },
       },
@@ -186,7 +163,7 @@ export async function crearLeadAction(
     redirect('/cotizacion/enviada?estado=duplicada')
   }
 
-  const modo = combinacion.rubro.modo
+  const modo = rubro.modo
   const estado = estadoInicialLead(modo)
 
   // El texto libre puede traer nombres, direcciones o teléfonos: vive solo en
@@ -196,9 +173,9 @@ export async function crearLeadAction(
   const score = calcularScore({
     rutValido: true,
     telefonoVerificado: telefonoYaVerificado,
-    email: contacto.data.email,
+    email,
     esMovil: esMovil(telefonoE164),
-    razonSocialDeclarada: Boolean(contacto.data.razonSocial),
+    razonSocialDeclarada: Boolean(razonSocial),
     largoDetalle: detalle.length,
     plazo: valores.valores.plazo,
   })
@@ -214,8 +191,8 @@ export async function crearLeadAction(
   const lead = await prisma.$transaction(async (tx) => {
     const creado = await tx.lead.create({
       data: {
-        rubroId: combinacion.rubro.id,
-        comunaId: combinacion.comuna.id,
+        rubroId: rubro.id,
+        comunaId: comuna.id,
         estado,
         score,
         datos: datosAnonimos,
@@ -233,11 +210,11 @@ export async function crearLeadAction(
     await tx.leadContacto.create({
       data: {
         leadId: creado.id,
-        nombreContacto: contacto.data.nombreContacto,
-        email: contacto.data.email,
+        nombreContacto,
+        email,
         telefonoE164,
         rutNormalizado,
-        razonSocial: contacto.data.razonSocial || null,
+        razonSocial,
         detalle: detalle || null,
       },
     })
@@ -304,8 +281,8 @@ export async function crearLeadAction(
 
   await registrarEvento({
     tipo: TipoEventoAnalitica.LEAD_CREADO,
-    rubroId: combinacion.rubro.id,
-    comunaId: combinacion.comuna.id,
+    rubroId: rubro.id,
+    comunaId: comuna.id,
     leadId: lead.id,
     usuarioId: compradorUsuarioId,
     path: `/${rubroSlug}/${comunaSlug}`,

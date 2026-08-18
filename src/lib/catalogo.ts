@@ -5,10 +5,15 @@ import { prisma } from '@/lib/prisma'
 /**
  * Lecturas del catálogo público (rubros, comunas y sus combinaciones).
  *
- * Durante el build no siempre hay base de datos disponible (por ejemplo, un
- * build de CI sin DATABASE_URL). Estas lecturas degradan a lista vacía en vez
- * de romper el build: las páginas se generan igual bajo demanda con ISR.
+ * Durante el build no siempre hay base de datos disponible (CI sin
+ * DATABASE_URL). Esas lecturas degradan a lista vacía en vez de romper el
+ * build. En runtime un error se propaga: un catálogo vacío cacheado en ISR
+ * dejaba la home muda aunque /seguridad/santiago funcionara.
  */
+function esFaseDeBuild(): boolean {
+  return process.env.NEXT_PHASE === 'phase-production-build'
+}
+
 async function tolerandoSinBase<T>(consulta: () => Promise<T>, alternativa: T): Promise<T> {
   try {
     return await consulta()
@@ -19,6 +24,11 @@ async function tolerandoSinBase<T>(consulta: () => Promise<T>, alternativa: T): 
     )
     return alternativa
   }
+}
+
+async function enBuildOConsulta<T>(consulta: () => Promise<T>, alternativa: T): Promise<T> {
+  if (esFaseDeBuild()) return tolerandoSinBase(consulta, alternativa)
+  return consulta()
 }
 
 export type CombinacionPublicada = { rubro: string; comuna: string }
@@ -43,7 +53,7 @@ export async function combinacionesPublicadas(): Promise<CombinacionPublicada[]>
 }
 
 export async function rubrosActivos() {
-  return tolerandoSinBase(
+  return enBuildOConsulta(
     () =>
       prisma.rubro.findMany({
         where: { activo: true },
@@ -60,9 +70,9 @@ export async function rubrosActivos() {
   )
 }
 
-/** Rubros públicos con sus comunas activas, para el selector de la home. */
+/** Rubros públicos con las comunas de páginas SEO activas. */
 export async function rubrosConComunas() {
-  return tolerandoSinBase(
+  return enBuildOConsulta(
     () =>
       prisma.rubro.findMany({
         where: { activo: true },
@@ -76,7 +86,7 @@ export async function rubrosConComunas() {
           comunas: {
             where: { activa: true, comuna: { activa: true } },
             orderBy: { comuna: { orden: 'asc' } },
-            select: { comuna: { select: { slug: true, nombre: true } } },
+            select: { comuna: { select: { slug: true, nombre: true, region: true, provincia: true } } },
           },
         },
       }),
@@ -84,13 +94,14 @@ export async function rubrosConComunas() {
   )
 }
 
+/** Todas las comunas sembradas (CUT), no solo las que tienen página SEO. */
 export async function comunasActivas() {
-  return tolerandoSinBase(
+  return enBuildOConsulta(
     () =>
       prisma.comuna.findMany({
         where: { activa: true },
-        orderBy: { orden: 'asc' },
-        select: { slug: true, nombre: true, region: true },
+        orderBy: [{ region: 'asc' }, { provincia: 'asc' }, { orden: 'asc' }],
+        select: { slug: true, nombre: true, region: true, provincia: true },
       }),
     [],
   )
@@ -125,7 +136,7 @@ export async function combinacionPorSlugs(rubroSlug: string, comunaSlug: string)
           contenidoSeo: true,
         },
       },
-      comuna: { select: { id: true, slug: true, nombre: true, region: true } },
+      comuna: { select: { id: true, slug: true, nombre: true, region: true, provincia: true } },
     },
   })
 

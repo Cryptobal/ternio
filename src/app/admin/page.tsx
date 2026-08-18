@@ -4,7 +4,6 @@ import { EstadoLead } from '@prisma/client'
 import { rutaAdmin } from '@/lib/admin-ruta'
 import { embudo, leadsPorEstado } from '@/lib/metricas'
 import { prisma } from '@/lib/prisma'
-import { salir } from '@/server/auth-acciones'
 import { requerirAdmin } from '@/server/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -61,14 +60,12 @@ export default async function AdminInicio() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Panel</h1>
         <div className="flex items-center gap-4 text-sm">
+          <Link href={rutaAdmin('compradores')} className="underline underline-offset-4">
+            Todas las cotizaciones
+          </Link>
           <Link href={rutaAdmin('demanda')} className="underline underline-offset-4">
             Demanda de rubros ({demandaPendiente})
           </Link>
-          <form action={salir}>
-            <button type="submit" className="text-(--color-tinta-suave) underline underline-offset-4">
-              Salir
-            </button>
-          </form>
         </div>
       </div>
 

@@ -1,11 +1,12 @@
 import { ModoRubro } from '@prisma/client'
 
 import type { CampoFormulario } from '../src/lib/campos'
+import { COMUNAS_CHILE } from './comunas-chile'
 
 /**
  * Catálogo de lanzamiento: 3 rubros en VENTA (con precios) y 5 en CAPTURA
- * (sin precios, solo SEO + lista de espera), más las comunas piloto de la
- * Región Metropolitana.
+ * (sin precios, solo SEO + lista de espera). Las comunas son las 346 del CUT;
+ * las páginas programáticas se publican solo para COMUNAS_SEO.
  *
  * Vive aparte del seed para poder probarlo sin base de datos.
  */
@@ -337,15 +338,22 @@ export const RUBROS: SemillaRubro[] = [
   },
 ]
 
-export const COMUNAS: Array<{ slug: string; nombre: string; orden: number }> = [
-  { slug: 'santiago', nombre: 'Santiago', orden: 1 },
-  { slug: 'las-condes', nombre: 'Las Condes', orden: 2 },
-  { slug: 'providencia', nombre: 'Providencia', orden: 3 },
-  { slug: 'vitacura', nombre: 'Vitacura', orden: 4 },
-  { slug: 'nunoa', nombre: 'Ñuñoa', orden: 5 },
-  { slug: 'maipu', nombre: 'Maipú', orden: 6 },
-  { slug: 'quilicura', nombre: 'Quilicura', orden: 7 },
-  { slug: 'pudahuel', nombre: 'Pudahuel', orden: 8 },
-]
+/** Las 346 comunas oficiales (CUT). Sembrar no publica página SEO por cada una. */
+export const COMUNAS = COMUNAS_CHILE
+
+/**
+ * Combinaciones {rubro}/{comuna} que sí se publican (piloto).
+ * El formulario acepta cualquier comuna sembrada; el sitemap no explota.
+ */
+export const COMUNAS_SEO = [
+  'santiago',
+  'las-condes',
+  'providencia',
+  'vitacura',
+  'nunoa',
+  'maipu',
+  'quilicura',
+  'pudahuel',
+] as const
 
 export const REGION = 'Región Metropolitana'
