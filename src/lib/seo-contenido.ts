@@ -1,4 +1,4 @@
-import { pathPublicoCombo, pathPublicoRubro } from '@/lib/seo-rutas'
+import { pathPublicoRubro } from '@/lib/seo-rutas'
 
 export type CopyRubro = {
   h1: string
@@ -7,7 +7,6 @@ export type CopyRubro = {
   intro: string
   queIncluye: string[]
   cta: string
-  atajoCombo?: { href: string; etiqueta: string }
 }
 
 const COPY_RUBRO: Record<string, CopyRubro> = {
@@ -17,7 +16,7 @@ const COPY_RUBRO: Record<string, CopyRubro> = {
     description:
       'Cotiza guardias de seguridad en tu comuna. Una solicitud y empresas de seguridad te contactan. Gratis para tu empresa.',
     intro:
-      'Cuéntanos qué hay que cuidar y en qué comuna. Te contactan empresas de seguridad que cubren esa zona. Sin registro para empezar. Tú no pagas.',
+      'Cuéntanos qué hay que cuidar y en qué comuna. Te contactan empresas de seguridad que cubren esa zona. Sin cuenta para empezar. Tú no pagas.',
     queIncluye: [
       'Guardias de seguridad y conserjería',
       'Control de acceso',
@@ -31,13 +30,9 @@ const COPY_RUBRO: Record<string, CopyRubro> = {
     description:
       'Cotiza empresas de aseo para oficinas, plantas o edificios en tu comuna. Una solicitud. Gratis.',
     intro:
-      'Di qué hay que limpiar, los metros y la frecuencia. Te contactan empresas de aseo que atienden tu comuna. Cotizar no cuesta.',
+      'Di qué hay que limpiar, los metros y la frecuencia. Te contactan empresas de aseo que atienden tu comuna. Sin cuenta para empezar. Cotizar no cuesta.',
     queIncluye: ['Aseo de oficinas', 'Aseo industrial y bodegas', 'Edificios y locales'],
     cta: 'Pedir cotización de aseo',
-    atajoCombo: {
-      href: pathPublicoCombo('aseo', 'santiago'),
-      etiqueta: 'Empresas de aseo en Santiago',
-    },
   },
   'control-de-plagas': {
     h1: 'Control de plagas para tu empresa',
@@ -45,13 +40,9 @@ const COPY_RUBRO: Record<string, CopyRubro> = {
     description:
       'Cotiza control de plagas: desratización, desinsectación o sanitización en tu comuna. Una solicitud. Gratis.',
     intro:
-      'Di qué plaga viste y dónde. Te contactan empresas de control de plagas que cubren tu comuna. Mientras antes se trate, más barato sale.',
+      'Di qué plaga viste y dónde. Te contactan empresas de control de plagas que cubren tu comuna. Sin cuenta para empezar. Mientras antes se trate, más barato sale.',
     queIncluye: ['Roedores', 'Insectos rastreros y termitas', 'Sanitización de recintos'],
     cta: 'Pedir cotización de plagas',
-    atajoCombo: {
-      href: pathPublicoCombo('control-de-plagas', 'santiago'),
-      etiqueta: 'Control de plagas en Santiago',
-    },
   },
 }
 

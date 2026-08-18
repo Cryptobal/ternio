@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { describe, expect, it } from 'vitest'
 
 import { validarCuentaProveedor } from '@/lib/cuenta-proveedor'
@@ -39,5 +42,16 @@ describe('validarCuentaProveedor', () => {
       comunas: ['valdivia'],
     })
     expect(comuna.ok).toBe(true)
+  })
+})
+
+describe('copy del alta de proveedor', () => {
+  it('no dice que el marketplace no está vivo; después del OTP se toman contactos', () => {
+    const src = readFileSync(
+      resolve(process.cwd(), 'src/components/formulario-cuenta-proveedor.tsx'),
+      'utf8',
+    )
+    expect(src).not.toContain('Aún no hay marketplace ni venta de leads')
+    expect(src).toMatch(/Después de eso puedes tomar contactos/)
   })
 })

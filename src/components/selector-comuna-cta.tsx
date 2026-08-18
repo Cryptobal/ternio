@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { SelectorTerritorio } from '@/components/selector-territorio'
 import { destinoSelector } from '@/lib/selector-cotizacion'
 import type { ComunaTerritorio } from '@/lib/territorio'
+import { CLASE_BOTON, CLASE_SUPERFICIE } from '@/lib/ui'
 
 export function SelectorComunaCta({
   rubroSlug,
@@ -35,7 +36,7 @@ export function SelectorComunaCta({
   }
 
   return (
-    <form onSubmit={ir} className="rounded-2xl border border-(--color-borde) bg-white p-5">
+    <form onSubmit={ir} className={CLASE_SUPERFICIE}>
       <SelectorTerritorio
         comunas={comunas}
         value={comunaSlug}
@@ -48,7 +49,7 @@ export function SelectorComunaCta({
       {error ? <p className="mt-2 text-sm text-(--color-rojo)">{error}</p> : null}
       <button
         type="submit"
-        className="mt-4 min-h-12 w-full rounded-2xl bg-(--color-marca) px-5 py-3 font-semibold text-white"
+        className={`mt-4 ${CLASE_BOTON}`}
       >
         {etiquetaCta}
       </button>

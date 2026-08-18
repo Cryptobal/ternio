@@ -144,7 +144,7 @@ export default async function PanelProveedor({
         ) : (
           <ul className="mt-4 grid gap-4">
             {disponibles.map((lead) => (
-              <li key={lead.id} className="rounded-2xl border border-(--color-borde) bg-white p-5">
+              <li key={lead.id} className="rounded-3xl border border-(--color-borde) bg-white p-5 shadow-[0_12px_32px_-20px_rgb(14_27_44/0.2)]">
                 <p className="font-medium">
                   {lead.rubro} · {lead.comuna}
                 </p>

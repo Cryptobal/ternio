@@ -33,3 +33,8 @@ export function destinoSelector(
 export function claveCombo(rubroSlug: string, comunaSlug: string): string {
   return `${rubroSlug}/${comunaSlug}`
 }
+
+/** Tarjetas “Servicios” de la home: solo VENTA. CAPTURA queda en el cotizador. */
+export function rubrosEnVenta<T extends { modo: string }>(rubros: readonly T[]): T[] {
+  return rubros.filter((rubro) => rubro.modo === 'VENTA')
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { claveCombo, destinoSelector } from '@/lib/selector-cotizacion'
+import { claveCombo, destinoSelector, rubrosEnVenta } from '@/lib/selector-cotizacion'
 
 describe('destinoSelector', () => {
   it('combo publicado → /{rubro}/{comuna}', () => {
@@ -31,5 +31,14 @@ describe('destinoSelector', () => {
 
   it('arma la clave de combo publicado', () => {
     expect(claveCombo('seguridad', 'santiago')).toBe('seguridad/santiago')
+  })
+
+  it('las tarjetas Servicios son solo VENTA', () => {
+    const lista = rubrosEnVenta([
+      { modo: 'VENTA', slug: 'aseo' },
+      { modo: 'CAPTURA', slug: 'generadores' },
+      { modo: 'VENTA', slug: 'seguridad' },
+    ])
+    expect(lista.map((item) => item.slug)).toEqual(['aseo', 'seguridad'])
   })
 })

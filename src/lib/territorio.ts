@@ -54,6 +54,16 @@ export function comunasDeRegion(comunas: ComunaTerritorio[], region: string): Co
     .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es-CL'))
 }
 
+export type PasoTerritorio = 'region' | 'provincia' | 'comuna' | 'listo'
+
+/** Cascada Región → Provincia → Comuna. Sin typeahead. */
+export function pasoTerritorio(region: string, provincia: string, comunaSlug = ''): PasoTerritorio {
+  if (!region.trim()) return 'region'
+  if (!provincia.trim()) return 'provincia'
+  if (!comunaSlug.trim()) return 'comuna'
+  return 'listo'
+}
+
 export function comunaPorSlug(
   comunas: ComunaTerritorio[],
   slug: string,

@@ -29,8 +29,8 @@ export default async function Proveedores() {
       <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">Para empresas</p>
       <h1 className="font-display mt-3 text-4xl leading-tight">Crea tu cuenta de proveedor</h1>
       <p className="mt-4 text-lg text-(--color-tinta-suave)">
-        Dejas los datos de tu empresa, eliges cobertura y confirmas el celular. Ahí mismo
-        se abre tu cuenta y puedes tomar contactos.
+        Dejas los datos de tu empresa, eliges cobertura y confirmas el celular con un código
+        OTP. Después de eso puedes tomar contactos.
       </p>
 
       <div className="mt-10" id="crear-cuenta">

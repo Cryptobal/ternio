@@ -3,17 +3,17 @@
 import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 
+import { CampoHoneypot } from '@/components/campo-honeypot'
 import { FormularioOtpCodigo } from '@/components/formulario-otp'
 import { SelectorCobertura } from '@/components/selector-cobertura'
 import { claveProvincia, seleccionVacia, type SeleccionCobertura } from '@/lib/cobertura'
 import { esRutValido } from '@/lib/rut'
 import type { ComunaTerritorio } from '@/lib/territorio'
+import { Aparecer } from '@/components/ui/motion'
 import { crearCuentaProveedorAction, type EstadoCuentaProveedor } from '@/server/proveedores'
+import { CLASE_BOTON, CLASE_CAMPO, CLASE_CHIP, CLASE_SUPERFICIE } from '@/lib/ui'
 
 const ESTADO_INICIAL: EstadoCuentaProveedor = { ok: false }
-
-const claseCampo =
-  'w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base outline-none'
 
 function BotonEnviar() {
   const { pending } = useFormStatus()
@@ -21,7 +21,7 @@ function BotonEnviar() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full min-h-11 rounded-2xl bg-(--color-marca) px-5 py-3.5 text-base font-medium text-white disabled:opacity-60"
+      className={CLASE_BOTON}
     >
       {pending ? 'Creando tu cuenta…' : 'Crear cuenta'}
     </button>
@@ -53,10 +53,11 @@ export function FormularioCuentaProveedor({
   }
 
   return (
-    <form action={accion} className="space-y-4 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm sm:p-6">
+    <Aparecer>
+    <form action={accion} className={`${CLASE_SUPERFICIE} space-y-5`}>
       <h2 className="font-display text-2xl">Crea tu cuenta</h2>
       <p className="text-sm text-(--color-tinta-suave)">
-        Confirmas el celular con un código. Aún no hay marketplace ni venta de leads.
+        Confirmas el celular con un código OTP. Después de eso puedes tomar contactos.
       </p>
 
       {estado.mensaje && !estado.ok ? (
@@ -65,16 +66,13 @@ export function FormularioCuentaProveedor({
         </p>
       ) : null}
 
-      <div className="absolute left-[-9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
-        <label htmlFor="sitio_web_proveedor">No completar</label>
-        <input id="sitio_web_proveedor" name="sitio_web" type="text" tabIndex={-1} autoComplete="off" />
-      </div>
+      <CampoHoneypot id="sitio_web_proveedor" />
 
       <div>
         <label htmlFor="nombreEmpresa" className="mb-1 block text-sm font-medium">
           Nombre de la empresa
         </label>
-        <input id="nombreEmpresa" name="nombreEmpresa" className={claseCampo} required />
+        <input id="nombreEmpresa" name="nombreEmpresa" className={CLASE_CAMPO} required />
         {errores.nombreEmpresa ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.nombreEmpresa}</p> : null}
       </div>
 
@@ -85,7 +83,7 @@ export function FormularioCuentaProveedor({
         <input
           id="rut-proveedor"
           name="rut"
-          className={claseCampo}
+          className={CLASE_CAMPO}
           placeholder="76.482.113-5"
           value={rut}
           onChange={(event) => setRut(event.target.value)}
@@ -104,7 +102,7 @@ export function FormularioCuentaProveedor({
         <ul className="grid gap-2">
           {rubros.map((rubro) => (
             <li key={rubro.slug}>
-              <label className="flex min-h-11 items-center gap-3 rounded-2xl border border-(--color-borde) px-3 py-2">
+              <label className={`${CLASE_CHIP} flex items-center gap-3`}>
                 <input type="checkbox" name="rubros" value={rubro.slug} />
                 <span>{rubro.nombre}</span>
               </label>
@@ -138,7 +136,7 @@ export function FormularioCuentaProveedor({
           name="telefono"
           type="tel"
           inputMode="tel"
-          className={claseCampo}
+          className={CLASE_CAMPO}
           placeholder="+56 9 8123 4567"
           required
         />
@@ -149,11 +147,12 @@ export function FormularioCuentaProveedor({
         <label htmlFor="email-proveedor" className="mb-1 block text-sm font-medium">
           Correo
         </label>
-        <input id="email-proveedor" name="email" type="email" className={claseCampo} required />
+        <input id="email-proveedor" name="email" type="email" className={CLASE_CAMPO} required />
         {errores.email ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.email}</p> : null}
       </div>
 
       <BotonEnviar />
     </form>
+    </Aparecer>
   )
 }

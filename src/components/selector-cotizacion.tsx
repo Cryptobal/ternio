@@ -3,17 +3,16 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { Aparecer } from '@/components/ui/motion'
 import { SelectorTerritorio } from '@/components/selector-territorio'
 import {
   claveCombo,
   destinoSelector,
+  rubrosEnVenta,
   type RubroSelector,
 } from '@/lib/selector-cotizacion'
 import type { ComunaTerritorio } from '@/lib/territorio'
-
-const claseCampo =
-  'w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base ' +
-  'outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-(--color-ambar)'
+import { CLASE_BOTON, CLASE_CHIP, CLASE_CHIP_ACTIVO, CLASE_SUPERFICIE } from '@/lib/ui'
 
 export function SelectorCotizacion({
   rubros,
@@ -25,7 +24,7 @@ export function SelectorCotizacion({
   publicados?: string[]
 }) {
   const router = useRouter()
-  const enVenta = rubros.filter((rubro) => rubro.modo === 'VENTA')
+  const enVenta = rubrosEnVenta(rubros)
   const enCaptura = rubros.filter((rubro) => rubro.modo === 'CAPTURA')
   const [slug, setSlug] = useState(enVenta[0]?.slug ?? enCaptura[0]?.slug ?? '')
   const [comunaSlug, setComunaSlug] = useState('')
@@ -53,67 +52,70 @@ export function SelectorCotizacion({
   if (rubros.length === 0) return null
 
   return (
-    <form
-      onSubmit={ir}
-      className="rounded-2xl border border-(--color-borde) bg-white p-4 shadow-sm sm:p-5"
-    >
-      <div className="grid gap-3">
-        <div>
-          <label htmlFor="selector-servicio" className="mb-1 block text-sm font-medium">
-            Servicio
-          </label>
-          <select
-            id="selector-servicio"
-            name="servicio"
-            className={claseCampo}
-            value={slug}
-            onChange={(event) => {
-              setSlug(event.target.value)
-              setError(undefined)
-            }}
-          >
-            {enVenta.length > 0 ? (
-              <optgroup label="Disponibles">
-                {enVenta.map((item) => (
-                  <option key={item.slug} value={item.slug}>
-                    {item.nombrePlural ?? item.nombre}
-                  </option>
-                ))}
-              </optgroup>
-            ) : null}
-            {enCaptura.length > 0 ? (
-              <optgroup label="Próximamente">
-                {enCaptura.map((item) => (
-                  <option key={item.slug} value={item.slug}>
-                    {item.nombrePlural ?? item.nombre}
-                  </option>
-                ))}
-              </optgroup>
-            ) : null}
-          </select>
+    <Aparecer>
+      <form onSubmit={ir} className={CLASE_SUPERFICIE}>
+        <div className="grid gap-5">
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium">Servicio</legend>
+            <ul className="grid gap-2">
+              {enVenta.map((item) => (
+                <li key={item.slug}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSlug(item.slug)
+                      setError(undefined)
+                    }}
+                    className={`${CLASE_CHIP} w-full ${slug === item.slug ? CLASE_CHIP_ACTIVO : ''}`}
+                  >
+                    <span className="block font-medium">{item.nombrePlural ?? item.nombre}</span>
+                    {item.descripcion ? (
+                      <span className="mt-0.5 block text-sm text-(--color-tinta-suave)">
+                        {item.descripcion}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+              {enCaptura.map((item) => (
+                <li key={item.slug}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSlug(item.slug)
+                      setError(undefined)
+                    }}
+                    className={`${CLASE_CHIP} w-full ${slug === item.slug ? CLASE_CHIP_ACTIVO : ''}`}
+                  >
+                    <span className="block font-medium">{item.nombrePlural ?? item.nombre}</span>
+                    <span className="mt-0.5 block text-sm text-(--color-tinta-suave)">
+                      Lista de espera
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </fieldset>
+
+          {comunas.length > 0 ? (
+            <SelectorTerritorio
+              comunas={comunas}
+              value={comunaSlug}
+              onChange={(siguiente) => {
+                setComunaSlug(siguiente)
+                setError(undefined)
+              }}
+              idPrefijo="selector-home"
+            />
+          ) : null}
+
+          {error ? <p className="text-sm text-(--color-rojo)">{error}</p> : null}
+
+          <button type="submit" className={CLASE_BOTON}>
+            Cotizar
+          </button>
         </div>
-
-        {comunas.length > 0 ? (
-          <SelectorTerritorio
-            comunas={comunas}
-            value={comunaSlug}
-            onChange={(siguiente) => {
-              setComunaSlug(siguiente)
-              setError(undefined)
-            }}
-            idPrefijo="selector-home"
-          />
-        ) : null}
-
-        {error ? <p className="text-sm text-(--color-rojo)">{error}</p> : null}
-
-        <button
-          type="submit"
-          className="min-h-11 rounded-2xl bg-(--color-marca) px-5 py-2.5 text-base font-semibold text-white transition hover:bg-(--color-tinta)"
-        >
-          Cotizar
-        </button>
-      </div>
-    </form>
+      </form>
+    </Aparecer>
   )
 }

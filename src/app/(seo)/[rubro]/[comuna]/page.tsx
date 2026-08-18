@@ -6,6 +6,7 @@ import { ModoRubro } from '@prisma/client'
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
 import { MedidorVisita } from '@/components/medidor-embudo'
 import { OtroServicio } from '@/components/otro-servicio'
+import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { parsearCampos } from '@/lib/campos'
 import { combinacionPorSlugs, combinacionesPublicadas } from '@/lib/catalogo'
 import { copyCombo } from '@/lib/seo-contenido'
@@ -175,22 +176,7 @@ export default async function PaginaRubroComuna({ params }: Props) {
                   Cómo funciona en {comuna.nombre}
                 </h2>
                 <p className="mt-2 text-(--color-tinta-suave)">{porQue}</p>
-                <ol className="mt-4 space-y-3 text-(--color-tinta-suave)">
-                  <li>
-                    <strong className="text-(--color-tinta)">1.</strong> Cuéntanos qué necesitas
-                    en el formulario. No tienes que crear cuenta para empezar.
-                  </li>
-                  <li>
-                    <strong className="text-(--color-tinta)">2.</strong> Verificamos tus datos
-                    para que solo lleguen solicitudes reales a los proveedores.
-                  </li>
-                  <li>
-                    <strong className="text-(--color-tinta)">3.</strong>{' '}
-                    {enCaptura
-                      ? `Te avisamos apenas haya empresas de este rubro atendiendo ${comuna.nombre}.`
-                      : `Las empresas que atienden ${comuna.nombre} te contactan directamente.`}
-                  </li>
-                </ol>
+                <PasosComoFunciona comuna={comuna.nombre} listaEspera={enCaptura} />
               </section>
             ) : null}
 

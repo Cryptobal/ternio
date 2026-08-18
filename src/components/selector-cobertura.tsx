@@ -10,9 +10,7 @@ import {
 } from '@/lib/cobertura'
 import { provinciasDe, regionesDe, type ComunaTerritorio } from '@/lib/territorio'
 import { SelectorTerritorio } from '@/components/selector-territorio'
-
-const claseChip =
-  'min-h-11 rounded-2xl border border-(--color-borde) bg-white px-4 py-3 text-left text-base transition hover:border-(--color-marca)'
+import { CLASE_CHIP, CLASE_CHIP_ACTIVO } from '@/lib/ui'
 
 const MODOS: ModoCobertura[] = ['nacional', 'region', 'provincia', 'comuna']
 
@@ -29,7 +27,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`${claseChip} ${seleccionado ? 'border-(--color-marca) bg-(--color-ambar-suave)' : ''}`}
+      className={`${CLASE_CHIP} w-full ${seleccionado ? CLASE_CHIP_ACTIVO : ''}`}
     >
       {children}
     </button>
@@ -112,24 +110,21 @@ export function SelectorCobertura({
 
       {value.modo === 'provincia' ? (
         <div className="grid gap-3">
-          <div>
-            <label htmlFor="cobertura-region" className="mb-1 block text-sm font-medium">
-              Región
-            </label>
-            <select
-              id="cobertura-region"
-              className="w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base"
-              value={value.regiones[0] ?? ''}
-              onChange={(event) => elegirRegionProvincia(event.target.value)}
-            >
-              <option value="">Elige una región</option>
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium">Región</legend>
+            <ul className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
               {regiones.map((region) => (
-                <option key={region} value={region}>
-                  {region}
-                </option>
+                <li key={region}>
+                  <Chip
+                    seleccionado={value.regiones[0] === region}
+                    onClick={() => elegirRegionProvincia(region)}
+                  >
+                    {region}
+                  </Chip>
+                </li>
               ))}
-            </select>
-          </div>
+            </ul>
+          </fieldset>
           {value.regiones[0] ? (
             <fieldset>
               <legend className="mb-2 text-sm font-medium">Provincias</legend>

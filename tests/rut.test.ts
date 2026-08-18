@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { calcularDv, esRutValido, formatearRut, normalizarRut } from '@/lib/rut'
+import {
+  calcularDv,
+  esRutValido,
+  formatearRut,
+  normalizarRut,
+  variantesRutPersistido,
+} from '@/lib/rut'
 
 describe('calcularDv', () => {
   it('calcula el dígito verificador con módulo 11', () => {
@@ -26,6 +32,16 @@ describe('normalizarRut', () => {
     expect(normalizarRut('12.345.678-5')).toBe(esperado)
     expect(normalizarRut(' 12345678 5 ')).toBe(esperado)
     expect(normalizarRut('123456785')).toBe(esperado)
+    expect(normalizarRut('778406233')).toBe('77840623-3')
+    expect(normalizarRut('77.840.623-3')).toBe('77840623-3')
+  })
+
+  it('el compacto sin guion y el canónico son el mismo RUT', () => {
+    expect(variantesRutPersistido('778406233')).toEqual(['77840623-3', '778406233'])
+    expect(variantesRutPersistido('77840623-3')).toEqual(['77840623-3', '778406233'])
+    expect(variantesRutPersistido('77.840.623-3')).toEqual(['77840623-3', '778406233'])
+    expect(variantesRutPersistido('10000013-K')).toEqual(['10000013-K', '10000013K'])
+    expect(variantesRutPersistido('12.345.678-4')).toEqual([])
   })
 
   it('acepta K en mayúscula y minúscula', () => {
@@ -62,5 +78,6 @@ describe('formatearRut', () => {
   it('devuelve el RUT con puntos para mostrarlo', () => {
     expect(formatearRut('12345678-5')).toBe('12.345.678-5')
     expect(formatearRut('7654321-6')).toBe('7.654.321-6')
+    expect(formatearRut('778406233')).toBe('77.840.623-3')
   })
 })
