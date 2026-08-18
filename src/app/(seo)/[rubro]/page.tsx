@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ModoRubro } from '@prisma/client'
 
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
+import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorComunaCta } from '@/components/selector-comuna-cta'
 import { parsearCampos } from '@/lib/campos'
 import { combinacionesPublicadas, comunasActivas, rubrosActivos } from '@/lib/catalogo'
@@ -113,14 +114,6 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
           {copy.cta}
         </a>
       </p>
-      {copy.atajoCombo ? (
-        <p className="mt-3 text-sm">
-          <Link href={copy.atajoCombo.href} className="underline underline-offset-4">
-            {copy.atajoCombo.etiqueta}
-          </Link>
-        </p>
-      ) : null}
-
       {copy.queIncluye.length > 0 ? (
         <ul className="mt-4 list-disc space-y-1 pl-5 text-(--color-tinta-suave)">
           {copy.queIncluye.map((item) => (
@@ -134,6 +127,11 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
           Todavía estamos sumando empresas de este rubro. Deja tu solicitud y te avisamos.
         </p>
       ) : null}
+
+      <section className="mt-8">
+        <h2 className="font-display text-xl">Cómo funciona</h2>
+        <PasosComoFunciona listaEspera={rubro.modo === ModoRubro.CAPTURA} />
+      </section>
 
       <div id="cotizar" className="mt-8">
         <h2 className="font-display text-xl">Elige tu comuna</h2>

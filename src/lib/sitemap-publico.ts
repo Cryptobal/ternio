@@ -17,6 +17,7 @@ export const RUTAS_SITEMAP_FIJAS = [
 
 export const RUTAS_EXCLUIDAS_SITEMAP = [
   '/admin',
+  '/no-encontrado',
   '/mis-cotizaciones',
   '/cotizacion',
   '/entrar',

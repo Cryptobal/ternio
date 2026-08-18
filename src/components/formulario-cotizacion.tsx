@@ -17,6 +17,7 @@ import {
 } from '@/lib/pasos-cotizacion'
 import { esRutValido } from '@/lib/rut'
 import { crearLeadAction, type EstadoFormulario } from '@/server/leads'
+import { CampoHoneypot } from '@/components/campo-honeypot'
 import { registrarEventoCliente } from '@/components/medidor-embudo'
 import { SelectorTerritorio } from '@/components/selector-territorio'
 import { PasoAnimado } from '@/components/ui/motion'
@@ -159,11 +160,6 @@ export function FormularioCotizacion({
         ),
       )}
 
-      <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
-        <label htmlFor="sitio_web">No completar</label>
-        <input id="sitio_web" name="sitio_web" type="text" tabIndex={-1} autoComplete="off" />
-      </div>
-
       {estado.mensaje && !estado.ok ? (
         <div
           ref={resumenRef}
@@ -274,6 +270,7 @@ export function FormularioCotizacion({
         </Link>
         .
       </p>
+      <CampoHoneypot />
     </form>
   )
 }

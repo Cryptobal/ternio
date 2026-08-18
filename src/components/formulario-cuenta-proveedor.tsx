@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 
+import { CampoHoneypot } from '@/components/campo-honeypot'
 import { FormularioOtpCodigo } from '@/components/formulario-otp'
 import { SelectorCobertura } from '@/components/selector-cobertura'
 import { claveProvincia, seleccionVacia, type SeleccionCobertura } from '@/lib/cobertura'
@@ -65,10 +66,7 @@ export function FormularioCuentaProveedor({
         </p>
       ) : null}
 
-      <div className="absolute left-[-9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
-        <label htmlFor="sitio_web_proveedor">No completar</label>
-        <input id="sitio_web_proveedor" name="sitio_web" type="text" tabIndex={-1} autoComplete="off" />
-      </div>
+      <CampoHoneypot id="sitio_web_proveedor" />
 
       <div>
         <label htmlFor="nombreEmpresa" className="mb-1 block text-sm font-medium">

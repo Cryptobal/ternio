@@ -35,6 +35,7 @@ describe('sitemap público', () => {
 
   it('excluye /admin y /panel', () => {
     expect(RUTAS_EXCLUIDAS_SITEMAP).toContain('/admin')
+    expect(RUTAS_EXCLUIDAS_SITEMAP).toContain('/no-encontrado')
     expect(RUTAS_EXCLUIDAS_SITEMAP).toContain('/panel')
     expect(esPathSitemapProhibido('/admin')).toBe(true)
     expect(esPathSitemapProhibido('/panel')).toBe(true)

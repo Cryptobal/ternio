@@ -1,11 +1,11 @@
 import Link from 'next/link'
-import { ModoRubro } from '@prisma/client'
 
+import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorCotizacion } from '@/components/selector-cotizacion'
 import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
 import { atajosHome } from '@/lib/seo-contenido'
 import { pathPublicoRubro } from '@/lib/seo-rutas'
-import { claveCombo, type RubroSelector } from '@/lib/selector-cotizacion'
+import { claveCombo, rubrosEnVenta, type RubroSelector } from '@/lib/selector-cotizacion'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +28,7 @@ export default async function Inicio() {
   ])
   const rubros = filas.map(aSelector)
   const publicados = combinaciones.map((fila) => claveCombo(fila.rubro, fila.comuna))
-  const enVenta = rubros.filter((rubro) => rubro.modo === ModoRubro.VENTA)
+  const enVenta = rubrosEnVenta(rubros)
 
   return (
     <div>
@@ -90,26 +90,7 @@ export default async function Inicio() {
       <section className="border-t border-(--color-linea) bg-white">
         <div className="mx-auto w-full max-w-xl px-4 py-12">
           <h2 className="font-display text-2xl">Cómo funciona</h2>
-          <ol className="mt-6 grid gap-4">
-            <li>
-              <h3 className="font-medium">1. Cuéntanos qué necesitas</h3>
-              <p className="mt-1 text-sm text-(--color-tinta-suave)">
-                Elige comuna y responde unas preguntas. Sin cuenta para empezar.
-              </p>
-            </li>
-            <li>
-              <h3 className="font-medium">2. Confirmamos RUT y teléfono</h3>
-              <p className="mt-1 text-sm text-(--color-tinta-suave)">
-                Así las empresas reciben solo solicitudes reales.
-              </p>
-            </li>
-            <li>
-              <h3 className="font-medium">3. Te contactan</h3>
-              <p className="mt-1 text-sm text-(--color-tinta-suave)">
-                Máximo tres empresas. Tú eliges.
-              </p>
-            </li>
-          </ol>
+          <PasosComoFunciona />
         </div>
       </section>
 

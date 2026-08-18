@@ -59,6 +59,15 @@ describe('copy único por combo', () => {
     expect(santiago.intro).not.toBe(valdivia.intro)
   })
 
+  it('el H1 del rubro no nombra una comuna; la ciudad va en el combo', () => {
+    for (const slug of ['seguridad', 'aseo', 'control-de-plagas'] as const) {
+      const copy = copyRubro(slug, 'Nombre', null)
+      expect(copy.h1).not.toMatch(/Santiago|Valdivia|Providencia/i)
+      expect(copy.title).not.toMatch(/Santiago|Valdivia|Providencia/i)
+      expect(copy).not.toHaveProperty('atajoCombo')
+    }
+  })
+
   it('tiene H1 y title con los head terms de Semrush', () => {
     expect(copyRubro('seguridad', 'Empresas de seguridad', null).title).toBe('Guardias de seguridad')
     expect(copyRubro('aseo', 'Empresas de aseo', null).title).toBe('Empresas de aseo')

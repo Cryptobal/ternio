@@ -8,6 +8,7 @@ import { SelectorTerritorio } from '@/components/selector-territorio'
 import {
   claveCombo,
   destinoSelector,
+  rubrosEnVenta,
   type RubroSelector,
 } from '@/lib/selector-cotizacion'
 import type { ComunaTerritorio } from '@/lib/territorio'
@@ -23,7 +24,7 @@ export function SelectorCotizacion({
   publicados?: string[]
 }) {
   const router = useRouter()
-  const enVenta = rubros.filter((rubro) => rubro.modo === 'VENTA')
+  const enVenta = rubrosEnVenta(rubros)
   const enCaptura = rubros.filter((rubro) => rubro.modo === 'CAPTURA')
   const [slug, setSlug] = useState(enVenta[0]?.slug ?? enCaptura[0]?.slug ?? '')
   const [comunaSlug, setComunaSlug] = useState('')
