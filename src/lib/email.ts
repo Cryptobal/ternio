@@ -2,11 +2,15 @@ import { Resend } from 'resend'
 
 import { formatearClp } from '@/lib/dinero'
 import { proveedorCubreLead, type LeadMatch, type ProveedorMatch } from '@/lib/matching'
+import { formatearRut, normalizarRut } from '@/lib/rut'
 import { esCorreoValido } from '@/lib/validar-identidad'
 
 export const REMITENTE_RESEND_DEFAULT = 'Ternio <avisos@ternio.cl>'
+export const ADMIN_AVISO_EMAIL_DEFAULT = 'carlos.irigoyen@gmail.com'
+export const SLUG_GARD_OMITIR_AVISO = 'gard-security'
 export const URL_PANEL_PROVEEDOR = 'https://www.ternio.cl/panel'
 export const URL_MIS_COTIZACIONES = 'https://www.ternio.cl/mis-cotizaciones'
+export const URL_ADMIN = 'https://www.ternio.cl/admin'
 
 export type FichaAvisoProveedor = {
   rubro: string
@@ -47,6 +51,63 @@ export function claveIdempotenciaAvisoLead(leadId: string, proveedorId: string):
 
 export function claveIdempotenciaCompraComprador(compraId: string): string {
   return `aviso-compra/${compraId}`
+}
+
+export function emailAdminAvisos(valor = process.env.ADMIN_AVISO_EMAIL): string {
+  return valor?.trim() || ADMIN_AVISO_EMAIL_DEFAULT
+}
+
+export function claveIdempotenciaAdminLead(leadId: string, estado: string): string {
+  return `admin:lead:${leadId}:${estado}`
+}
+
+export function claveIdempotenciaAdminProveedorAlta(proveedorId: string): string {
+  return `admin:proveedor:${proveedorId}:alta`
+}
+
+export function claveIdempotenciaAdminCompra(compraId: string): string {
+  return `admin:compra:${compraId}`
+}
+
+/** Gard seed / ensureGard: no spamear el alta ficticia. */
+export function omitirAvisoAltaProveedor(slug: string): boolean {
+  const limpio = slug.trim().toLowerCase()
+  return limpio === SLUG_GARD_OMITIR_AVISO || limpio.startsWith('gard')
+}
+
+/** El corto “ya verificada” solo si el de creación no fue ya VERIFICADO. */
+export function debeAvisarAdminLeadVerificado(estadoAlCrearOAntes: string): boolean {
+  return estadoAlCrearOAntes !== 'VERIFICADO'
+}
+
+export type FichaAdminLead = {
+  rubro: string
+  comuna: string
+  estado: string
+  nombreContacto: string
+  email: string
+  telefonoE164: string
+  rutNormalizado: string
+  razonSocial: string | null
+  audiencia: string | null
+}
+
+export type FichaAdminProveedor = {
+  slug: string
+  nombre: string
+  razonSocial: string | null
+  rutNormalizado: string | null
+  email: string | null
+  telefonoE164: string | null
+}
+
+export type FichaAdminCompra = {
+  rubro: string
+  comuna: string
+  tipo: string
+  precioClp: number
+  creditosConsumidos: number
+  proveedorNombre: string
 }
 
 export function correoProveedor(entrada: {
@@ -151,6 +212,156 @@ export function correoAvisoCompra(ficha: FichaAvisoComprador): {
     `<p><a href="${URL_MIS_COTIZACIONES}">Ver tus cotizaciones</a></p>`,
   ].join('')
 
+  return { subject, html, text }
+}
+
+function etiquetaAudienciaAdmin(audiencia: string | null): string {
+  if (audiencia === 'hogar') return 'casa'
+  if (audiencia === 'empresa') return 'empresa'
+  return audiencia?.trim() || 'sin dato'
+}
+
+function etiquetaEstadoAdmin(estado: string): string {
+  switch (estado) {
+    case 'VERIFICADO':
+      return 'verificada — a la venta'
+    case 'LISTA_ESPERA':
+      return 'lista de espera'
+    case 'EN_REVISION':
+      return 'en revisión'
+    case 'RECIBIDO':
+      return 'pendiente de confirmar teléfono'
+    case 'DESCARTADO':
+      return 'descartada'
+    case 'ARCHIVADO':
+      return 'archivada'
+    default:
+      return estado.toLowerCase()
+  }
+}
+
+function rutVisible(rut: string | null | undefined): string {
+  if (!rut?.trim()) return 'sin RUT'
+  const canon = normalizarRut(rut)
+  return canon ? formatearRut(canon) : rut
+}
+
+function tipoTomaVisible(tipo: string): string {
+  return tipo === 'EXCLUSIVO' ? 'exclusivo' : tipo === 'COMPARTIDO' ? 'compartido' : tipo.toLowerCase()
+}
+
+function nombreProveedorAdmin(ficha: FichaAdminProveedor): string {
+  return ficha.razonSocial?.trim() || ficha.nombre.trim() || ficha.slug
+}
+
+export function correoAdminLeadCreado(ficha: FichaAdminLead): {
+  subject: string
+  html: string
+  text: string
+} {
+  const subject = `Nueva cotización: ${ficha.rubro} en ${ficha.comuna}`
+  const lineas = [
+    `Nueva cotización de ${ficha.rubro} en ${ficha.comuna}.`,
+    `Estado: ${etiquetaEstadoAdmin(ficha.estado)}.`,
+    '',
+    `Audiencia: ${etiquetaAudienciaAdmin(ficha.audiencia)}`,
+    `Razón social: ${ficha.razonSocial?.trim() || 'sin razón social'}`,
+    `RUT: ${rutVisible(ficha.rutNormalizado)}`,
+    `Nombre: ${ficha.nombreContacto}`,
+    `Teléfono: ${ficha.telefonoE164}`,
+    `Correo: ${ficha.email}`,
+    '',
+    `Revisar en el admin: ${URL_ADMIN}`,
+    'Entra por /admin/ingresar.',
+  ]
+  const text = lineas.join('\n')
+  const html = [
+    `<p>Nueva cotización de ${escaparHtml(ficha.rubro)} en ${escaparHtml(ficha.comuna)}.</p>`,
+    `<p>Estado: ${escaparHtml(etiquetaEstadoAdmin(ficha.estado))}.</p>`,
+    `<p>Audiencia: ${escaparHtml(etiquetaAudienciaAdmin(ficha.audiencia))}<br />`,
+    `Razón social: ${escaparHtml(ficha.razonSocial?.trim() || 'sin razón social')}<br />`,
+    `RUT: ${escaparHtml(rutVisible(ficha.rutNormalizado))}<br />`,
+    `Nombre: ${escaparHtml(ficha.nombreContacto)}<br />`,
+    `Teléfono: ${escaparHtml(ficha.telefonoE164)}<br />`,
+    `Correo: ${escaparHtml(ficha.email)}</p>`,
+    `<p><a href="${URL_ADMIN}">Revisar en el admin</a> (entra por /admin/ingresar)</p>`,
+  ].join('')
+  return { subject, html, text }
+}
+
+export function correoAdminLeadVerificado(ficha: Pick<FichaAdminLead, 'rubro' | 'comuna'>): {
+  subject: string
+  html: string
+  text: string
+} {
+  const subject = `Cotización verificada: ${ficha.rubro} en ${ficha.comuna}`
+  const text = [
+    `La cotización de ${ficha.rubro} en ${ficha.comuna} ya está verificada y a la venta.`,
+    '',
+    `Revisar en el admin: ${URL_ADMIN}`,
+  ].join('\n')
+  const html = [
+    `<p>La cotización de ${escaparHtml(ficha.rubro)} en ${escaparHtml(ficha.comuna)} ya está verificada y a la venta.</p>`,
+    `<p><a href="${URL_ADMIN}">Revisar en el admin</a></p>`,
+  ].join('')
+  return { subject, html, text }
+}
+
+export function correoAdminAltaProveedor(ficha: FichaAdminProveedor): {
+  subject: string
+  html: string
+  text: string
+} {
+  const nombre = nombreProveedorAdmin(ficha)
+  const subject = `Proveedor nuevo: ${nombre}`
+  const text = [
+    `Se aprobó una cuenta de proveedor: ${nombre}.`,
+    '',
+    `Slug: ${ficha.slug}`,
+    `RUT: ${rutVisible(ficha.rutNormalizado)}`,
+    `Teléfono: ${ficha.telefonoE164?.trim() || 'sin teléfono'}`,
+    `Correo: ${ficha.email?.trim() || 'sin correo'}`,
+    'Créditos de alta: 50.000.',
+    '',
+    `Revisar en el admin: ${URL_ADMIN}`,
+  ].join('\n')
+  const html = [
+    `<p>Se aprobó una cuenta de proveedor: ${escaparHtml(nombre)}.</p>`,
+    `<p>Slug: ${escaparHtml(ficha.slug)}<br />`,
+    `RUT: ${escaparHtml(rutVisible(ficha.rutNormalizado))}<br />`,
+    `Teléfono: ${escaparHtml(ficha.telefonoE164?.trim() || 'sin teléfono')}<br />`,
+    `Correo: ${escaparHtml(ficha.email?.trim() || 'sin correo')}<br />`,
+    'Créditos de alta: 50.000.</p>',
+    `<p><a href="${URL_ADMIN}">Revisar en el admin</a></p>`,
+  ].join('')
+  return { subject, html, text }
+}
+
+export function correoAdminCompra(ficha: FichaAdminCompra): {
+  subject: string
+  html: string
+  text: string
+} {
+  const tipo = tipoTomaVisible(ficha.tipo)
+  const subject = `Lead tomado: ${ficha.rubro} · ${tipo}`
+  const precio = formatearClp(ficha.precioClp)
+  const creditos = `${ficha.creditosConsumidos.toLocaleString('es-CL')} créditos`
+  const text = [
+    `Un proveedor tomó una cotización de ${ficha.rubro} en ${ficha.comuna}.`,
+    '',
+    `Tipo: ${tipo}`,
+    `Precio: ${precio} (${creditos})`,
+    `Proveedor: ${ficha.proveedorNombre}`,
+    '',
+    `Revisar en el admin: ${URL_ADMIN}`,
+  ].join('\n')
+  const html = [
+    `<p>Un proveedor tomó una cotización de ${escaparHtml(ficha.rubro)} en ${escaparHtml(ficha.comuna)}.</p>`,
+    `<p>Tipo: ${escaparHtml(tipo)}<br />`,
+    `Precio: ${escaparHtml(precio)} (${escaparHtml(creditos)})<br />`,
+    `Proveedor: ${escaparHtml(ficha.proveedorNombre)}</p>`,
+    `<p><a href="${URL_ADMIN}">Revisar en el admin</a></p>`,
+  ].join('')
   return { subject, html, text }
 }
 

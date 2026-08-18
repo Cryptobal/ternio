@@ -191,12 +191,14 @@ describe('destinatarios del aviso de lead', () => {
       .join('\n')
     expect(juntos).toContain('avisarProveedoresLeadVerificado')
     expect(juntos).toContain('avisarCompradorCompraPagada')
-    expect(readFileSync(resolve(process.cwd(), 'src/server/avisos.ts'), 'utf8')).toContain(
-      'SELECT_FICHA_ANONIMA',
-    )
-    expect(readFileSync(resolve(process.cwd(), 'src/server/avisos.ts'), 'utf8')).not.toMatch(
-      /proveedor\.nombre|razonSocial/,
-    )
+    expect(juntos).toContain('avisarAdminLeadCreado')
+    expect(juntos).toContain('avisarAdminCompraPagada')
+    const avisos = readFileSync(resolve(process.cwd(), 'src/server/avisos.ts'), 'utf8')
+    expect(avisos).toContain('SELECT_FICHA_ANONIMA')
+    const caraPublica = avisos.slice(0, avisos.indexOf('type EnviarAviso'))
+    expect(caraPublica).toContain('avisarProveedoresLeadVerificado')
+    expect(caraPublica).toContain('avisarCompradorCompraPagada')
+    expect(caraPublica).not.toMatch(/proveedor\.nombre|razonSocial/)
   })
 
   it('toma el correo de la cuenta si el perfil no tiene', () => {

@@ -15,6 +15,7 @@ import {
 import { signIn } from '@/auth'
 import { registrarEvento } from '@/lib/analitica'
 import { NOMBRE_COOKIE_CLAIM, verificarClaimToken } from '@/lib/claim-token'
+import { debeAvisarAdminLeadVerificado } from '@/lib/email'
 import {
   OTP_EXPIRA_MS,
   OTP_REENVIO_MS,
@@ -32,7 +33,11 @@ import { reclamarLeadsPorHash, reclamarLeadsPorTelefono } from '@/lib/reclamo'
 import { enviarSms } from '@/lib/sms'
 import { esMovil, normalizarTelefonoE164 } from '@/lib/telefono'
 import { destinoTrasLogin } from '@/lib/roles'
-import { avisarProveedoresLeadVerificado } from '@/server/avisos'
+import {
+  avisarAdminAltaProveedor,
+  avisarAdminLeadVerificado,
+  avisarProveedoresLeadVerificado,
+} from '@/server/avisos'
 import { activarProveedorTrasOtp } from '@/server/creditos'
 import { usuarioActualId } from '@/server/sesion'
 
@@ -373,6 +378,9 @@ async function aplicarTelefonoVerificado(usuarioId: string, telefonoE164: string
 
     if (pasaAVenta) {
       await avisarProveedoresLeadVerificado(lead.id)
+      if (debeAvisarAdminLeadVerificado(lead.estado)) {
+        await avisarAdminLeadVerificado(lead.id)
+      }
     }
   }
 }
@@ -458,7 +466,10 @@ export async function confirmarOtpAction(
       where: { id: otp.usuarioId },
       data: { telefonoE164Verificado: telefonoE164, telefonoVerificadoAt: new Date() },
     })
-    await activarProveedorTrasOtp(otp.usuarioId)
+    const alta = await activarProveedorTrasOtp(otp.usuarioId)
+    if (alta.recienAprobado && alta.proveedorId) {
+      await avisarAdminAltaProveedor(alta.proveedorId)
+    }
   }
 
   const yaRegistrado = await prisma.eventoAnalitica.findFirst({

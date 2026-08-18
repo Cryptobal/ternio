@@ -420,3 +420,20 @@ VERIFICADO se escribe a cada proveedor APROBADO que calza (ficha anónima,
 CTA `/panel`); al tomar (`CompraLead` PAGADA) se escribe al comprador
 sin nombrar la empresa (CTA `/mis-cotizaciones`). Dedup por
 proveedor+lead. Nunca bloquean el lead ni la toma.
+
+El admin también recibe tres avisos (PII sí: el destinatario es Carlos).
+Destino: `ADMIN_AVISO_EMAIL` si está definida; si no,
+`carlos.irigoyen@gmail.com` (no hace falta una variable nueva en Vercel).
+Remitente: el mismo de siempre (`RESEND_FROM` / `Ternio <avisos@ternio.cl>`).
+CTA `https://www.ternio.cl/admin` (login en `/admin/ingresar`).
+
+1. Nueva cotización — al crear el lead, con estado (pendiente de OTP o ya
+   VERIFICADO). Si nace VERIFICADO, un solo correo. Si después el OTP (u
+   otro camino) lo pasa a VERIFICADO, un segundo correo corto “ya
+   verificada / a la venta”. Dedup `admin:lead:{leadId}:{estado}`.
+2. Alta de proveedor — cuando la cuenta queda APROBADA tras OTP + RUT
+   (pack 50.000). No en cada login. No para Gard seed / `ensureGardSecurity`
+   (`gard-security`). Dedup `admin:proveedor:{proveedorId}:alta`.
+3. Toma de lead — tras `CompraLead` PAGADA: exclusivo o compartido,
+   precio en créditos/CLP y nombre del proveedor. Dedup
+   `admin:compra:{compraId}`.

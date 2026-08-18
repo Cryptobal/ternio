@@ -65,11 +65,17 @@ export async function acreditarAltaProveedor(proveedorId: string): Promise<{ cre
   })
 }
 
+export type ResultadoAltaProveedor = {
+  proveedorId: string | null
+  recienAprobado: boolean
+}
+
 /**
  * Tras OTP (o si el celular ya estaba confirmado): APROBADO + pack de arranque
  * si el RUT es válido. No des-suspende ni des-rechaza.
+ * `recienAprobado` es true solo al pasar a APROBADO (no en cada login).
  */
-export async function activarProveedorTrasOtp(usuarioId: string): Promise<void> {
+export async function activarProveedorTrasOtp(usuarioId: string): Promise<ResultadoAltaProveedor> {
   const proveedor = await prisma.proveedor.findUnique({
     where: { usuarioId },
     select: {
@@ -78,19 +84,23 @@ export async function activarProveedorTrasOtp(usuarioId: string): Promise<void> 
       rutNormalizado: true,
     },
   })
-  if (!proveedor) return
+  if (!proveedor) return { proveedorId: null, recienAprobado: false }
   if (proveedor.estado === EstadoProveedor.SUSPENDIDO || proveedor.estado === EstadoProveedor.RECHAZADO) {
-    return
+    return { proveedorId: proveedor.id, recienAprobado: false }
   }
-  if (!esRutValido(proveedor.rutNormalizado)) return
+  if (!esRutValido(proveedor.rutNormalizado)) {
+    return { proveedorId: proveedor.id, recienAprobado: false }
+  }
 
-  if (proveedor.estado !== EstadoProveedor.APROBADO) {
+  const recienAprobado = proveedor.estado !== EstadoProveedor.APROBADO
+  if (recienAprobado) {
     await prisma.proveedor.update({
       where: { id: proveedor.id },
       data: { estado: EstadoProveedor.APROBADO, vistoAt: new Date() },
     })
   }
   await acreditarAltaProveedor(proveedor.id)
+  return { proveedorId: proveedor.id, recienAprobado }
 }
 
 export async function acreditarSemillaGardSiSaldoCero(proveedorId: string): Promise<void> {
