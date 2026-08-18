@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Archivo, Spline_Sans_Mono } from 'next/font/google'
-import Script from 'next/script'
 
 import { NoscriptGtm } from '@/components/gtm'
 import { idContenedorGtm, snippetGtm } from '@/lib/gtm'
@@ -50,13 +49,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="es-CL">
-      {gtmId ? (
-        <Script
-          id="google-tag-manager"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: snippetGtm(gtmId) }}
-        />
-      ) : null}
+      <head>
+        {gtmId ? (
+          // Script inline oficial: next/script lo envuelve en un loader y
+          // lo deja fuera de <head>, así que el HTML de origen no coincidiría
+          // con el snippet que pide Google.
+          <script dangerouslySetInnerHTML={{ __html: snippetGtm(gtmId) }} />
+        ) : null}
+      </head>
       <body className={`${archivo.variable} ${spline.variable} antialiased`}>
         <NoscriptGtm />
         {children}

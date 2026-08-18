@@ -57,10 +57,12 @@ describe('instalación en el layout raíz', () => {
   const raiz = readFileSync(resolve(process.cwd(), 'src/app/layout.tsx'), 'utf8')
   const componente = readFileSync(resolve(process.cwd(), 'src/components/gtm.tsx'), 'utf8')
 
-  it('el layout monta next/script y noscript una sola vez, sin gtag.js', () => {
-    expect(raiz).toMatch(/from ['"]next\/script['"]/)
-    expect(raiz.match(/strategy="beforeInteractive"/g)).toHaveLength(1)
-    expect(raiz.match(/id="google-tag-manager"/g)).toHaveLength(1)
+  it('el layout monta el script oficial en head y el noscript una sola vez', () => {
+    expect(raiz).toMatch(/<head>/)
+    expect(raiz.match(/dangerouslySetInnerHTML=\{\{ __html: snippetGtm\(gtmId\) \}\}/g)).toHaveLength(
+      1,
+    )
+    expect(raiz).not.toMatch(/from ['"]next\/script['"]/)
     expect(raiz.match(/NoscriptGtm/g)).toHaveLength(2)
     expect(raiz).not.toMatch(/gtag\.js|googletagmanager\.com\/gtag/)
   })
