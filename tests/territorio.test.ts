@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { COMUNAS_CHILE } from '../prisma/comunas-chile'
@@ -9,6 +11,7 @@ import {
   provinciasDe,
   regionesDe,
   slugificarNombre,
+  territorioUnPasoVisible,
 } from '@/lib/territorio'
 
 describe('territorio CUT', () => {
@@ -34,5 +37,54 @@ describe('territorio CUT', () => {
     expect(pasoTerritorio('Región Metropolitana', '', '')).toBe('provincia')
     expect(pasoTerritorio('Región Metropolitana', 'Santiago', '')).toBe('comuna')
     expect(pasoTerritorio('Región Metropolitana', 'Santiago', 'providencia')).toBe('listo')
+  })
+
+  it('un paso: solo un nivel visible, nunca región + provincia + comuna apilados', () => {
+    expect(territorioUnPasoVisible('', '', '')).toEqual({
+      region: true,
+      provincia: false,
+      comuna: false,
+    })
+    expect(territorioUnPasoVisible('Región Metropolitana', '', '')).toEqual({
+      region: false,
+      provincia: true,
+      comuna: false,
+    })
+    expect(territorioUnPasoVisible('Región Metropolitana', 'Santiago', '')).toEqual({
+      region: false,
+      provincia: false,
+      comuna: true,
+    })
+    expect(territorioUnPasoVisible('Región Metropolitana', 'Santiago', 'providencia')).toEqual({
+      region: false,
+      provincia: false,
+      comuna: true,
+    })
+
+    const pasos = [
+      territorioUnPasoVisible('', '', ''),
+      territorioUnPasoVisible('Región Metropolitana', '', ''),
+      territorioUnPasoVisible('Región Metropolitana', 'Santiago', ''),
+      territorioUnPasoVisible('Región Metropolitana', 'Santiago', 'providencia'),
+    ]
+    for (const visible of pasos) {
+      expect([visible.region, visible.provincia, visible.comuna].filter(Boolean)).toHaveLength(1)
+    }
+  })
+
+  it('la UI de territorio no apila niveles ni usa select nativo', () => {
+    const territorio = readFileSync(
+      resolve(process.cwd(), 'src/components/selector-territorio.tsx'),
+      'utf8',
+    )
+    const home = readFileSync(
+      resolve(process.cwd(), 'src/components/selector-cotizacion.tsx'),
+      'utf8',
+    )
+    expect(territorio).toMatch(/territorioUnPasoVisible/)
+    expect(territorio).not.toMatch(/<select/)
+    expect(territorio).not.toMatch(/buscar comuna|typeahead/i)
+    expect(home).not.toMatch(/<select/)
+    expect(home).toMatch(/ChipMiga/)
   })
 })

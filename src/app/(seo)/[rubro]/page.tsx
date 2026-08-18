@@ -136,7 +136,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
       <div id="cotizar" className="mt-8">
         <h2 className="font-display text-xl">Elige tu comuna</h2>
         <p className="mt-1 mb-4 text-sm text-(--color-tinta-suave)">
-          Región, después provincia, después comuna. Todo Chile.
+          Primero la región, después la provincia, después la comuna. Una a la vez. Todo Chile.
         </p>
         <SelectorComunaCta
           rubroSlug={rubro.slug}

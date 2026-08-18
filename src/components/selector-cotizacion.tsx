@@ -3,8 +3,9 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { Aparecer } from '@/components/ui/motion'
+import { ChipMiga } from '@/components/chip-miga'
 import { SelectorTerritorio } from '@/components/selector-territorio'
+import { Aparecer, PasoAnimado } from '@/components/ui/motion'
 import {
   claveCombo,
   destinoSelector,
@@ -26,7 +27,7 @@ export function SelectorCotizacion({
   const router = useRouter()
   const enVenta = rubrosEnVenta(rubros)
   const enCaptura = rubros.filter((rubro) => rubro.modo === 'CAPTURA')
-  const [slug, setSlug] = useState(enVenta[0]?.slug ?? enCaptura[0]?.slug ?? '')
+  const [slug, setSlug] = useState('')
   const [comunaSlug, setComunaSlug] = useState('')
   const [error, setError] = useState<string | undefined>()
 
@@ -36,6 +37,18 @@ export function SelectorCotizacion({
   )
 
   const publicadosSet = useMemo(() => new Set(publicados), [publicados])
+
+  function elegirServicio(siguiente: string) {
+    setSlug(siguiente)
+    setComunaSlug('')
+    setError(undefined)
+  }
+
+  function quitarServicio() {
+    setSlug('')
+    setComunaSlug('')
+    setError(undefined)
+  }
 
   function ir(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -54,67 +67,73 @@ export function SelectorCotizacion({
   return (
     <Aparecer>
       <form onSubmit={ir} className={CLASE_SUPERFICIE}>
-        <div className="grid gap-5">
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium">Servicio</legend>
-            <ul className="grid gap-2">
-              {enVenta.map((item) => (
-                <li key={item.slug}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSlug(item.slug)
-                      setError(undefined)
-                    }}
-                    className={`${CLASE_CHIP} w-full ${slug === item.slug ? CLASE_CHIP_ACTIVO : ''}`}
-                  >
-                    <span className="block font-medium">{item.nombrePlural ?? item.nombre}</span>
-                    {item.descripcion ? (
-                      <span className="mt-0.5 block text-sm text-(--color-tinta-suave)">
-                        {item.descripcion}
-                      </span>
-                    ) : null}
-                  </button>
-                </li>
-              ))}
-              {enCaptura.map((item) => (
-                <li key={item.slug}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSlug(item.slug)
-                      setError(undefined)
-                    }}
-                    className={`${CLASE_CHIP} w-full ${slug === item.slug ? CLASE_CHIP_ACTIVO : ''}`}
-                  >
-                    <span className="block font-medium">{item.nombrePlural ?? item.nombre}</span>
-                    <span className="mt-0.5 block text-sm text-(--color-tinta-suave)">
-                      Lista de espera
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </fieldset>
-
-          {comunas.length > 0 ? (
-            <SelectorTerritorio
-              comunas={comunas}
-              value={comunaSlug}
-              onChange={(siguiente) => {
-                setComunaSlug(siguiente)
-                setError(undefined)
-              }}
-              idPrefijo="selector-home"
+        {rubro ? (
+          <div className="mb-4">
+            <ChipMiga
+              etiqueta={rubro.nombrePlural ?? rubro.nombre}
+              onQuitar={quitarServicio}
+              ariaLabel="Cambiar servicio"
             />
-          ) : null}
+          </div>
+        ) : null}
 
-          {error ? <p className="text-sm text-(--color-rojo)">{error}</p> : null}
+        <PasoAnimado id={rubro ? `territorio-${rubro.slug}` : 'servicio'}>
+          {!rubro ? (
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">¿Qué servicio?</legend>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {enVenta.map((item) => (
+                  <li key={item.slug}>
+                    <button
+                      type="button"
+                      onClick={() => elegirServicio(item.slug)}
+                      className={`${CLASE_CHIP} w-full ${slug === item.slug ? CLASE_CHIP_ACTIVO : ''}`}
+                    >
+                      {item.nombrePlural ?? item.nombre}
+                    </button>
+                  </li>
+                ))}
+                {enCaptura.map((item) => (
+                  <li key={item.slug}>
+                    <button
+                      type="button"
+                      onClick={() => elegirServicio(item.slug)}
+                      className={`${CLASE_CHIP} w-full ${slug === item.slug ? CLASE_CHIP_ACTIVO : ''}`}
+                    >
+                      <span className="block">{item.nombrePlural ?? item.nombre}</span>
+                      <span className="mt-0.5 block text-xs text-(--color-tinta-suave)">
+                        Lista de espera
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </fieldset>
+          ) : (
+            <div className="grid gap-4">
+              {comunas.length > 0 ? (
+                <SelectorTerritorio
+                  key={rubro.slug}
+                  comunas={comunas}
+                  value={comunaSlug}
+                  onChange={(siguiente) => {
+                    setComunaSlug(siguiente)
+                    setError(undefined)
+                  }}
+                  idPrefijo="selector-home"
+                />
+              ) : null}
 
-          <button type="submit" className={CLASE_BOTON}>
-            Cotizar
-          </button>
-        </div>
+              {error ? <p className="text-sm text-(--color-rojo)">{error}</p> : null}
+
+              {comunaSlug ? (
+                <button type="submit" className={CLASE_BOTON}>
+                  Cotizar
+                </button>
+              ) : null}
+            </div>
+          )}
+        </PasoAnimado>
       </form>
     </Aparecer>
   )

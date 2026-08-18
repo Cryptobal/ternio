@@ -56,12 +56,45 @@ export function comunasDeRegion(comunas: ComunaTerritorio[], region: string): Co
 
 export type PasoTerritorio = 'region' | 'provincia' | 'comuna' | 'listo'
 
+export type NivelTerritorioVisible = 'region' | 'provincia' | 'comuna'
+
+export type TerritorioUnPasoVisible = {
+  region: boolean
+  provincia: boolean
+  comuna: boolean
+}
+
 /** Cascada Región → Provincia → Comuna. Sin typeahead. */
 export function pasoTerritorio(region: string, provincia: string, comunaSlug = ''): PasoTerritorio {
   if (!region.trim()) return 'region'
   if (!provincia.trim()) return 'provincia'
   if (!comunaSlug.trim()) return 'comuna'
   return 'listo'
+}
+
+/** Qué pregunta está en pantalla. Un solo nivel: nunca apilar región + provincia + comuna. */
+export function nivelTerritorioVisible(
+  region: string,
+  provincia: string,
+  comunaSlug = '',
+): NivelTerritorioVisible {
+  const paso = pasoTerritorio(region, provincia, comunaSlug)
+  if (paso === 'region') return 'region'
+  if (paso === 'provincia') return 'provincia'
+  return 'comuna'
+}
+
+export function territorioUnPasoVisible(
+  region: string,
+  provincia: string,
+  comunaSlug = '',
+): TerritorioUnPasoVisible {
+  const nivel = nivelTerritorioVisible(region, provincia, comunaSlug)
+  return {
+    region: nivel === 'region',
+    provincia: nivel === 'provincia',
+    comuna: nivel === 'comuna',
+  }
 }
 
 export function comunaPorSlug(
