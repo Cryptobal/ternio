@@ -3,6 +3,7 @@ import { Archivo, Spline_Sans_Mono } from 'next/font/google'
 
 import { NoscriptGtm } from '@/components/gtm'
 import { idContenedorGtm, snippetGtm } from '@/lib/gtm'
+import { OG_IMAGE, URL_OG_PNG, URL_SITIO_CANONICA } from '@/lib/metadata-publico'
 
 import './globals.css'
 
@@ -29,18 +30,27 @@ export const metadata: Metadata = {
     template: '%s | Ternio',
   },
   description: descripcion,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITIO_URL ?? 'https://ternio.cl'),
+  metadataBase: new URL(URL_SITIO_CANONICA),
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any', type: 'image/x-icon' },
+      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
+  },
   openGraph: {
     type: 'website',
     locale: 'es_CL',
     siteName: 'Ternio',
     title: titulo,
     description: descripcion,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: titulo,
     description: descripcion,
+    images: [URL_OG_PNG],
   },
 }
 

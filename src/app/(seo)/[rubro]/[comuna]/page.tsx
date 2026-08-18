@@ -9,6 +9,7 @@ import { OtroServicio } from '@/components/otro-servicio'
 import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { parsearCampos } from '@/lib/campos'
 import { combinacionPorSlugs, combinacionesPublicadas } from '@/lib/catalogo'
+import { OG_IMAGE } from '@/lib/metadata-publico'
 import { copyCombo } from '@/lib/seo-contenido'
 import { pathPublicoCombo, pathPublicoRubro, slugPublicoDesdeBd } from '@/lib/seo-rutas'
 
@@ -64,7 +65,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: copy.title,
     description: copy.description,
     alternates: { canonical: path },
-    openGraph: { title: copy.title, description: copy.description, url: path, locale: 'es_CL' },
+    openGraph: {
+      title: copy.title,
+      description: copy.description,
+      url: path,
+      locale: 'es_CL',
+      images: [OG_IMAGE],
+    },
   }
 }
 
