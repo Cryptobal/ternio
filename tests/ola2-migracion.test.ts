@@ -35,3 +35,14 @@ describe('migración audiencia del lead', () => {
     expect(sql).not.toMatch(/DROP COLUMN/)
   })
 })
+
+describe('migración contactadoEn en CompraLead', () => {
+  it('agrega la columna nullable sin backfill ni DROP', () => {
+    const sql = readFileSync(
+      resolve(process.cwd(), 'prisma/migrations/20260818170000_compra_lead_contactado_en/migration.sql'),
+      'utf8',
+    )
+    expect(sql).toMatch(/ALTER TABLE "CompraLead" ADD COLUMN "contactadoEn" TIMESTAMP\(3\)/)
+    expect(sql).not.toMatch(/DELETE FROM|DROP COLUMN|UPDATE /i)
+  })
+})

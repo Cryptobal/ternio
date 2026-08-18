@@ -132,6 +132,57 @@ export function precioVigente(
   return Math.round(precioBaseClp * factor)
 }
 
+/**
+ * Tramos de freshness para la UI (sin timers en vivo).
+ * 0 = 100 %, 1 = 80 %, 2 = 50 %, 3 = archivado.
+ */
+export type TramoFreshness = {
+  tramo: 0 | 1 | 2 | 3
+  factor: number | null
+  /** Inicio del siguiente tramo, o null si ya está archivado. */
+  proximoCambioAt: Date | null
+}
+
+export function tramoFreshness(verificadoAt: Date, ahora = new Date()): TramoFreshness {
+  const edad = ahora.getTime() - verificadoAt.getTime()
+  if (edad < 0 || edad >= VIDA_LEAD_MS) {
+    return { tramo: 3, factor: null, proximoCambioAt: null }
+  }
+  if (edad < FRESH_24H_MS) {
+    return {
+      tramo: 0,
+      factor: 1,
+      proximoCambioAt: new Date(verificadoAt.getTime() + FRESH_24H_MS),
+    }
+  }
+  if (edad < FRESH_72H_MS) {
+    return {
+      tramo: 1,
+      factor: 0.8,
+      proximoCambioAt: new Date(verificadoAt.getTime() + FRESH_72H_MS),
+    }
+  }
+  return {
+    tramo: 2,
+    factor: 0.5,
+    proximoCambioAt: new Date(verificadoAt.getTime() + VIDA_LEAD_MS),
+  }
+}
+
+/** Resumen del paso de confirmación antes de descontar créditos (solo UX). */
+export function resumenConfirmacionCompra(saldo: number, precio: number): {
+  saldoDespues: number
+  faltante: number
+  alcanza: boolean
+} {
+  const faltante = Math.max(0, precio - saldo)
+  return {
+    saldoDespues: saldo - precio,
+    faltante,
+    alcanza: faltante === 0,
+  }
+}
+
 export function resumenCupos(compras: CompraResumen[]): {
   pagadas: number
   hayExclusivo: boolean

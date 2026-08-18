@@ -10,8 +10,10 @@ import {
   puedeTomarLead,
   precioVigente,
   proveedorCubreLead,
+  resumenConfirmacionCompra,
   resumenCupos,
   slugsRubroDelProveedor,
+  tramoFreshness,
   type LeadMatch,
   type ProveedorMatch,
 } from '@/lib/matching'
@@ -151,6 +153,38 @@ describe('freshness', () => {
     expect(precioVigente(base, new Date(ahora.getTime() - 25 * 60 * 60 * 1000), ahora)).toBe(40_000)
     expect(precioVigente(base, new Date(ahora.getTime() - 4 * 24 * 60 * 60 * 1000), ahora)).toBe(25_000)
     expect(precioVigente(base, new Date(ahora.getTime() - 8 * 24 * 60 * 60 * 1000), ahora)).toBeNull()
+  })
+
+  it('tramos: bordes 24 h / 72 h / 7 días', () => {
+    const verificado = new Date(ahora.getTime() - 30 * 60 * 60 * 1000)
+    const t30 = tramoFreshness(verificado, ahora)
+    expect(t30.tramo).toBe(1)
+    expect(t30.factor).toBe(0.8)
+    expect(t30.proximoCambioAt?.getTime()).toBe(verificado.getTime() + 72 * 60 * 60 * 1000)
+
+    expect(tramoFreshness(ahora, ahora)).toMatchObject({ tramo: 0, factor: 1 })
+    expect(
+      tramoFreshness(new Date(ahora.getTime() - 24 * 60 * 60 * 1000), ahora),
+    ).toMatchObject({ tramo: 1, factor: 0.8 })
+    expect(
+      tramoFreshness(new Date(ahora.getTime() - 72 * 60 * 60 * 1000), ahora),
+    ).toMatchObject({ tramo: 2, factor: 0.5 })
+    expect(
+      tramoFreshness(new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000), ahora),
+    ).toMatchObject({ tramo: 3, factor: null, proximoCambioAt: null })
+  })
+
+  it('resumen de confirmación: saldo después = saldo − precio', () => {
+    expect(resumenConfirmacionCompra(140_000, 16_000)).toEqual({
+      saldoDespues: 124_000,
+      faltante: 0,
+      alcanza: true,
+    })
+    expect(resumenConfirmacionCompra(10_000, 16_000)).toEqual({
+      saldoDespues: -6_000,
+      faltante: 6_000,
+      alcanza: false,
+    })
   })
 })
 
