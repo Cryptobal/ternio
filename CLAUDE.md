@@ -203,8 +203,8 @@ pendiente, y riesgos o supuestos que yo deba confirmar.
 La fuente de verdad operativa es `docs/guia-de-desarrollo.md`. Si este
 archivo choca con esa guía, gana la guía. Deltas conscientes:
 
-- URL canónica de plagas: `/plagas` (este prompt usaba el slug de BD
-  `control-de-plagas` como path). `/control-de-plagas` es alias 308.
+- URL canónica de plagas: `/plagas` (página propia; el slug de BD del
+  seed es `control-de-plagas`). `/control-de-plagas` es alias 308.
 - Sitemap: nunca 500; se arma sin Prisma (`sitemap.xml/route.ts`).
   Mínimo: home + `/seguridad` `/aseo` `/plagas` `/proveedores`.
 - Créditos de lanzamiento: automáticos al verificar el celular
