@@ -14,3 +14,7 @@ export const ROLES = {
 } as const
 
 export type Rol = (typeof ROLES)[keyof typeof ROLES]
+
+export function destinoTrasLogin(rol: Rol | string | null | undefined): string {
+  return rol === ROLES.PROVEEDOR ? '/panel' : '/mis-cotizaciones'
+}

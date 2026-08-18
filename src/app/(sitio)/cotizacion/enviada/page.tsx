@@ -42,7 +42,7 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
               : 'Tu sesión ya está lista.'}
           </p>
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
-            Desde tu panel puedes seguir el estado y ver qué empresa la tomó.
+            Desde tu panel ves el estado de tu solicitud.
           </p>
           <Link
             href="/mis-cotizaciones"

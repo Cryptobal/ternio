@@ -34,7 +34,7 @@ export function FormularioOtpCodigo({
   telefonoEnmascarado,
   avisoInicial,
 }: {
-  origen: 'reclamo' | 'entrar'
+  origen: 'reclamo' | 'entrar' | 'proveedor'
   telefono?: string
   telefonoEnmascarado?: string
   avisoInicial?: string
@@ -71,7 +71,13 @@ export function FormularioOtpCodigo({
             {aviso}
           </p>
         ) : null}
-        <Boton>{origen === 'reclamo' ? 'Confirmar y ver mi cotización' : 'Entrar'}</Boton>
+        <Boton>
+          {origen === 'reclamo'
+            ? 'Confirmar y ver mi cotización'
+            : origen === 'proveedor'
+              ? 'Confirmar y ver mi cuenta'
+              : 'Entrar'}
+        </Boton>
       </form>
 
       <form action={reenviar} className="mt-3">

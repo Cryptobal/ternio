@@ -55,16 +55,16 @@ export function estadoInicialLead(modo: ModoRubro): EstadoLead {
   return modo === ModoRubro.CAPTURA ? EstadoLead.LISTA_ESPERA : EstadoLead.RECIBIDO
 }
 
-/** Texto honesto para el panel del comprador; nunca jerga interna. */
+/** Texto honesto para el panel del comprador; nunca jerga interna ni marketplace. */
 export function textoEstadoComprador(estado: EstadoLead): string {
   switch (estado) {
     case EstadoLead.LISTA_ESPERA:
-      return 'Estamos buscando proveedores en tu zona'
+      return 'Quedó en lista de espera'
     case EstadoLead.RECIBIDO:
     case EstadoLead.EN_REVISION:
-      return 'Verificando tus datos'
+      return 'Estamos revisando tus datos'
     case EstadoLead.VERIFICADO:
-      return 'Lista para enviar a proveedores'
+      return 'Solicitud verificada'
     case EstadoLead.DESCARTADO:
       return 'No pudimos continuar con esta solicitud'
     case EstadoLead.ARCHIVADO:

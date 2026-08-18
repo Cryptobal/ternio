@@ -19,6 +19,7 @@ describe('sitemap público', () => {
 
   it('excluye /admin y los flujos privados', () => {
     expect(RUTAS_EXCLUIDAS_SITEMAP).toContain('/admin')
+    expect(RUTAS_EXCLUIDAS_SITEMAP).toContain('/panel')
     expect(RUTAS_SITEMAP_FIJAS.join(' ')).not.toMatch(/admin/)
     expect(urlsSitemapFijas('https://ternio.cl').some((url) => url.includes('/admin'))).toBe(
       false,

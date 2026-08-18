@@ -44,12 +44,47 @@ export function construirPasos(
   return pasos
 }
 
+export type ValoresFormulario = Record<string, string | string[]>
+
 export function avanzaSoloAlElegir(paso: PasoCotizacion): boolean {
   if (paso.tipo === 'modulo') return esOpcionUnica(paso.campo.tipo)
   return false
 }
 
-export type ValoresFormulario = Record<string, string | string[]>
+export function esPasoOpcional(paso: PasoCotizacion): boolean {
+  if (paso.tipo === 'modulo') return !paso.campo.requerido
+  if (paso.tipo === 'tronco') return !paso.requerido
+  return false
+}
+
+export function pasoEstaVacio(paso: PasoCotizacion, valores: ValoresFormulario): boolean {
+  if (paso.tipo === 'comuna') return !valorComoTexto(valores.comuna).trim()
+  if (paso.tipo === 'modulo') return !valorComoTexto(valores[paso.campo.nombre]).trim()
+  if (paso.tipo === 'tronco') return !valorComoTexto(valores[paso.id]).trim()
+  return false
+}
+
+/** El tronco de identidad nunca se salta: el botón no dice Saltar. */
+export function etiquetaAvancePaso(
+  paso: PasoCotizacion,
+  valores: ValoresFormulario,
+): 'Saltar' | 'Continuar' {
+  if (paso.tipo === 'tronco' || paso.tipo === 'comuna') return 'Continuar'
+  if (esPasoOpcional(paso) && pasoEstaVacio(paso, valores)) return 'Saltar'
+  return 'Continuar'
+}
+
+export function mostrarBotonAvance(paso: PasoCotizacion, valores: ValoresFormulario): boolean {
+  if (paso.tipo === 'envio') return false
+  if (paso.tipo === 'modulo' && esOpcionUnica(paso.campo.tipo)) {
+    return esPasoOpcional(paso) && pasoEstaVacio(paso, valores)
+  }
+  return true
+}
+
+export function avanceBloqueado(paso: PasoCotizacion, valores: ValoresFormulario): boolean {
+  return Boolean(errorDePaso(paso, valores))
+}
 
 export function valorComoTexto(valor: string | string[] | undefined): string {
   if (Array.isArray(valor)) return valor.join(',')

@@ -6,9 +6,11 @@ import { useFormStatus } from 'react-dom'
 
 import type { CampoFormulario } from '@/lib/campos'
 import {
-  avanzaSoloAlElegir,
   construirPasos,
   errorDePaso,
+  etiquetaAvancePaso,
+  mostrarBotonAvance,
+  TRONCO_IDENTIDAD,
   valorComoTexto,
   type PasoCotizacion,
   type ValoresFormulario,
@@ -145,8 +147,18 @@ export function FormularioCotizacion({
 
       <input type="hidden" name="rubro" value={rubroSlug} />
       <input type="hidden" name="comuna" value={comunaActual} />
+      {TRONCO_IDENTIDAD.map((campo) => (
+        <input
+          key={campo.id}
+          type="hidden"
+          name={campo.id}
+          value={valorComoTexto(valores[campo.id])}
+        />
+      ))}
       {Object.entries(valores).map(([clave, valor]) =>
-        clave === 'comuna' ? null : Array.isArray(valor) ? (
+        clave === 'comuna' || TRONCO_IDENTIDAD.some((campo) => campo.id === clave) ? null : Array.isArray(
+            valor,
+          ) ? (
           valor.map((item) => <input key={`${clave}-${item}`} type="hidden" name={clave} value={item} />)
         ) : (
           <input key={clave} type="hidden" name={clave} value={valor} />
@@ -190,7 +202,6 @@ export function FormularioCotizacion({
           valor={valores[paso.campo.nombre]}
           error={errorVisible}
           onElegir={(valor, avanzar) => guardar(paso.campo.nombre, valor, avanzar)}
-          onContinuar={() => intentarAvanzar()}
         />
       ) : null}
 
@@ -238,13 +249,13 @@ export function FormularioCotizacion({
         ) : (
           <span />
         )}
-        {paso.tipo !== 'envio' && !avanzaSoloAlElegir(paso) ? (
+        {mostrarBotonAvance(paso, valores) ? (
           <button
             type="button"
             onClick={() => intentarAvanzar()}
             className="min-h-11 rounded-2xl bg-(--color-marca) px-5 py-2.5 text-sm font-semibold text-white"
           >
-            Continuar
+            {etiquetaAvancePaso(paso, valores)}
           </button>
         ) : null}
       </div>
@@ -266,13 +277,11 @@ function PasoModulo({
   valor,
   error,
   onElegir,
-  onContinuar,
 }: {
   campo: CampoFormulario
   valor: string | string[] | undefined
   error: string | undefined
   onElegir: (valor: string | string[], avanzar: boolean) => void
-  onContinuar: () => void
 }) {
   const texto = valorComoTexto(valor)
   const multiples = Array.isArray(valor) ? valor : texto ? texto.split(',').filter(Boolean) : []
@@ -356,13 +365,6 @@ function PasoModulo({
         </div>
         {campo.ayuda ? <p className="mt-2 text-sm text-(--color-tinta-suave)">{campo.ayuda}</p> : null}
         <Error mensaje={error} />
-        <button
-          type="button"
-          onClick={onContinuar}
-          className="mt-4 min-h-11 w-full rounded-2xl bg-(--color-marca) px-5 py-2.5 font-semibold text-white"
-        >
-          Continuar
-        </button>
       </fieldset>
     )
   }

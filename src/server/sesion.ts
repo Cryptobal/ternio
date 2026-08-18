@@ -1,10 +1,11 @@
 import 'server-only'
 
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Session } from 'next-auth'
 import { RolUsuario } from '@prisma/client'
 
 import { auth } from '@/auth'
+import { destinoTrasLogin } from '@/lib/roles'
 
 /**
  * Helpers de sesión del lado del servidor.
@@ -28,4 +29,17 @@ export async function requerirAdmin(): Promise<Session> {
 export async function usuarioActualId(): Promise<string | null> {
   const sesion = await auth()
   return sesion?.user?.id ?? null
+}
+
+export async function requerirProveedor(): Promise<Session> {
+  const sesion = await auth()
+  if (!sesion?.user?.id) redirect('/entrar')
+  if (sesion.user.rol === RolUsuario.COMPRADOR) redirect('/mis-cotizaciones')
+  if (sesion.user.rol !== RolUsuario.PROVEEDOR) notFound()
+  return sesion
+}
+
+export async function redirigirSiHaySesion(): Promise<void> {
+  const sesion = await auth()
+  if (sesion?.user?.id) redirect(destinoTrasLogin(sesion.user.rol))
 }

@@ -276,8 +276,11 @@ model Proveedor {
   autoCompra     Boolean @default(false)
   topeMensualClp Int?
 
-  /// Lista de espera pública (/proveedores): rubros, región, provincia y comunas
-  /// pedidas. No implica que ya esté en el marketplace.
+  /// Cobertura de todo el país. Si es true, no hace falta expandir a 346 comunas.
+  coberturaNacional Boolean @default(false)
+
+  /// Snapshot de la selección (modo + regiones/provincias/comunas + rubros).
+  /// No implica que ya esté en el marketplace.
   solicitudEspera Json?
   vistoAt         DateTime?
 
