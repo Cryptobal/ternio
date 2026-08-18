@@ -1,5 +1,10 @@
 import { ModoRubro } from '@prisma/client'
 
+import {
+  camposFormularioSchema,
+  parsearCampos,
+  type CampoFormulario,
+} from '@/lib/campos'
 import { validarModoRubro } from '@/lib/rubros'
 import { slugificarNombre } from '@/lib/territorio'
 
@@ -121,4 +126,60 @@ export function parsearDatosRubro(entrada: {
   }
 
   return { ok: true, datos }
+}
+
+export type ResultadoCamposEscritos =
+  | { ok: true; campos: CampoFormulario[] }
+  | { ok: false; motivo: string }
+
+const MAX_CAMPOS_MODULO = 6
+
+/**
+ * Parseo de `camposFormulario` para el admin. Vacío = `[]` (solo tronco).
+ * JSON inválido o más de 6 preguntas falla el guardado: no se usa el
+ * degrade silencioso de `parsearCampos` en runtime (eso es para no romper
+ * la página pública).
+ */
+export function parsearCamposEscritos(entrada: unknown): ResultadoCamposEscritos {
+  let json: unknown = entrada
+
+  if (entrada == null) return { ok: true, campos: [] }
+
+  if (typeof entrada === 'string') {
+    const crudo = entrada.trim()
+    if (crudo === '') return { ok: true, campos: [] }
+    try {
+      json = JSON.parse(crudo)
+    } catch {
+      return { ok: false, motivo: 'El JSON de campos no es válido.' }
+    }
+  }
+
+  const schema = camposFormularioSchema.safeParse(json)
+  if (!schema.success) {
+    return {
+      ok: false,
+      motivo:
+        'Los campos no calzan: nombre en minúsculas, etiqueta, tipo válido y máximo 6 preguntas.',
+    }
+  }
+
+  if (schema.data.length > MAX_CAMPOS_MODULO) {
+    return { ok: false, motivo: 'El módulo admite como máximo 6 preguntas.' }
+  }
+
+  const campos = parsearCampos(schema.data)
+  if (campos.length !== schema.data.length) {
+    return { ok: false, motivo: 'Los campos del formulario no se pudieron leer.' }
+  }
+
+  return { ok: true, campos }
+}
+
+export function serializarCamposAdmin(valor: unknown): string {
+  try {
+    return JSON.stringify(valor ?? [], null, 2)
+  } catch {
+    return '[]'
+  }
 }

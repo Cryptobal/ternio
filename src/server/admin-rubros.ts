@@ -2,8 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { Prisma } from '@prisma/client'
+
 import { rutaAdmin } from '@/lib/admin-ruta'
-import { parsearDatosRubro } from '@/lib/admin-rubros'
+import { parsearCamposEscritos, parsearDatosRubro } from '@/lib/admin-rubros'
 import { prisma } from '@/lib/prisma'
 import { pathPublicoRubro } from '@/lib/seo-rutas'
 import { requerirAdmin } from '@/server/sesion'
@@ -36,6 +38,11 @@ export async function crearRubroAction(
     return { ok: false, mensaje: parseo.motivo, errores: parseo.errores }
   }
 
+  const campos = parsearCamposEscritos(formData.get('camposFormulario'))
+  if (!campos.ok) {
+    return { ok: false, mensaje: campos.motivo, errores: { camposFormulario: campos.motivo } }
+  }
+
   const ocupado = await prisma.rubro.findUnique({
     where: { slug: parseo.datos.slug },
     select: { id: true },
@@ -55,7 +62,7 @@ export async function crearRubroAction(
       orden: parseo.datos.orden,
       precioExclusivoClp: parseo.datos.precioExclusivoClp,
       precioCompartidoClp: parseo.datos.precioCompartidoClp,
-      camposFormulario: [],
+      camposFormulario: campos.campos as Prisma.InputJsonValue,
     },
     select: { id: true, slug: true },
   })
@@ -96,6 +103,11 @@ export async function editarRubroAction(
     return { ok: false, mensaje: parseo.motivo, errores: parseo.errores }
   }
 
+  const campos = parsearCamposEscritos(formData.get('camposFormulario'))
+  if (!campos.ok) {
+    return { ok: false, mensaje: campos.motivo, errores: { camposFormulario: campos.motivo } }
+  }
+
   await prisma.rubro.update({
     where: { id },
     data: {
@@ -107,6 +119,7 @@ export async function editarRubroAction(
       orden: parseo.datos.orden,
       precioExclusivoClp: parseo.datos.precioExclusivoClp,
       precioCompartidoClp: parseo.datos.precioCompartidoClp,
+      camposFormulario: campos.campos as Prisma.InputJsonValue,
     },
   })
 

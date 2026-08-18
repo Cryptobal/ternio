@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
+import { PasoAnimado } from '@/components/ui/motion'
 import {
   comunaPorSlug,
   comunasDe,
@@ -10,7 +11,33 @@ import {
   regionesDe,
   type ComunaTerritorio,
 } from '@/lib/territorio'
-import { CLASE_CAMPO, CLASE_CHIP, CLASE_CHIP_ACTIVO, CLASE_PASO_ACTIVO } from '@/lib/ui'
+import { CLASE_CHIP, CLASE_CHIP_ACTIVO, CLASE_PASO_ACTIVO } from '@/lib/ui'
+
+const CLASE_LISTA =
+  'grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2'
+
+function ChipOpcion({
+  seleccionado,
+  onClick,
+  children,
+}: {
+  seleccionado: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        aria-pressed={seleccionado}
+        onClick={onClick}
+        className={`${CLASE_CHIP} w-full ${seleccionado ? CLASE_CHIP_ACTIVO : ''}`}
+      >
+        {children}
+      </button>
+    </li>
+  )
+}
 
 export function SelectorTerritorio({
   comunas,
@@ -46,6 +73,17 @@ export function SelectorTerritorio({
   const seleccionadas = new Set(multiple ? values : value ? [value] : [])
   const paso = pasoTerritorio(region, provincia, multiple ? (values[0] ?? '') : (value ?? ''))
 
+  function elegirRegion(nombre: string) {
+    setRegion(nombre)
+    setProvincia('')
+    if (!multiple) onChange?.('')
+  }
+
+  function elegirProvincia(nombre: string) {
+    setProvincia(nombre)
+    if (!multiple) onChange?.('')
+  }
+
   function elegir(comuna: ComunaTerritorio) {
     setRegion(comuna.region)
     setProvincia(comuna.provincia)
@@ -61,104 +99,105 @@ export function SelectorTerritorio({
 
   return (
     <div className="grid gap-4">
-      <div className={paso === 'region' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
-        <label htmlFor={`${idPrefijo}-region`} className="mb-1 block text-sm font-medium">
+      <fieldset className={paso === 'region' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
+        <legend id={`${idPrefijo}-region`} className="mb-2 text-sm font-medium">
           Región
-        </label>
-        <select
-          id={`${idPrefijo}-region`}
-          className={CLASE_CAMPO}
-          value={region}
-          onChange={(event) => {
-            setRegion(event.target.value)
-            setProvincia('')
-            if (!multiple) onChange?.('')
-          }}
-        >
-          <option value="">Elige una región</option>
+        </legend>
+        <ul className={CLASE_LISTA} role="list">
           {regiones.map((nombre) => (
-            <option key={nombre} value={nombre}>
+            <ChipOpcion
+              key={nombre}
+              seleccionado={region === nombre}
+              onClick={() => elegirRegion(nombre)}
+            >
               {nombre}
-            </option>
+            </ChipOpcion>
           ))}
-        </select>
-      </div>
+        </ul>
+      </fieldset>
 
-      <div className={paso === 'provincia' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
-        <label htmlFor={`${idPrefijo}-provincia`} className="mb-1 block text-sm font-medium">
-          Provincia
-        </label>
-        <select
-          id={`${idPrefijo}-provincia`}
-          className={CLASE_CAMPO}
-          value={provincia}
-          disabled={!region}
-          onChange={(event) => {
-            setProvincia(event.target.value)
-            if (!multiple) onChange?.('')
-          }}
-        >
-          <option value="">{region ? 'Elige una provincia' : 'Primero elige la región'}</option>
-          {provincias.map((nombre) => (
-            <option key={nombre} value={nombre}>
-              {nombre}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {multiple ? (
-        <fieldset className={paso === 'comuna' || paso === 'listo' ? `rounded-2xl ${paso === 'comuna' ? CLASE_PASO_ACTIVO : ''} p-1` : ''}>
-          <legend className="mb-1 text-sm font-medium">Comunas</legend>
-          {listaComunas.length === 0 ? (
-            <p className="text-sm text-(--color-tinta-suave)">
-              Elige región y provincia para ver las comunas.
-            </p>
-          ) : (
-            <ul className="grid gap-2">
-              {listaComunas.map((comuna) => (
-                <li key={comuna.slug}>
-                  <label
-                    className={`${CLASE_CHIP} flex items-center gap-3 ${seleccionadas.has(comuna.slug) ? CLASE_CHIP_ACTIVO : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={seleccionadas.has(comuna.slug)}
-                      onChange={() => elegir(comuna)}
-                    />
-                    <span>{comuna.nombre}</span>
-                  </label>
-                </li>
+      {region ? (
+        <PasoAnimado id={`${idPrefijo}-provincia-${region}`}>
+          <fieldset className={paso === 'provincia' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
+            <legend id={`${idPrefijo}-provincia`} className="mb-2 text-sm font-medium">
+              Provincia
+            </legend>
+            <ul className={CLASE_LISTA} role="list">
+              {provincias.map((nombre) => (
+                <ChipOpcion
+                  key={nombre}
+                  seleccionado={provincia === nombre}
+                  onClick={() => elegirProvincia(nombre)}
+                >
+                  {nombre}
+                </ChipOpcion>
               ))}
             </ul>
-          )}
-          {values.length > 0 ? (
-            <p className="mt-2 text-sm text-(--color-tinta-suave)">
-              {values.length} {values.length === 1 ? 'comuna elegida' : 'comunas elegidas'}.
-            </p>
-          ) : null}
-        </fieldset>
+          </fieldset>
+        </PasoAnimado>
       ) : (
-        <div className={paso === 'comuna' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
-          <label htmlFor={`${idPrefijo}-comuna`} className="mb-1 block text-sm font-medium">
-            Comuna
-          </label>
-          <select
-            id={`${idPrefijo}-comuna`}
-            className={CLASE_CAMPO}
-            value={value ?? ''}
-            disabled={!provincia}
-            onChange={(event) => onChange?.(event.target.value)}
-          >
-            <option value="">{provincia ? 'Elige una comuna' : 'Primero elige la provincia'}</option>
-            {listaComunas.map((comuna) => (
-              <option key={comuna.slug} value={comuna.slug}>
-                {comuna.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+        <p className="text-sm text-(--color-tinta-suave)">Primero elige la región.</p>
       )}
+
+      {region && provincia ? (
+        <PasoAnimado id={`${idPrefijo}-comuna-${region}-${provincia}`}>
+          {multiple ? (
+            <fieldset
+              className={
+                paso === 'comuna' || paso === 'listo'
+                  ? `rounded-2xl ${paso === 'comuna' ? CLASE_PASO_ACTIVO : ''} p-1`
+                  : ''
+              }
+            >
+              <legend className="mb-2 text-sm font-medium">Comunas</legend>
+              {listaComunas.length === 0 ? (
+                <p className="text-sm text-(--color-tinta-suave)">No hay comunas en esta provincia.</p>
+              ) : (
+                <ul className={CLASE_LISTA}>
+                  {listaComunas.map((comuna) => (
+                    <li key={comuna.slug}>
+                      <label
+                        className={`${CLASE_CHIP} flex items-center gap-3 ${seleccionadas.has(comuna.slug) ? CLASE_CHIP_ACTIVO : ''}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={seleccionadas.has(comuna.slug)}
+                          onChange={() => elegir(comuna)}
+                        />
+                        <span>{comuna.nombre}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {values.length > 0 ? (
+                <p className="mt-2 text-sm text-(--color-tinta-suave)">
+                  {values.length} {values.length === 1 ? 'comuna elegida' : 'comunas elegidas'}.
+                </p>
+              ) : null}
+            </fieldset>
+          ) : (
+            <fieldset className={paso === 'comuna' ? `rounded-2xl ${CLASE_PASO_ACTIVO} p-1` : ''}>
+              <legend id={`${idPrefijo}-comuna`} className="mb-2 text-sm font-medium">
+                Comuna
+              </legend>
+              <ul className={CLASE_LISTA} role="list">
+                {listaComunas.map((comuna) => (
+                  <ChipOpcion
+                    key={comuna.slug}
+                    seleccionado={value === comuna.slug}
+                    onClick={() => elegir(comuna)}
+                  >
+                    {comuna.nombre}
+                  </ChipOpcion>
+                ))}
+              </ul>
+            </fieldset>
+          )}
+        </PasoAnimado>
+      ) : region ? (
+        <p className="text-sm text-(--color-tinta-suave)">Primero elige la provincia.</p>
+      ) : null}
     </div>
   )
 }

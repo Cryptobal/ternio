@@ -56,7 +56,7 @@ export function FormularioCuentaProveedor({
     <form action={accion} className={`${CLASE_SUPERFICIE} space-y-5`}>
       <h2 className="font-display text-2xl">Crea tu cuenta</h2>
       <p className="text-sm text-(--color-tinta-suave)">
-        Confirmas el celular con un código. Ahí se abre tu cuenta y puedes tomar contactos.
+        Confirmas el celular con un código OTP. Después de eso puedes tomar contactos.
       </p>
 
       {estado.mensaje && !estado.ok ? (

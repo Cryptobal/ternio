@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { ModoRubro } from '@prisma/client'
 
-import { parsearDatosRubro, parsearPrecioClp, slugDesdeNombreRubro } from '@/lib/admin-rubros'
+import {
+  parsearCamposEscritos,
+  parsearDatosRubro,
+  parsearPrecioClp,
+  slugDesdeNombreRubro,
+} from '@/lib/admin-rubros'
 
 describe('admin crea / edita rubro', () => {
   it('CAPTURA no exige precios', () => {
@@ -54,6 +59,53 @@ describe('admin crea / edita rubro', () => {
   it('rechaza slugs reservados', () => {
     const r = parsearDatosRubro({ nombre: 'Admin', slug: 'admin', modo: 'CAPTURA' })
     expect(r.ok).toBe(false)
+  })
+})
+
+describe('camposFormulario del admin', () => {
+  const unCampo = [
+    {
+      nombre: 'tipo_servicio',
+      etiqueta: '¿Qué necesitas?',
+      tipo: 'radio',
+      requerido: true,
+      opciones: [{ valor: 'guardias', etiqueta: 'Guardias' }],
+    },
+  ]
+
+  it('vacío o [] deja solo el tronco', () => {
+    expect(parsearCamposEscritos('')).toEqual({ ok: true, campos: [] })
+    expect(parsearCamposEscritos('[]')).toEqual({ ok: true, campos: [] })
+    expect(parsearCamposEscritos(null)).toEqual({ ok: true, campos: [] })
+  })
+
+  it('acepta JSON válido y lo lee con parsearCampos', () => {
+    const r = parsearCamposEscritos(JSON.stringify(unCampo))
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.campos).toHaveLength(1)
+    expect(r.campos[0]?.nombre).toBe('tipo_servicio')
+  })
+
+  it('JSON inválido o mal tipado falla el guardado; no degrada a []', () => {
+    const jsonRoto = parsearCamposEscritos('{no es json')
+    expect(jsonRoto.ok).toBe(false)
+    if (!jsonRoto.ok) expect(jsonRoto.motivo).toMatch(/JSON/i)
+
+    const schemaRoto = parsearCamposEscritos(
+      JSON.stringify([{ nombre: 'MAYUSCULAS', etiqueta: 'x', tipo: 'texto' }]),
+    )
+    expect(schemaRoto.ok).toBe(false)
+
+    const muchos = Array.from({ length: 7 }, (_, i) => ({
+      nombre: `campo_${i}`,
+      etiqueta: `Campo ${i}`,
+      tipo: 'texto',
+      requerido: false,
+    }))
+    const exceso = parsearCamposEscritos(JSON.stringify(muchos))
+    expect(exceso.ok).toBe(false)
+    if (!exceso.ok) expect(exceso.motivo).toMatch(/6/)
   })
 })
 

@@ -1,9 +1,10 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { ModoRubro } from '@prisma/client'
 
+import { serializarCamposAdmin } from '@/lib/admin-rubros'
 import { CLASE_BOTON, CLASE_CAMPO, CLASE_SUPERFICIE } from '@/lib/ui'
 import {
   crearRubroAction,
@@ -34,12 +35,14 @@ type RubroForm = {
   orden: number
   precioExclusivoClp: number | null
   precioCompartidoClp: number | null
+  camposFormulario?: unknown
 }
 
 export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
   const esEdicion = Boolean(rubro?.id)
   const [estado, accion] = useActionState(esEdicion ? editarRubroAction : crearRubroAction, INICIAL)
   const [baja, desactivar] = useActionState(desactivarRubroAction, INICIAL)
+  const [camposJson, setCamposJson] = useState(serializarCamposAdmin(rubro?.camposFormulario))
   const errores = estado.errores ?? {}
 
   return (
@@ -159,6 +162,28 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
             inputMode="numeric"
             defaultValue={rubro?.orden ?? 100}
           />
+        </div>
+
+        <div>
+          <label htmlFor="camposFormulario" className="mb-1 block text-sm font-medium">
+            Campos del cotizador (JSON)
+          </label>
+          <textarea
+            id="camposFormulario"
+            name="camposFormulario"
+            rows={10}
+            spellCheck={false}
+            className={`${CLASE_CAMPO} font-mono text-sm`}
+            value={camposJson}
+            onChange={(event) => setCamposJson(event.target.value)}
+          />
+          <p className="mt-1 text-sm text-(--color-tinta-suave)">
+            Vacío o <code>[]</code> deja solo el tronco (razón social, RUT, nombre, teléfono,
+            correo). Máximo 6 preguntas. JSON inválido no se guarda.
+          </p>
+          {errores.camposFormulario ? (
+            <p className="mt-1 text-sm text-(--color-rojo)">{errores.camposFormulario}</p>
+          ) : null}
         </div>
 
         {esEdicion ? (

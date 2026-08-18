@@ -22,6 +22,7 @@ export default async function AdminRubroEditar({ params }: { params: Promise<{ i
       orden: true,
       precioExclusivoClp: true,
       precioCompartidoClp: true,
+      camposFormulario: true,
     },
   })
   if (!rubro) notFound()
