@@ -42,7 +42,7 @@ export async function generateStaticParams() {
       .map((rubro) => slugPublicoDesdeBd(rubro.slug))
       .filter((slug) => slug !== 'plagas')
       .map((rubro) => ({ rubro }))
-    const vistos = new Set(fijos.map((fila) => fila.rubro))
+    const vistos = new Set<string>(fijos.map((fila) => fila.rubro))
     return [...fijos, ...extra.filter((fila) => !vistos.has(fila.rubro))]
   } catch {
     return fijos
