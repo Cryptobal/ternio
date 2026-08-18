@@ -22,7 +22,7 @@ function Boton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-lg bg-(--color-marca) px-5 py-3.5 text-base font-medium text-white transition hover:bg-(--color-marca-oscura) disabled:opacity-60"
+      className="w-full rounded-2xl bg-(--color-marca) px-5 py-3.5 text-base font-medium text-white transition hover:bg-(--color-tinta) disabled:opacity-60"
     >
       {pending ? 'Enviando tu cotización…' : 'Pedir cotización gratis'}
     </button>

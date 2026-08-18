@@ -60,6 +60,30 @@ export async function rubrosActivos() {
   )
 }
 
+/** Rubros públicos con sus comunas activas, para el selector de la home. */
+export async function rubrosConComunas() {
+  return tolerandoSinBase(
+    () =>
+      prisma.rubro.findMany({
+        where: { activo: true },
+        orderBy: { orden: 'asc' },
+        select: {
+          slug: true,
+          nombre: true,
+          nombrePlural: true,
+          descripcion: true,
+          modo: true,
+          comunas: {
+            where: { activa: true, comuna: { activa: true } },
+            orderBy: { comuna: { orden: 'asc' } },
+            select: { comuna: { select: { slug: true, nombre: true } } },
+          },
+        },
+      }),
+    [],
+  )
+}
+
 export async function comunasActivas() {
   return tolerandoSinBase(
     () =>

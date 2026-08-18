@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 import { combinacionesPublicadas, rubrosActivos } from '@/lib/catalogo'
+import { urlsSitemapFijas } from '@/lib/sitemap-publico'
 
 /**
  * Sitemap dinámico: solo páginas públicas.
@@ -15,9 +16,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [rubros, combinaciones] = await Promise.all([rubrosActivos(), combinacionesPublicadas()])
 
   return [
-    { url: `${base}/`, lastModified: ahora, changeFrequency: 'weekly', priority: 1 },
-    { url: `${base}/privacidad`, lastModified: ahora, changeFrequency: 'yearly', priority: 0.2 },
-    { url: `${base}/terminos`, lastModified: ahora, changeFrequency: 'yearly', priority: 0.2 },
+    ...urlsSitemapFijas(base).map((url) => ({
+      url,
+      lastModified: ahora,
+      changeFrequency: url.endsWith('/proveedores') ? ('monthly' as const) : ('weekly' as const),
+      priority: url === `${base}/` ? 1 : url.endsWith('/proveedores') ? 0.6 : 0.2,
+    })),
     ...rubros.map((rubro) => ({
       url: `${base}/${rubro.slug}`,
       lastModified: ahora,

@@ -18,13 +18,13 @@ export const metadata: Metadata = {
 export default function Privacidad() {
   return (
     <article className="mx-auto w-full max-w-2xl px-4 py-10 sm:py-14">
-      <h1 className="text-3xl font-semibold">Política de privacidad</h1>
+      <h1 className="font-display text-3xl">Política de privacidad</h1>
       <p className="mt-2 text-sm text-(--color-tinta-suave)">
         Última actualización: agosto de 2026.
       </p>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Quién trata tus datos</h2>
+        <h2 className="font-display text-xl">Quién trata tus datos</h2>
         <p>
           Ternio (ternio.cl) es el responsable del tratamiento de los datos personales que
           entregas en este sitio. Puedes escribirnos a{' '}
@@ -36,7 +36,7 @@ export default function Privacidad() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Qué datos pedimos y para qué</h2>
+        <h2 className="font-display text-xl">Qué datos pedimos y para qué</h2>
         <p>
           Cuando pides una cotización te pedimos tu nombre, correo, teléfono y el RUT de la
           empresa, además de los detalles del servicio que necesitas. Los usamos para tres
@@ -51,7 +51,7 @@ export default function Privacidad() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Base legal del tratamiento</h2>
+        <h2 className="font-display text-xl">Base legal del tratamiento</h2>
         <p>
           Tratamos tus datos porque tú nos los entregas para pedir una cotización: la base
           legal es la ejecución de las gestiones previas a un contrato que tú solicitas, según
@@ -62,7 +62,7 @@ export default function Privacidad() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Con quién los compartimos</h2>
+        <h2 className="font-display text-xl">Con quién los compartimos</h2>
         <p>
           Tus datos de contacto quedan ocultos mientras nadie tome tu solicitud. Las empresas
           proveedoras solo ven una ficha sin identificarte: el servicio que pediste, la comuna,
@@ -81,7 +81,7 @@ export default function Privacidad() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Cuánto tiempo los guardamos</h2>
+        <h2 className="font-display text-xl">Cuánto tiempo los guardamos</h2>
         <p>
           Guardamos tu cotización mientras siga siendo útil para el servicio y por el plazo que
           nos exige la ley para respaldar las operaciones realizadas. Las cotizaciones que
@@ -90,7 +90,7 @@ export default function Privacidad() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Tus derechos</h2>
+        <h2 className="font-display text-xl">Tus derechos</h2>
         <p>
           Puedes pedirnos acceder a tus datos, corregirlos, eliminarlos, oponerte a que los
           tratemos o pedir que te los entreguemos en un formato portable. Escríbenos a{' '}
@@ -103,7 +103,7 @@ export default function Privacidad() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Cookies</h2>
+        <h2 className="font-display text-xl">Cookies</h2>
         <p>
           Usamos las cookies necesarias para que el sitio funcione: mantener tu sesión y
           recordar la cotización que enviaste para poder asociarla a tu cuenta. No usamos

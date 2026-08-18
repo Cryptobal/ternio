@@ -26,7 +26,7 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
-      <h1 className="text-2xl font-semibold sm:text-3xl">
+      <h1 className="font-display text-2xl sm:text-3xl">
         {estado === 'duplicada' ? 'Ya teníamos tu solicitud' : 'Recibimos tu cotización'}
       </h1>
 
@@ -37,7 +37,7 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
       </p>
 
       {sesion ? (
-        <div className="mt-8 rounded-xl border border-(--color-borde) bg-white p-5">
+        <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
           <p className="font-medium">
             {reclamo.reclamados > 0
               ? 'Listo: tu cotización quedó guardada en tu cuenta.'
@@ -54,7 +54,7 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
           </Link>
         </div>
       ) : googleConfigurado() ? (
-        <div className="mt-8 rounded-xl border border-(--color-borde) bg-white p-5">
+        <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
           <h2 className="font-medium">Crea tu cuenta para seguir tu cotización</h2>
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
             Con tu cuenta ves en qué va, verificas tu teléfono una sola vez y sabes qué empresa
@@ -76,7 +76,7 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
           </p>
         </div>
       ) : (
-        <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+        <div className="mt-8 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-5 text-sm text-(--color-tinta)">
           <p className="font-medium">Por ahora no podemos crear tu cuenta.</p>
           <p className="mt-1">
             Tu cotización quedó guardada igual y nuestro equipo la va a revisar. Si necesitas

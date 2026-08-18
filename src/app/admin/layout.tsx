@@ -6,9 +6,9 @@ export const metadata: Metadata = {
 }
 
 /**
- * El panel solo se sirve por rewrite desde {ADMIN_PATH} y cada página valida
- * el rol ADMIN en servidor (src/server/sesion.ts). Este layout no hace de
- * guardia: solo pone la carcasa.
+ * El panel vive en /admin. Cada página valida el rol ADMIN en servidor
+ * (src/server/sesion.ts). Este layout no hace de guardia: solo pone la
+ * carcasa, sin cabecera ni pie comerciales del sitio público.
  */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return <div className="mx-auto w-full max-w-6xl px-4 py-8">{children}</div>

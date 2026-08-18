@@ -28,7 +28,7 @@ export default async function MisCotizaciones() {
   if (!sesion?.user?.id) {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
-        <h1 className="text-2xl font-semibold">Mis cotizaciones</h1>
+        <h1 className="font-display text-2xl">Mis cotizaciones</h1>
         <p className="mt-3 text-(--color-tinta-suave)">
           Entra con tu cuenta para ver el estado de las cotizaciones que enviaste.
         </p>
@@ -44,7 +44,7 @@ export default async function MisCotizaciones() {
             </button>
           </form>
         ) : (
-          <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="mt-6 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-4 text-sm text-(--color-tinta)">
             Por ahora no podemos abrir cuentas. Tus cotizaciones están guardadas y nuestro
             equipo las está revisando.
           </p>
@@ -72,7 +72,7 @@ export default async function MisCotizaciones() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:py-14">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold sm:text-3xl">Mis cotizaciones</h1>
+        <h1 className="font-display text-2xl sm:text-3xl">Mis cotizaciones</h1>
         <form action={salir}>
           <button
             type="submit"
@@ -84,7 +84,7 @@ export default async function MisCotizaciones() {
       </div>
 
       {cotizaciones.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-(--color-borde) bg-white p-6">
+        <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-6 shadow-sm">
           <p className="font-medium">Todavía no tienes cotizaciones acá.</p>
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
             Si enviaste una desde otro navegador o hace más de un día, escríbenos y la
@@ -102,7 +102,7 @@ export default async function MisCotizaciones() {
           {cotizaciones.map((cotizacion) => (
             <li
               key={cotizacion.id}
-              className="rounded-xl border border-(--color-borde) bg-white p-5"
+              className="rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="font-medium">

@@ -17,7 +17,7 @@ export async function salir(): Promise<void> {
 
 export type EstadoLoginAdmin = { error?: string }
 
-/** Login del dueño, solo alcanzable desde la ruta oculta. */
+/** Login del dueño, solo alcanzable desde /admin/ingresar. */
 export async function entrarComoAdmin(
   _estadoPrevio: EstadoLoginAdmin,
   formData: FormData,

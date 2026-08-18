@@ -1,14 +1,16 @@
 /**
- * Decisión de acceso al panel de admin.
+ * Acceso al panel de admin.
  *
- * La URL oculta (ADMIN_PATH) es cosmética: sirve para que el panel no aparezca
- * por curiosidad ni en logs de terceros. La seguridad real es el rol ADMIN
- * validado en servidor. Por eso cualquier caso que no sea "ruta secreta + rol
- * ADMIN" responde 404, nunca 401 ni un redirect: no confirmamos que exista.
+ * La URL es fija en /admin. No aparece en el sitio, ni en el sitemap, ni en
+ * robots.txt (listarla ahí la revelaría). Esa URL es cosmética: la seguridad
+ * real es el rol ADMIN validado en servidor. Cualquier caso que no sea
+ * "ruta /admin + rol ADMIN" responde 404, nunca 401 ni un redirect: no
+ * confirmamos que exista.
  *
  * Función pura para poder probarla sin levantar Next.
  */
 
+export const RUTA_ADMIN = '/admin'
 export const SUBRUTA_LOGIN_ADMIN = 'ingresar'
 
 export type DecisionAdmin =
@@ -21,14 +23,8 @@ export type DecisionAdmin =
 
 export type EntradaDecisionAdmin = {
   pathname: string
-  /** Valor de ADMIN_PATH; vacío o ausente deja el panel inalcanzable. */
-  adminPath: string | undefined | null
   /** true solo si la sesión del servidor tiene rol ADMIN. */
   esAdmin: boolean
-}
-
-function normalizarSegmento(valor: string | undefined | null): string {
-  return (valor ?? '').replace(/^\/+|\/+$/g, '')
 }
 
 function estaBajo(pathname: string, base: string): boolean {
@@ -37,30 +33,19 @@ function estaBajo(pathname: string, base: string): boolean {
 
 export function decidirAccesoAdmin({
   pathname,
-  adminPath,
   esAdmin,
 }: EntradaDecisionAdmin): DecisionAdmin {
-  // El acceso directo a /admin/* nunca es legítimo: el panel solo se sirve
-  // por rewrite desde la ruta secreta.
-  if (estaBajo(pathname, '/admin')) return 'no-encontrado'
-
-  const segmento = normalizarSegmento(adminPath)
-  if (!segmento) return 'ignorar'
-
-  const base = `/${segmento}`
-  if (!estaBajo(pathname, base)) return 'ignorar'
+  if (!estaBajo(pathname, RUTA_ADMIN)) return 'ignorar'
 
   // La pantalla de login tiene que ser alcanzable sin sesión; si no, nadie
   // podría entrar nunca.
-  if (pathname === `${base}/${SUBRUTA_LOGIN_ADMIN}`) return 'permitir'
+  if (pathname === `${RUTA_ADMIN}/${SUBRUTA_LOGIN_ADMIN}`) return 'permitir'
 
   return esAdmin ? 'permitir' : 'no-encontrado'
 }
 
-/** URL pública del panel (solo para uso interno del servidor, nunca en links). */
+/** URL del panel (solo para uso interno del servidor, nunca en links públicos). */
 export function rutaAdmin(subruta = ''): string {
-  const segmento = normalizarSegmento(process.env.ADMIN_PATH)
-  if (!segmento) return '/'
   const limpia = subruta.replace(/^\/+/, '')
-  return limpia ? `/${segmento}/${limpia}` : `/${segmento}`
+  return limpia ? `${RUTA_ADMIN}/${limpia}` : RUTA_ADMIN
 }

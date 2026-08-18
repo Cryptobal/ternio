@@ -3,9 +3,9 @@
 Ternio (ternio.cl) conecta empresas que necesitan un servicio B2B con
 proveedores de ese servicio, y monetiza vendiendo el contacto calificado
 (lead) a los proveedores. Flujo: el comprador llega por Google a una página
-{rubro}/{comuna} → completa el formulario de cotización → crea su cuenta
-(Google) para seguir la cotización en su panel → el lead se verifica
-(RUT, teléfono por OTP) → se ofrece a los proveedores cuya cobertura
+{rubro}/{comuna} → completa el formulario de cotización (micro-pasos) →
+confirma el teléfono por OTP (esa es su sesión) → el lead se verifica
+(RUT + teléfono) → se ofrece a los proveedores cuya cobertura
 calza → compran el contacto con créditos prepagados. El comprador nunca paga.
 Rubros iniciales: seguridad privada (punta de lanza; Gard Security, empresa
 del dueño, tiene derecho preferente sobre leads que calcen con su perfil),
@@ -15,12 +15,12 @@ El repositorio parte vacío y se construye por fases. Objetivo: negocio de
 bajo toque, todo self-serve. La apuesta de captación es SEO fuerte.
 ## Stack
 Next.js 15 App Router, TypeScript estricto, Prisma + Neon PostgreSQL,
-Tailwind + shadcn/ui, Auth.js v5 (Google OAuth para compradores;
-Credentials para el admin), Vercel. Pagos: MercadoPago (packs de
-créditos). Correo transaccional para avisos (Resend o similar, proponer).
-Verificación de formulario: Cloudflare Turnstile + OTP por SMS (proponer
-proveedor). Canal WhatsApp: Cloud API oficial de Meta, directa — diferido
-a Fase 5; nada del lanzamiento depende de él.
+Tailwind + shadcn/ui, Auth.js v5 (sesión del comprador por OTP de
+teléfono; Credentials para el admin en /admin), Vercel. Pagos: MercadoPago
+(packs de créditos). Correo transaccional para avisos (Resend o similar).
+Verificación de formulario: Cloudflare Turnstile + OTP por SMS (Twilio).
+Canal WhatsApp: Cloud API oficial de Meta, directa — diferido a Fase 5;
+nada del lanzamiento depende de él.
 ## Método de trabajo
 1. Propón primero la estructura del repo y el schema Prisma completo, y
    espera mi OK — es la única pausa obligatoria del proyecto.
@@ -34,11 +34,24 @@ a Fase 5; nada del lanzamiento depende de él.
   del rubro. WhatsApp NO es el canal de captura inicial: queda como canal
   de verificación y seguimiento (con opt-in del formulario) y, más
   adelante, como vía alternativa de cotización (Fase 5).
-- Cuenta del comprador: el formulario NUNCA se bloquea por login. Al enviar,
-  se le pide crear cuenta con Google (enlace por correo cuando exista
-  lib/email) para seguir su cotización en el panel /mis-cotizaciones y ver
-  qué empresa la tomó. Sin cuenta no hay OTP y el lead no pasa a venta:
-  queda en revisión del admin.
+- Cuenta del comprador: el formulario NUNCA se bloquea por login. El OTP
+  del teléfono ES el login: sin contraseñas y sin Google. Tras el envío se
+  pide el código SMS; al verificarlo se abre la sesión y el comprador entra
+  a /mis-cotizaciones. El lead se captura siempre: si abandona sin OTP
+  queda en revisión del admin. Reingreso en /entrar (teléfono → código).
+- Cotizador por micro-pasos: una pregunta por pantalla. Primero el módulo
+  del rubro (3–6 preguntas configurables en BD; tipos opción única, opción
+  múltiple, número, texto corto, sí/no; sin lógica condicional en V1),
+  después el tronco común de identidad (razón social → RUT → nombre →
+  teléfono → correo). Un solo submit al final. Preguntas mal configuradas
+  (0 o >6) degradan al tronco y se reportan en logs sin PII.
+- Posicionamiento: "Cotiza servicios para tu empresa". Hogar permitido por
+  diseño, apagado al lanzamiento: no aparece en el copy.
+- Sin subasta: cero posiciones, rankings, contraofertas o countdowns.
+- Social proof real o ninguno. Módulos ilustrativos siempre etiquetados
+  "Ejemplo". Canon futuro (requiere marketplace, Fase 3): si nadie toma un
+  lead en 24 h → aviso honesto al comprador + alerta admin + fallback Gard
+  en seguridad.
 - Verificación de leads en capas: (1) RUT obligatorio con dígito
   verificador válido; (2) cruce de razón social contra el SII (directo o
   vía API de terceros; si no es viable en Fase 1, se difiere y se valida
@@ -55,10 +68,10 @@ a Fase 5; nada del lanzamiento depende de él.
 - Antifraude de formulario: Turnstile + honeypot, deduplicación por RUT y
   teléfono, y bloqueo de proveedores generándose leads propios.
 - Tres paneles: comprador (/mis-cotizaciones), proveedor (/panel) y admin.
-  El admin vive en una ruta oculta definida por env (ADMIN_PATH), sin
-  enlaces en el sitio, fuera del sitemap y SIN entrada en robots.txt
-  (listarla la revelaría). La URL oculta es cosmética: la seguridad real es
-  el rol ADMIN validado en servidor; el acceso no autorizado responde 404.
+  El admin vive en /admin, sin enlaces en el sitio, fuera del sitemap y SIN
+  entrada en robots.txt (listarla la revelaría). La URL es cosmética: la
+  seguridad real es el rol ADMIN validado en servidor; el acceso no
+  autorizado responde 404.
 - Rubros = filas en DB con su configuración: campos del formulario (JSON),
   campos del lead, precios, comunas activas. Agregar un rubro no toca código.
 - Rubros al lanzamiento: 3 en modo VENTA (seguridad, aseo, plagas) y 5 en
@@ -96,8 +109,8 @@ a Fase 5; nada del lanzamiento depende de él.
 Landing de UN rubro (seguridad) con el formulario real de cotización
 (campos desde la config del rubro, validación de DV de RUT, Turnstile) y
 medición de eventos: visita → inicio de formulario → lead creado → cuenta
-creada. Tras enviar, el comprador crea su cuenta con Google y ve su
-cotización en un panel mínimo. Los leads llegan al admin (ruta oculta)
+creada. Tras enviar, el comprador confirma el teléfono por OTP y ve su
+cotización en un panel mínimo. Los leads llegan al admin (/admin)
 para revisión manual. Nada más. El dueño correrá
 Google Ads y llamadas a proveedores sobre esta landing. Criterio go/no-go:
 costo por lead verificado < 50% del precio de venta del lead.
