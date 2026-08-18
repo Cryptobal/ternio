@@ -1,31 +1,13 @@
-import Script from 'next/script'
-
-import { idContenedorGtm, snippetGtm, urlNoscriptGtm } from '@/lib/gtm'
+import { idContenedorGtm, urlNoscriptGtm } from '@/lib/gtm'
 
 /**
- * Parte 1 del snippet oficial de GTM: el <script> lo más arriba posible
- * en <head>. `beforeInteractive` es el equivalente en App Router: Next lo
- * inyecta en el HTML inicial, dentro de <head>, antes de hidratar.
+ * Parte 2 del snippet oficial de GTM: <noscript><iframe> justo después
+ * de abrir <body>. El <script> de head vive en el layout raíz: Next exige
+ * `beforeInteractive` ahí (no en un componente anidado).
  *
  * No hay aviso de cookies / Rastro en el código hoy: GTM se carga sin
- * gate. Si más adelante hay consentimiento, este componente es el punto
- * para respetarlo.
- */
-export function ScriptGtm() {
-  const id = idContenedorGtm()
-  if (!id) return null
-
-  return (
-    <Script
-      id="google-tag-manager"
-      strategy="beforeInteractive"
-      dangerouslySetInnerHTML={{ __html: snippetGtm(id) }}
-    />
-  )
-}
-
-/**
- * Parte 2 del snippet oficial: <noscript><iframe> justo después de <body>.
+ * gate. Si más adelante hay consentimiento, este componente y el script
+ * del layout son el punto para respetarlo.
  */
 export function NoscriptGtm() {
   const id = idContenedorGtm()

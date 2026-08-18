@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Archivo, Spline_Sans_Mono } from 'next/font/google'
+import Script from 'next/script'
 
-import { NoscriptGtm, ScriptGtm } from '@/components/gtm'
+import { NoscriptGtm } from '@/components/gtm'
+import { idContenedorGtm, snippetGtm } from '@/lib/gtm'
 
 import './globals.css'
 
@@ -44,9 +46,17 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const gtmId = idContenedorGtm()
+
   return (
     <html lang="es-CL">
-      <ScriptGtm />
+      {gtmId ? (
+        <Script
+          id="google-tag-manager"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: snippetGtm(gtmId) }}
+        />
+      ) : null}
       <body className={`${archivo.variable} ${spline.variable} antialiased`}>
         <NoscriptGtm />
         {children}

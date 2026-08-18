@@ -57,15 +57,15 @@ describe('instalación en el layout raíz', () => {
   const raiz = readFileSync(resolve(process.cwd(), 'src/app/layout.tsx'), 'utf8')
   const componente = readFileSync(resolve(process.cwd(), 'src/components/gtm.tsx'), 'utf8')
 
-  it('el layout monta script y noscript una sola vez, sin gtag.js', () => {
-    expect(raiz.match(/ScriptGtm/g)).toHaveLength(2)
+  it('el layout monta next/script y noscript una sola vez, sin gtag.js', () => {
+    expect(raiz).toMatch(/from ['"]next\/script['"]/)
+    expect(raiz.match(/strategy="beforeInteractive"/g)).toHaveLength(1)
+    expect(raiz.match(/id="google-tag-manager"/g)).toHaveLength(1)
     expect(raiz.match(/NoscriptGtm/g)).toHaveLength(2)
     expect(raiz).not.toMatch(/gtag\.js|googletagmanager\.com\/gtag/)
   })
 
-  it('el componente usa next/script y el iframe noscript oficial', () => {
-    expect(componente).toMatch(/from ['"]next\/script['"]/)
-    expect(componente).toMatch(/strategy="beforeInteractive"/)
+  it('el noscript usa el iframe oficial y no carga gtag.js', () => {
     expect(componente).toMatch(/<noscript>/)
     expect(componente).toMatch(/urlNoscriptGtm/)
     expect(componente).not.toMatch(/gtag\.js|G-[A-Z0-9]+/)
