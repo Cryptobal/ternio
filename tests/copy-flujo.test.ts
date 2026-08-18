@@ -53,6 +53,16 @@ describe('copy público sin mentiras de launch', () => {
     expect(mis).toContain('EstadoCompraLead.PAGADA')
     expect(mis).not.toContain('LeadContacto')
     expect(enviada).not.toMatch(/tu panel/i)
+    expect(enviada).toMatch(/este celular para seguir la solicitud/)
+
+    const marco = readFileSync(resolve(process.cwd(), 'src/components/sitio/marco-publico.tsx'), 'utf8')
+    expect(marco).toContain('Ya cotizé')
+    expect(marco).toContain('href="/entrar"')
+    expect(marco).not.toMatch(/Mi panel/)
+
+    const otp = readFileSync(resolve(process.cwd(), 'src/components/formulario-otp.tsx'), 'utf8')
+    expect(otp).not.toMatch(/entrada al panel/i)
+    expect(otp).toMatch(/Crea tu acceso o entra con este celular/)
   })
 
   it('el selector de territorio no apila niveles ni usa typeahead', () => {
