@@ -9,6 +9,7 @@ import { SelectorTerritorio } from '@/components/selector-territorio'
 import { PasoAnimado } from '@/components/ui/motion'
 import {
   audienciaInicialParaPagina,
+  CONTEXTO_AUDIENCIA,
   ETIQUETA_AUDIENCIA,
   filtrarServiciosPorAudiencia,
   PREGUNTA_AUDIENCIA,
@@ -22,7 +23,7 @@ import {
   type RubroSelector,
 } from '@/lib/selector-cotizacion'
 import type { ComunaTerritorio } from '@/lib/territorio'
-import { CLASE_BOTON_AMBAR, CLASE_CHIP_NAVY, CLASE_LEYENDA_NAVY } from '@/lib/ui'
+import { CLASE_BOTON_AMBAR, CLASE_PREGUNTA_NAVY, CLASE_TARJETA_NAVY, CLASE_TARJETA_NAVY_ACTIVA } from '@/lib/ui'
 
 export function SelectorCotizacion({
   rubros,
@@ -109,24 +110,31 @@ export function SelectorCotizacion({
       <PasoAnimado id={paso === 'territorio' && rubro ? `territorio-${rubro.slug}` : paso}>
         {paso === 'audiencia' ? (
           <fieldset>
-            <legend className={CLASE_LEYENDA_NAVY}>{PREGUNTA_AUDIENCIA}</legend>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {(['hogar', 'empresa'] as const).map((opcion) => (
-                <li key={opcion}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAudiencia(opcion)
-                      setSlug('')
-                      setComunaSlug('')
-                      setError(undefined)
-                    }}
-                    className={`${CLASE_CHIP_NAVY} w-full`}
-                  >
-                    {ETIQUETA_AUDIENCIA[opcion]}
-                  </button>
-                </li>
-              ))}
+            <legend className={CLASE_PREGUNTA_NAVY}>{PREGUNTA_AUDIENCIA}</legend>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {(['hogar', 'empresa'] as const).map((opcion) => {
+                const activa = audiencia === opcion
+                return (
+                  <li key={opcion}>
+                    <button
+                      type="button"
+                      aria-pressed={activa}
+                      onClick={() => {
+                        setAudiencia(opcion)
+                        setSlug('')
+                        setComunaSlug('')
+                        setError(undefined)
+                      }}
+                      className={`${CLASE_TARJETA_NAVY} ${activa ? CLASE_TARJETA_NAVY_ACTIVA : ''}`}
+                    >
+                      <span className="font-semibold">{ETIQUETA_AUDIENCIA[opcion]}</span>
+                      <span className="mt-1 text-sm text-white/70">
+                        {CONTEXTO_AUDIENCIA[opcion]}
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           </fieldset>
         ) : null}

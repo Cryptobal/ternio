@@ -31,6 +31,17 @@ export const CLASE_CHIP_NAVY =
 
 export const CLASE_CHIP_NAVY_ACTIVO = 'border-white/70 bg-white/10'
 
+/**
+ * Tarjetas del paso audiencia (casa/empresa): se leen como controles tocables
+ * sobre navy, sin depender del hover. No reemplazan CLASE_CHIP_NAVY (otros pasos).
+ */
+export const CLASE_TARJETA_NAVY =
+  'flex min-h-14 w-full flex-col items-center justify-center rounded-2xl border border-white/40 bg-white/12 px-4 py-3 text-center text-base text-white transition ' +
+  'hover:border-white/70 hover:bg-white/15 ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1522]'
+
+export const CLASE_TARJETA_NAVY_ACTIVA = 'border-white/70 bg-white/15'
+
 export const CLASE_MIGA_NAVY =
   'inline-flex min-h-11 items-center gap-2 rounded-full border border-white/30 bg-transparent px-3 py-1.5 text-sm font-medium text-white transition hover:border-white/70'
 
@@ -38,3 +49,6 @@ export const CLASE_BOTON_AMBAR =
   'inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-(--color-ambar) px-5 py-3 text-base font-semibold text-(--color-tinta) transition hover:brightness-110 disabled:opacity-60'
 
 export const CLASE_LEYENDA_NAVY = 'mb-2 text-sm font-medium text-white/80'
+
+/** Pregunta del paso 1 del cotizador: más peso que la leyenda de los otros pasos. */
+export const CLASE_PREGUNTA_NAVY = 'mb-3 text-base font-medium text-white'

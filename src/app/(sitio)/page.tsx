@@ -5,6 +5,7 @@ import { SelectorCotizacion } from '@/components/selector-cotizacion'
 import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
 import {
   FAQ_HOME,
+  PROMESAS_HOME,
   combosDestacados,
   enlacesCatalogo,
   type ComboPublicado,
@@ -60,7 +61,6 @@ export default async function Inicio() {
     combinaciones,
   )
   const combos = combosDestacados(enriquecerCombos(combinaciones, filas, comunas), 10)
-  const comunasConPagina = new Set(combinaciones.map((c) => c.comuna)).size
   const faqLd = jsonLdFaq(FAQ_HOME)
 
   return (
@@ -92,18 +92,16 @@ export default async function Inicio() {
         </div>
       </section>
 
-      {rubros.length > 0 ? (
-        <section className="border-t border-(--color-linea) bg-(--color-papel)">
-          <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-6 px-4 py-10 sm:grid-cols-3">
-            <Cifra valor={`${rubros.length}`} etiqueta="servicios activos" />
-            <Cifra
-              valor={`${comunasConPagina || '—'}`}
-              etiqueta="comunas con página"
-            />
-            <Cifra valor="Máximo 3" etiqueta="empresas te contactan" />
-          </div>
-        </section>
-      ) : null}
+      <section className="border-t border-(--color-linea) bg-(--color-papel)">
+        <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-6 px-4 py-10 sm:grid-cols-3">
+          {PROMESAS_HOME.map((promesa) => (
+            <div key={promesa.titulo}>
+              <p className="font-display text-xl sm:text-2xl">{promesa.titulo}</p>
+              <p className="mt-2 text-sm text-(--color-tinta-suave)">{promesa.texto}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {catalogo.length > 0 ? (
         <section className="border-t border-(--color-linea) bg-white">
@@ -212,15 +210,6 @@ export default async function Inicio() {
           </Link>
         </div>
       </section>
-    </div>
-  )
-}
-
-function Cifra({ valor, etiqueta }: { valor: string; etiqueta: string }) {
-  return (
-    <div>
-      <p className="font-display text-3xl">{valor}</p>
-      <p className="mt-1 text-sm text-(--color-tinta-suave)">{etiqueta}</p>
     </div>
   )
 }

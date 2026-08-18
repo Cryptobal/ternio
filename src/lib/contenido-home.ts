@@ -44,6 +44,24 @@ export const FAQ_HOME: readonly PreguntaFaq[] = [
   },
 ] as const
 
+/** Tres promesas verificables bajo el hero. No son métricas internas. */
+export const PROMESAS_HOME = [
+  {
+    titulo: 'Cotizar es gratis',
+    texto:
+      'Quien pide la cotización nunca paga. Pagan las empresas, y solo si toman tu contacto.',
+  },
+  {
+    titulo: 'Hasta 3 empresas, no más',
+    texto: 'Tu solicitud llega como máximo a tres. Nadie más ve tus datos.',
+  },
+  {
+    titulo: 'Tus datos, después',
+    texto:
+      'Mientras nadie tome tu solicitud, las empresas solo ven servicio y comuna.',
+  },
+] as const
+
 export type RubroCatalogo = {
   slug: string
   nombre: string

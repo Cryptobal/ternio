@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 
 import {
   FAQ_HOME,
+  PROMESAS_HOME,
   audienciaCatalogoFallback,
   combosDestacados,
   enlacesCatalogo,
 } from '@/lib/contenido-home'
+import { CUPOS_COMPARTIDO } from '@/lib/matching'
 import { jsonLdFaq } from '@/lib/seo-contenido'
 
 describe('contenido-home', () => {
@@ -15,6 +17,18 @@ describe('contenido-home', () => {
       expect(item.pregunta.trim().length).toBeGreaterThan(0)
       expect(item.respuesta.trim().length).toBeGreaterThan(0)
     }
+  })
+
+  it('PROMESAS_HOME tiene exactamente tres entradas coherentes con el producto', () => {
+    expect(PROMESAS_HOME).toHaveLength(3)
+    for (const promesa of PROMESAS_HOME) {
+      expect(promesa.titulo.trim().length).toBeGreaterThan(0)
+      expect(promesa.texto.trim().length).toBeGreaterThan(0)
+    }
+    const cupo = PROMESAS_HOME.find((p) => p.titulo.includes('empresas'))
+    expect(cupo).toBeDefined()
+    expect(cupo?.titulo).toContain(String(CUPOS_COMPARTIDO))
+    expect(cupo?.texto.toLowerCase()).toContain('tres')
   })
 
   it('JSON-LD FAQPage sale bien formado desde las mismas preguntas', () => {
