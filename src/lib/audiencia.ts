@@ -17,6 +17,12 @@ export const ETIQUETA_AUDIENCIA: Record<Audiencia, string> = {
   empresa: 'Para la empresa',
 }
 
+/** Segunda línea de las tarjetas del paso 1. */
+export const CONTEXTO_AUDIENCIA: Record<Audiencia, string> = {
+  hogar: 'Servicios para tu hogar',
+  empresa: 'Servicios para tu negocio',
+}
+
 /** hogar | empresa | ambos. El overlap es obligatorio: no es un split único. */
 const AUDIENCIAS_POR_SLUG: Record<string, readonly Audiencia[]> = {
   'aseo-hogar': ['hogar'],
