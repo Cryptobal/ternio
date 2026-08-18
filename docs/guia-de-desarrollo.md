@@ -87,8 +87,10 @@ producción (`ternio.cl`), sin mentir.
 
 - Google o home → `/seguridad` | `/aseo` | `/plagas` (o alias 308) → elige
   región / provincia / comuna → cotizador de micro-pasos → Pedir cotización.
-- `sitemap.xml` responde HTTP 200. Nunca 500: si la base falla, se listan
-  URLs fijas incluyendo home y los 3 rubros en VENTA.
+- `sitemap.xml` responde HTTP 200. Nunca 500. Se arma sin Prisma (un
+  import de catálogo al cargar el módulo era el 500). Mínimo: home,
+  `/seguridad`, `/aseo`, `/plagas`, `/proveedores`. No incluye `/admin`
+  ni `/panel`.
 - `robots.txt` apunta al sitemap. No lista `/admin` (la revelaría).
 - Search Console puede pedir indexación. El código deja las URLs listas;
   **no se afirma que Google ya indexó**.
@@ -186,7 +188,7 @@ Captación:
 | Cotizador | `src/components/formulario-cotizacion.tsx` + `src/server/leads.ts` |
 | OTP | `src/server/otp.ts` + `src/lib/otp.ts` |
 | Alta proveedor | `src/app/(sitio)/proveedores/page.tsx` + `src/server/proveedores.ts` |
-| Sitemap | `src/app/sitemap.ts` + `src/lib/sitemap-publico.ts` |
+| Sitemap | `src/app/sitemap.xml/route.ts` + `src/lib/sitemap-publico.ts` (sin Prisma) |
 | robots | `src/app/robots.ts` |
 | Alias SEO | `src/lib/seo-rutas.ts` + `next.config.ts` |
 
@@ -321,8 +323,9 @@ Hoy el slug de BD del rubro de plagas es `control-de-plagas`. La URL
 pública canónica es `/plagas`. `/control-de-plagas` redirige 308.
 `/plagas` debe responder 200, no 404.
 
-Sitemap: fail-soft. Si Neon no responde, igual se listan `/`,
-`/seguridad`, `/aseo`, `/plagas`, `/proveedores`, legales. Nunca 500.
+Sitemap: fail-soft **sin Prisma**. Si algo falla, igual se listan `/`,
+`/seguridad`, `/aseo`, `/plagas`, `/proveedores`. Nunca 500. No incluye
+`/admin` ni `/panel`.
 
 No inventar “+1000 empresas” ni prueba social. Schema.org `Service` o
 `LocalBusiness` donde corresponda, con datos reales.

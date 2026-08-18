@@ -11,9 +11,11 @@ Sitio canónico: `https://ternio.cl`.
 
 ## Cómo se indexa
 
-1. `https://ternio.cl/sitemap.xml` debe responder **200**. Si la base
-   falla, el sitemap degrada a URLs fijas (home + 3 rubros VENTA +
-   legales + `/proveedores`). Nunca 500.
+1. `https://ternio.cl/sitemap.xml` debe responder **200**. El XML lo
+   arma `src/app/sitemap.xml/route.ts` **sin Prisma**: un
+   `import` de catálogo al cargar el módulo era el 500 (el try/catch
+   de `sitemap.ts` no alcanzaba). Mínimo: home, `/seguridad`, `/aseo`,
+   `/plagas`, `/proveedores`. Nunca 500. Sin `/admin` ni `/panel`.
 2. `https://ternio.cl/robots.txt` apunta al sitemap. **No** menciona
    `/admin` (listarla la revelaría). Sí bloquea `/panel`, `/entrar`,
    `/mis-cotizaciones`, `/cotizacion/`, `/api/`.
@@ -22,7 +24,7 @@ Sitio canónico: `https://ternio.cl`.
 4. Canonical en cada página. Alias 308 hacia la canónica. Sin contenido
    duplicado.
 
-Código: `src/app/sitemap.ts`, `src/lib/sitemap-publico.ts`,
+Código: `src/app/sitemap.xml/route.ts`, `src/lib/sitemap-publico.ts`,
 `src/lib/seo-rutas.ts`, `next.config.ts`, `src/app/robots.ts`.
 
 ---
@@ -48,18 +50,24 @@ sitemap. Eso no es un cambio de código.
 
 ---
 
-## Head terms (rubros en VENTA)
+## Head terms (Semrush Chile; volúmenes a confirmar)
 
-| Keyword | Vol/mes (ref.) | URL canónica | Alias 308 | Estado |
+Title de cada URL usa el head term. No se inventan posiciones.
+
+| Keyword | Vol/mes (ref.) | URL canónica | Title | Alias 308 |
 | --- | ---: | --- | --- | --- |
-| guardias de seguridad | 3.600 | `/seguridad` | `/guardias-de-seguridad`, `/guardias` | Publicado (página de rubro; indexación hay que pedirla) |
-| seguridad privada | 1.900 | `/seguridad` | — | Publicado |
-| empresas de seguridad | 590 | `/seguridad` | `/empresas-de-seguridad` | Publicado |
-| empresas de aseo / empresa de aseo | 2.400 | `/aseo` | `/empresas-de-aseo` | Publicado |
-| control de plagas | 1.300 | `/plagas` | `/control-de-plagas` | **Canónica `/plagas` (200).** El slug de BD sigue siendo `control-de-plagas`. |
+| guardias de seguridad | 3.600 | `/seguridad` | Guardias de seguridad | `/guardias-de-seguridad`, `/guardias` |
+| empresas de aseo | 2.400 | `/aseo` | Empresas de aseo | `/empresas-de-aseo` |
+| control de plagas | 1.300 | `/plagas` | Control de plagas | `/control-de-plagas` |
+| empresas de seguridad | 590 | `/seguridad` | (misma página; va en description) | `/empresas-de-seguridad` |
+| empresas de aseo santiago | 390 | `/aseo/santiago` | Empresas de aseo en Santiago | — |
 
-H1 y title son únicos por rubro. CTA: Pedir cotización. Schema.org
-`Service`. Sin “+1000 empresas”.
+También (misma canónica `/seguridad`): seguridad privada ~1.900.
+
+H1 único por rubro. CTA: “Pedir cotización…”. Schema.org `Service`.
+Sin “+1000 empresas”. `/seguridad` y `/aseo` ya tienen el cotizador
+Región → Provincia → Comuna: se mejora copy/metadata/CTA, no se
+reinventa el flujo.
 
 Atajos de la home: Seguridad → `/seguridad`, Aseo → `/aseo`, Plagas →
 `/plagas`.
@@ -75,7 +83,7 @@ la misma plantilla calcada). Breadcrumbs. Schema.org `Service` +
 
 | Keyword (ejemplo) | Vol/mes (ref.) | URL canónica | Estado |
 | --- | ---: | --- | --- |
-| empresas de aseo santiago | 390 | `/aseo/santiago` | Piloto / publicado en sitemap si la fila está activa |
+| empresas de aseo santiago | 390 | `/aseo/santiago` | Title: Empresas de aseo en Santiago. Piloto. |
 | guardias de seguridad santiago | — | `/seguridad/santiago` | Piloto |
 | control de plagas providencia | — | `/plagas/providencia` | Piloto (canónica `/plagas/…`; alias `/control-de-plagas/…`) |
 

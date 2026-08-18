@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { copyCombo, copyRubro } from '@/lib/seo-contenido'
+import { copyCombo, copyRubro, titleCombo } from '@/lib/seo-contenido'
 import {
   ALIAS_SEO_308,
   pathPublicoCombo,
@@ -55,11 +55,18 @@ describe('copy único por combo', () => {
     expect(santiago.intro).not.toBe(valdivia.intro)
   })
 
-  it('tiene H1 propio para seguridad, aseo y plagas', () => {
-    expect(copyRubro('seguridad', 'Empresas de seguridad', null).h1).toMatch(/Guardias/i)
-    expect(copyRubro('aseo', 'Empresas de aseo', null).h1).toMatch(/Aseo/i)
-    expect(copyRubro('control-de-plagas', 'Empresas de control de plagas', null).h1).toMatch(
-      /plagas/i,
+  it('tiene H1 y title con los head terms de Semrush', () => {
+    expect(copyRubro('seguridad', 'Empresas de seguridad', null).title).toBe('Guardias de seguridad')
+    expect(copyRubro('seguridad', 'Empresas de seguridad', null).h1).toMatch(/Guardias de seguridad/i)
+    expect(copyRubro('aseo', 'Empresas de aseo', null).title).toBe('Empresas de aseo')
+    expect(copyRubro('control-de-plagas', 'Empresas de control de plagas', null).title).toBe(
+      'Control de plagas',
     )
+    expect(titleCombo({ slugBd: 'aseo', nombrePlural: 'Empresas de aseo', comuna: 'Santiago' })).toBe(
+      'Empresas de aseo en Santiago',
+    )
+    expect(
+      titleCombo({ slugBd: 'seguridad', nombrePlural: 'Empresas de seguridad', comuna: 'Providencia' }),
+    ).toBe('Guardias de seguridad en Providencia')
   })
 })

@@ -99,6 +99,22 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
       <h1 className="font-display text-3xl sm:text-4xl">{copy.h1}</h1>
       <p className="mt-4 text-lg text-(--color-tinta-suave)">{copy.intro}</p>
 
+      <p className="mt-6">
+        <a
+          href="#cotizar"
+          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-(--color-marca) px-5 py-3 font-semibold text-white"
+        >
+          {copy.cta}
+        </a>
+      </p>
+      {copy.atajoCombo ? (
+        <p className="mt-3 text-sm">
+          <Link href={copy.atajoCombo.href} className="underline underline-offset-4">
+            {copy.atajoCombo.etiqueta}
+          </Link>
+        </p>
+      ) : null}
+
       {copy.queIncluye.length > 0 ? (
         <ul className="mt-4 list-disc space-y-1 pl-5 text-(--color-tinta-suave)">
           {copy.queIncluye.map((item) => (
@@ -113,7 +129,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
         </p>
       ) : null}
 
-      <div className="mt-8">
+      <div id="cotizar" className="mt-8">
         <h2 className="font-display text-xl">Elige tu comuna</h2>
         <p className="mt-1 mb-4 text-sm text-(--color-tinta-suave)">
           Región, después provincia, después comuna. Todo Chile.
@@ -123,11 +139,12 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
           rubroModo={rubro.modo}
           comunas={comunas}
           publicados={publicados}
+          etiquetaCta={copy.cta}
         />
       </div>
 
       {comunaPreseleccionada ? (
-        <section id="cotizar" className="mt-10 rounded-2xl border border-(--color-borde) bg-white p-5">
+        <section className="mt-10 rounded-2xl border border-(--color-borde) bg-white p-5">
           <h2 className="font-display text-xl">Pide tu cotización</h2>
           <p className="mt-1 mb-5 text-sm text-(--color-tinta-suave)">Toma un par de minutos. Es gratis.</p>
           <FormularioCotizacion

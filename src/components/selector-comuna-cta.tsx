@@ -12,11 +12,13 @@ export function SelectorComunaCta({
   rubroModo,
   comunas,
   publicados,
+  etiquetaCta = 'Pedir cotización',
 }: {
   rubroSlug: string
   rubroModo: 'VENTA' | 'CAPTURA'
   comunas: ComunaTerritorio[]
   publicados: string[]
+  etiquetaCta?: string
 }) {
   const router = useRouter()
   const [comunaSlug, setComunaSlug] = useState('')
@@ -48,7 +50,7 @@ export function SelectorComunaCta({
         type="submit"
         className="mt-4 min-h-12 w-full rounded-2xl bg-(--color-marca) px-5 py-3 font-semibold text-white"
       >
-        Pedir cotización
+        {etiquetaCta}
       </button>
     </form>
   )

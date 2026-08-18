@@ -52,10 +52,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const path = pathPublicoCombo(combinacion.rubro.slug, combinacion.comuna.slug)
 
   return {
-    title: copy.h1,
+    title: copy.title,
     description: copy.description,
     alternates: { canonical: path },
-    openGraph: { title: copy.h1, description: copy.description, url: path, locale: 'es_CL' },
+    openGraph: { title: copy.title, description: copy.description, url: path, locale: 'es_CL' },
   }
 }
 

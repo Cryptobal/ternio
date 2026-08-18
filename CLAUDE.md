@@ -205,8 +205,8 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
 
 - URL canónica de plagas: `/plagas` (este prompt usaba el slug de BD
   `control-de-plagas` como path). `/control-de-plagas` es alias 308.
-- Sitemap: nunca 500; fail-soft incluye home + `/seguridad` `/aseo`
-  `/plagas`.
+- Sitemap: nunca 500; se arma sin Prisma (`sitemap.xml/route.ts`).
+  Mínimo: home + `/seguridad` `/aseo` `/plagas` `/proveedores`.
 - Créditos de lanzamiento: automáticos al verificar el celular
   (`AJUSTE` `alta:{proveedorId}`, 200.000). Recarga = packs Flow, no MercadoPago.
   El admin no es el cajero.
