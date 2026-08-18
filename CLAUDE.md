@@ -16,7 +16,7 @@ bajo toque, todo self-serve. La apuesta de captación es SEO fuerte.
 ## Stack
 Next.js 15 App Router, TypeScript estricto, Prisma + Neon PostgreSQL,
 Tailwind + shadcn/ui, Auth.js v5 (sesión del comprador por OTP de
-teléfono; Credentials para el admin en /admin), Vercel. Pagos: MercadoPago
+teléfono; Credentials para el admin en /admin), Vercel. Pagos: Flow
 (packs de créditos). Correo transaccional para avisos (Resend o similar).
 Verificación de formulario: Cloudflare Turnstile + OTP por SMS (Twilio).
 Canal WhatsApp: Cloud API oficial de Meta, directa — diferido a Fase 5;
@@ -156,9 +156,9 @@ costo por lead verificado < 50% del precio de venta del lead.
    CompraLead. Cupos y revelación validados en servidor.
 4. Tablero de leads activos: filtros por rubro/comuna, precio según edad
    (freshness pricing determinista), compra directa.
-5. Packs de créditos con MercadoPago: webhooks idempotentes por
-   identificador de pago; nunca marcar pagado sin confirmación de la
-   pasarela. Ledger siempre cuadrado.
+5. Packs de créditos con Flow: confirmación idempotente por
+   commerceOrder/flowOrder; nunca marcar pagado sin getStatus de Flow.
+   Ledger siempre cuadrado.
 6. Flujo de reclamo/reposición con revisión en admin y asiento de reversa.
 ## Fase 4 — Paneles
 1. Proveedor: onboarding self-serve (datos, cobertura por rubro y comunas,
@@ -197,3 +197,23 @@ lanzamiento ni la operación de las fases anteriores.
 ## Reporte al cierre de cada sesión
 Qué se construyó, qué se validó (comandos y resultado), qué queda
 pendiente, y riesgos o supuestos que yo deba confirmar.
+
+## Delta vs docs/guia-de-desarrollo.md
+
+La fuente de verdad operativa es `docs/guia-de-desarrollo.md`. Si este
+archivo choca con esa guía, gana la guía. Deltas conscientes:
+
+- URL canónica de plagas: `/control-de-plagas` (slug real de seed/prod).
+  `/plagas` es alias 308.
+- Sitemap www ya es 200; fail-soft sin Prisma si la DB falla. Mínimo:
+  home + `/seguridad` `/aseo` `/control-de-plagas` `/proveedores`.
+- Créditos de lanzamiento: automáticos al verificar el celular
+  (`AJUSTE` `alta:{proveedorId}`, 200.000). Recarga = packs Flow
+  (receta oficial create-order + order-confirmation; no MercadoPago).
+  El admin no es el cajero.
+- Matching y toma de lead viven en `src/lib/matching.ts` +
+  `src/server/marketplace.ts` (este prompt los dejaba en Fase 3).
+- Al aprobar un proveedor se acreditan 200.000 (idempotente). Gard:
+  `ensureGardSecurity` (seed / `/admin` / `/panel`) crea
+  `gard-security` nacional + seguridad; pack de arranque 200.000 si
+  saldo 0.

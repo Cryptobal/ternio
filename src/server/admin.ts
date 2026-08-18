@@ -1,10 +1,19 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ActorTransicion, EstadoLead, EstadoProveedor, TipoTransicionLead } from '@prisma/client'
+import {
+  ActorTransicion,
+  EstadoCompraLead,
+  EstadoLead,
+  EstadoProveedor,
+  ModoRubro,
+  TipoMovimientoCreditos,
+  TipoTransicionLead,
+} from '@prisma/client'
 
 import { rutaAdmin } from '@/lib/admin-ruta'
 import { prisma } from '@/lib/prisma'
+import { ajusteEmergenciaAdmin, saldoProveedor } from '@/server/creditos'
 import { requerirAdmin } from '@/server/sesion'
 
 export type ResultadoAccionAdmin = { ok: boolean; mensaje: string }
@@ -128,25 +137,58 @@ export async function marcarTelefonoVerificado(
 
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    select: { id: true, estado: true, telefonoVerificado: true },
+    select: {
+      id: true,
+      estado: true,
+      telefonoVerificado: true,
+      rutValido: true,
+      modoRubroAlCrear: true,
+    },
   })
 
   if (!lead) return { ok: false, mensaje: 'No encontramos esa cotización.' }
   if (lead.telefonoVerificado) return { ok: true, mensaje: 'El teléfono ya estaba verificado.' }
 
+  const pasaAVenta =
+    lead.rutValido &&
+    lead.modoRubroAlCrear === ModoRubro.VENTA &&
+    (lead.estado === EstadoLead.RECIBIDO || lead.estado === EstadoLead.EN_REVISION)
+
   await prisma.$transaction([
-    prisma.lead.update({ where: { id: lead.id }, data: { telefonoVerificado: true } }),
+    prisma.lead.update({
+      where: { id: lead.id },
+      data: {
+        telefonoVerificado: true,
+        estado: pasaAVenta ? EstadoLead.VERIFICADO : lead.estado,
+        verificadoAt: pasaAVenta ? new Date() : undefined,
+      },
+    }),
     prisma.transicionLead.create({
       data: {
         leadId: lead.id,
         tipo: TipoTransicionLead.TELEFONO_VERIFICADO,
         estadoDesde: lead.estado,
-        estadoHasta: lead.estado,
+        estadoHasta: pasaAVenta ? EstadoLead.VERIFICADO : lead.estado,
         actor: ActorTransicion.ADMIN,
         actorUsuarioId: sesion.user.id,
         nota: 'Teléfono confirmado a mano por el admin (llamada).',
       },
     }),
+    ...(pasaAVenta
+      ? [
+          prisma.transicionLead.create({
+            data: {
+              leadId: lead.id,
+              tipo: TipoTransicionLead.VERIFICADO,
+              estadoDesde: lead.estado,
+              estadoHasta: EstadoLead.VERIFICADO,
+              actor: ActorTransicion.SISTEMA,
+              actorUsuarioId: sesion.user.id,
+              nota: 'RUT válido y teléfono confirmado por el admin.',
+            },
+          }),
+        ]
+      : []),
   ])
 
   revalidatePath(rutaAdmin(`leads/${lead.id}`))
@@ -155,16 +197,16 @@ export async function marcarTelefonoVerificado(
   return { ok: true, mensaje: 'Teléfono marcado como verificado.' }
 }
 
-const ACCIONES_ESPERA = ['visto', 'aprobar', 'rechazar'] as const
-type AccionEspera = (typeof ACCIONES_ESPERA)[number]
+const ACCIONES_PROVEEDOR = ['visto', 'aprobar', 'rechazar', 'suspender'] as const
+type AccionProveedor = (typeof ACCIONES_PROVEEDOR)[number]
 
-function esAccionEspera(valor: string): valor is AccionEspera {
-  return (ACCIONES_ESPERA as readonly string[]).includes(valor)
+function esAccionProveedor(valor: string): valor is AccionProveedor {
+  return (ACCIONES_PROVEEDOR as readonly string[]).includes(valor)
 }
 
 /**
- * Revisa cuentas de proveedor creadas en /proveedores.
- * Aprobar o rechazar no crea créditos ni matching.
+ * Revisa cuentas de proveedor. Aprobar no carga créditos: el pack de
+ * arranque lo acredita el OTP. El admin no es el cajero.
  */
 export async function marcarListaEsperaProveedor(
   _estadoPrevio: ResultadoAccionAdmin,
@@ -174,7 +216,7 @@ export async function marcarListaEsperaProveedor(
 
   const proveedorId = String(formData.get('proveedorId') ?? '')
   const accionBruta = String(formData.get('accion') ?? '')
-  if (!esAccionEspera(accionBruta)) {
+  if (!esAccionProveedor(accionBruta)) {
     return { ok: false, mensaje: 'Esa acción no existe.' }
   }
 
@@ -196,6 +238,11 @@ export async function marcarListaEsperaProveedor(
       where: { id: proveedor.id },
       data: { estado: EstadoProveedor.APROBADO, vistoAt: new Date() },
     })
+  } else if (accionBruta === 'suspender') {
+    await prisma.proveedor.update({
+      where: { id: proveedor.id },
+      data: { estado: EstadoProveedor.SUSPENDIDO, vistoAt: new Date() },
+    })
   } else {
     await prisma.proveedor.update({
       where: { id: proveedor.id },
@@ -203,6 +250,75 @@ export async function marcarListaEsperaProveedor(
     })
   }
 
+  revalidatePath(rutaAdmin())
   revalidatePath(rutaAdmin('proveedores'))
   return { ok: true, mensaje: 'Proveedor actualizado.' }
+}
+
+export async function ajustarCreditosEmergencia(
+  _estadoPrevio: ResultadoAccionAdmin,
+  formData: FormData,
+): Promise<ResultadoAccionAdmin> {
+  await requerirAdmin()
+  const proveedorId = String(formData.get('proveedorId') ?? '')
+  const montoClp = Number.parseInt(String(formData.get('montoClp') ?? ''), 10)
+  const descripcion = String(formData.get('descripcion') ?? '')
+  if (!proveedorId) return { ok: false, mensaje: 'Falta el proveedor.' }
+  const resultado = await ajusteEmergenciaAdmin({ proveedorId, montoClp, descripcion })
+  revalidatePath(rutaAdmin('proveedores'))
+  return resultado
+}
+
+export async function reversarCompraLead(
+  _estadoPrevio: ResultadoAccionAdmin,
+  formData: FormData,
+): Promise<ResultadoAccionAdmin> {
+  await requerirAdmin()
+  const compraId = String(formData.get('compraId') ?? '')
+  const compra = await prisma.compraLead.findUnique({
+    where: { id: compraId },
+    select: {
+      id: true,
+      estado: true,
+      proveedorId: true,
+      creditosConsumidos: true,
+      leadId: true,
+    },
+  })
+  if (!compra) return { ok: false, mensaje: 'No encontramos esa compra.' }
+  if (compra.estado !== EstadoCompraLead.PAGADA) {
+    return { ok: false, mensaje: 'Esa compra ya no está vigente.' }
+  }
+
+  const key = `reversa:${compra.id}`
+  const ya = await prisma.movimientoCreditos.findUnique({
+    where: { idempotencyKey: key },
+    select: { id: true },
+  })
+  if (ya) return { ok: true, mensaje: 'Esa reversa ya estaba hecha.' }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.compraLead.update({
+      where: { id: compra.id },
+      data: { estado: EstadoCompraLead.REVERSADA },
+    })
+    const saldo = await saldoProveedor(compra.proveedorId, tx)
+    await tx.movimientoCreditos.create({
+      data: {
+        proveedorId: compra.proveedorId,
+        tipo: TipoMovimientoCreditos.REVERSA,
+        montoCreditos: compra.creditosConsumidos,
+        saldoPosterior: saldo + compra.creditosConsumidos,
+        compraLeadId: compra.id,
+        idempotencyKey: key,
+        descripcion: 'Reversa: datos falsos o teléfono que no contesta',
+      },
+    })
+  })
+
+  revalidatePath(rutaAdmin())
+  revalidatePath(rutaAdmin('compradores'))
+  revalidatePath(rutaAdmin(`leads/${compra.leadId}`))
+  revalidatePath(rutaAdmin('proveedores'))
+  return { ok: true, mensaje: 'Créditos devueltos. La compra quedó reversada.' }
 }

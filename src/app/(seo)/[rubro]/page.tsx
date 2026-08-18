@@ -4,9 +4,13 @@ import { notFound } from 'next/navigation'
 import { ModoRubro } from '@prisma/client'
 
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
+import { SelectorComunaCta } from '@/components/selector-comuna-cta'
 import { parsearCampos } from '@/lib/campos'
+import { combinacionesPublicadas, comunasActivas, rubrosActivos } from '@/lib/catalogo'
 import { prisma } from '@/lib/prisma'
-import { comunasActivas, rubrosActivos } from '@/lib/catalogo'
+import { copyRubro } from '@/lib/seo-contenido'
+import { pathPublicoRubro, RUBROS_VENTA_PUBLICOS, slugsBdCandidatos, slugPublicoDesdeBd } from '@/lib/seo-rutas'
+import { claveCombo } from '@/lib/selector-cotizacion'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -16,9 +20,9 @@ type Props = {
   searchParams: Promise<{ comuna?: string }>
 }
 
-async function rubroConComunas(slug: string) {
+async function rubroPorParam(slugPublico: string) {
   return prisma.rubro.findFirst({
-    where: { slug, activo: true },
+    where: { slug: { in: slugsBdCandidatos(slugPublico) }, activo: true },
     select: {
       slug: true,
       nombre: true,
@@ -26,92 +30,129 @@ async function rubroConComunas(slug: string) {
       descripcion: true,
       modo: true,
       camposFormulario: true,
-      comunas: {
-        where: { activa: true, comuna: { activa: true } },
-        orderBy: { comuna: { orden: 'asc' } },
-        select: { comuna: { select: { slug: true, nombre: true, region: true, provincia: true } } },
-      },
     },
   })
 }
 
 export async function generateStaticParams() {
-  const rubros = await rubrosActivos()
-  return rubros.map((rubro) => ({ rubro: rubro.slug }))
+  const fijos = RUBROS_VENTA_PUBLICOS.map((rubro) => ({ rubro }))
+  try {
+    const rubros = await rubrosActivos()
+    const extra = rubros.map((rubro) => ({ rubro: slugPublicoDesdeBd(rubro.slug) }))
+    const vistos = new Set<string>(fijos.map((fila) => fila.rubro))
+    return [...fijos, ...extra.filter((fila) => !vistos.has(fila.rubro))]
+  } catch {
+    return fijos
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { rubro: slug } = await params
-  const rubro = await rubroConComunas(slug)
+  const rubro = await rubroPorParam(slug)
   if (!rubro) return {}
+  const copy = copyRubro(rubro.slug, rubro.nombrePlural ?? rubro.nombre, rubro.descripcion)
+  const path = pathPublicoRubro(rubro.slug)
 
   return {
-    title: rubro.nombrePlural ?? rubro.nombre,
-    description: rubro.descripcion ?? undefined,
-    alternates: { canonical: `/${rubro.slug}` },
+    title: copy.title,
+    description: copy.description,
+    alternates: { canonical: path },
+    openGraph: { title: copy.title, description: copy.description, url: path, locale: 'es_CL' },
   }
 }
 
 export default async function PaginaRubro({ params, searchParams }: Props) {
   const { rubro: slug } = await params
   const { comuna: comunaQuery } = await searchParams
-  const [rubro, comunas] = await Promise.all([rubroConComunas(slug), comunasActivas()])
+  const [rubro, comunas, combinaciones] = await Promise.all([
+    rubroPorParam(slug),
+    comunasActivas(),
+    combinacionesPublicadas(),
+  ])
 
   if (!rubro) notFound()
 
+  const copy = copyRubro(rubro.slug, rubro.nombrePlural ?? rubro.nombre, rubro.descripcion)
   const comunaPreseleccionada = comunas.some((comuna) => comuna.slug === comunaQuery)
     ? comunaQuery
     : undefined
+  const publicados = combinaciones.map((fila) => claveCombo(fila.rubro, fila.comuna))
+  const base = process.env.NEXT_PUBLIC_SITIO_URL ?? 'https://ternio.cl'
+  const path = pathPublicoRubro(rubro.slug)
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: copy.h1,
+    serviceType: rubro.nombre,
+    description: copy.description,
+    areaServed: { '@type': 'Country', name: 'Chile' },
+    provider: { '@type': 'Organization', name: 'Ternio', url: base },
+    url: `${base}${path}`,
+  }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <nav aria-label="Migas de pan" className="mb-6 text-sm text-(--color-tinta-suave)">
         <Link href="/" className="underline-offset-4 hover:underline">
           Inicio
         </Link>
         <span aria-hidden="true"> › </span>
-        <span className="text-(--color-tinta)">{rubro.nombrePlural ?? rubro.nombre}</span>
+        <span className="text-(--color-tinta)">{copy.h1}</span>
       </nav>
 
-      <h1 className="font-display text-3xl sm:text-4xl">
-        {rubro.nombrePlural ?? rubro.nombre}
-      </h1>
-      {rubro.descripcion ? (
-        <p className="mt-3 text-lg text-(--color-tinta-suave)">{rubro.descripcion}</p>
-      ) : null}
+      <h1 className="font-display text-3xl sm:text-4xl">{copy.h1}</h1>
+      <p className="mt-4 text-lg text-(--color-tinta-suave)">{copy.intro}</p>
 
-      {rubro.modo === ModoRubro.CAPTURA ? (
-        <p className="mt-4 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-4 text-sm text-(--color-tinta)">
-          Todavía estamos sumando empresas de este rubro. Deja tu solicitud y te avisamos apenas
-          tengamos proveedores en tu zona.
+      <p className="mt-6">
+        <a
+          href="#cotizar"
+          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-(--color-marca) px-5 py-3 font-semibold text-white"
+        >
+          {copy.cta}
+        </a>
+      </p>
+      {copy.atajoCombo ? (
+        <p className="mt-3 text-sm">
+          <Link href={copy.atajoCombo.href} className="underline underline-offset-4">
+            {copy.atajoCombo.etiqueta}
+          </Link>
         </p>
       ) : null}
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_minmax(0,26rem)] lg:items-start">
-        <div>
-          <h2 className="font-display text-xl">Elige tu comuna</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {rubro.comunas.map(({ comuna }) => (
-              <li key={comuna.slug}>
-                <Link
-                  href={`/${rubro.slug}/${comuna.slug}`}
-                  className="block rounded-2xl border border-(--color-borde) bg-white px-4 py-3 shadow-sm transition hover:border-(--color-marca)"
-                >
-                  <span className="font-medium">{comuna.nombre}</span>
-                  <span className="block text-sm text-(--color-tinta-suave)">{comuna.region}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <section
-          id="cotizar"
-          className="rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm sm:p-6"
-        >
+      {copy.queIncluye.length > 0 ? (
+        <ul className="mt-4 list-disc space-y-1 pl-5 text-(--color-tinta-suave)">
+          {copy.queIncluye.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : null}
+
+      {rubro.modo === ModoRubro.CAPTURA ? (
+        <p className="mt-4 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-4 text-sm">
+          Todavía estamos sumando empresas de este rubro. Deja tu solicitud y te avisamos.
+        </p>
+      ) : null}
+
+      <div id="cotizar" className="mt-8">
+        <h2 className="font-display text-xl">Elige tu comuna</h2>
+        <p className="mt-1 mb-4 text-sm text-(--color-tinta-suave)">
+          Región, después provincia, después comuna. Todo Chile.
+        </p>
+        <SelectorComunaCta
+          rubroSlug={rubro.slug}
+          rubroModo={rubro.modo}
+          comunas={comunas}
+          publicados={publicados}
+          etiquetaCta={copy.cta}
+        />
+      </div>
+
+      {comunaPreseleccionada ? (
+        <section className="mt-10 rounded-2xl border border-(--color-borde) bg-white p-5">
           <h2 className="font-display text-xl">Pide tu cotización</h2>
-          <p className="mt-1 mb-5 text-sm text-(--color-tinta-suave)">
-            Empieza por la comuna. El cotizador por pasos necesita JavaScript.
-          </p>
+          <p className="mt-1 mb-5 text-sm text-(--color-tinta-suave)">Toma un par de minutos. Es gratis.</p>
           <FormularioCotizacion
             rubroSlug={rubro.slug}
             comunaSlug={comunaPreseleccionada}
@@ -120,7 +161,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
             turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
           />
         </section>
-      </div>
+      ) : null}
     </div>
   )
 }

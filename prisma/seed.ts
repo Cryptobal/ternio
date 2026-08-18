@@ -1,5 +1,6 @@
 import { ModoRubro, PrismaClient, RolUsuario } from '@prisma/client'
 
+import { ensureGardSecurity } from '../src/lib/gard'
 import { COMUNAS, COMUNAS_SEO, RUBROS } from './catalogo-inicial'
 import { validarModoRubro } from '../src/lib/rubros'
 
@@ -11,6 +12,7 @@ import { validarModoRubro } from '../src/lib/rubros'
  * - RubroComuna: crea solo las combinaciones piloto (COMUNAS_SEO).
  *   No activa ni crea páginas para el resto de Chile.
  * - Admin: upsert desde el entorno, igual que antes.
+ * - Gard: `ensureGardSecurity` (nacional + seguridad + pack si saldo 0).
  */
 
 const prisma = new PrismaClient()
@@ -20,6 +22,8 @@ async function main(): Promise<void> {
   await sembrarComunas()
   await sembrarPaginasSeo()
   await sembrarAdmin()
+  const gard = await ensureGardSecurity(prisma)
+  console.log(`Gard listo (${gard.slug}${gard.creado ? ', creado' : ''}).`)
 
   const ventas = await prisma.rubro.count({ where: { modo: ModoRubro.VENTA } })
   const capturas = await prisma.rubro.count({ where: { modo: ModoRubro.CAPTURA } })

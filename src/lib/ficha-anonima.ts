@@ -17,8 +17,18 @@ export const SELECT_FICHA_ANONIMA = {
   rutValido: true,
   telefonoVerificado: true,
   createdAt: true,
-  rubro: { select: { slug: true, nombre: true, modo: true } },
-  comuna: { select: { slug: true, nombre: true, region: true } },
+  verificadoAt: true,
+  modoRubroAlCrear: true,
+  rubro: {
+    select: {
+      slug: true,
+      nombre: true,
+      modo: true,
+      precioExclusivoClp: true,
+      precioCompartidoClp: true,
+    },
+  },
+  comuna: { select: { slug: true, nombre: true, region: true, provincia: true } },
 } satisfies Prisma.LeadSelect
 
 export type FichaAnonimaLead = Prisma.LeadGetPayload<{

@@ -32,5 +32,5 @@ No dupliques comandos aquí: usa los scripts que se definan en `package.json`
   el servidor de desarrollo; sin él, `prisma migrate`/el runtime fallan.
 - El servidor de desarrollo (`next dev`) es un proceso de larga duración: córrelo
   en una terminal tmux, nunca en el update script.
-- Secretos (Neon, MercadoPago, Turnstile, proveedor SMS, Resend, etc.) van en la
+- Secretos (Neon, Flow, Turnstile, proveedor SMS, Resend, etc.) van en la
   sección de Secrets del entorno, nunca en el repo (ver `CLAUDE.md`).

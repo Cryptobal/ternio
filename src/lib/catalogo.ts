@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { prisma } from '@/lib/prisma'
+import { slugsBdCandidatos } from '@/lib/seo-rutas'
 
 /**
  * Lecturas del catálogo público (rubros, comunas y sus combinaciones).
@@ -116,7 +117,7 @@ export async function combinacionPorSlugs(rubroSlug: string, comunaSlug: string)
   const fila = await prisma.rubroComuna.findFirst({
     where: {
       activa: true,
-      rubro: { slug: rubroSlug, activo: true },
+      rubro: { slug: { in: slugsBdCandidatos(rubroSlug) }, activo: true },
       comuna: { slug: comunaSlug, activa: true },
     },
     select: {
