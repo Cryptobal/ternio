@@ -51,6 +51,18 @@ export function normalizarRut(rut: string | null | undefined): RutNormalizado | 
   return `${cuerpo}-${dv}`
 }
 
+/**
+ * Formas que pudieron quedar persistidas para el mismo RUT: canónica
+ * (`cuerpo-DV`) y compacta (sin guion). El alta tiene que tratar ambas
+ * como la misma empresa; si no, un `778406233` no reclama a `77840623-3`.
+ */
+export function variantesRutPersistido(rut: string | null | undefined): string[] {
+  const canon = normalizarRut(rut)
+  if (!canon) return []
+  const compacto = canon.replace('-', '')
+  return compacto === canon ? [canon] : [canon, compacto]
+}
+
 /** true solo si el RUT es válido (formato + dígito verificador). */
 export function esRutValido(rut: string | null | undefined): boolean {
   return normalizarRut(rut) !== null
@@ -58,7 +70,8 @@ export function esRutValido(rut: string | null | undefined): boolean {
 
 /** Presentación con puntos, para mostrar al admin o al proveedor que compró. */
 export function formatearRut(rutNormalizado: RutNormalizado): string {
-  const [cuerpo, dv] = rutNormalizado.split('-')
-  if (!cuerpo || !dv) return rutNormalizado
+  const canon = normalizarRut(rutNormalizado) ?? rutNormalizado
+  const [cuerpo, dv] = canon.split('-')
+  if (!cuerpo || !dv) return canon
   return `${cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`
 }

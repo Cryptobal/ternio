@@ -5,9 +5,15 @@ import { EstadoProveedor, RolUsuario } from '@prisma/client'
 
 import { expandirCobertura, type SnapshotCoberturaProveedor } from '@/lib/cobertura'
 import { validarCuentaProveedor } from '@/lib/cuenta-proveedor'
+import {
+  elegirFilaProveedorPorRut,
+  esRutGard,
+  GARD_SLUG,
+  slugAltaProveedor,
+} from '@/lib/gard'
 import { prisma } from '@/lib/prisma'
 import { consumirRateLimit } from '@/lib/rate-limit'
-import { normalizarRut } from '@/lib/rut'
+import { normalizarRut, variantesRutPersistido } from '@/lib/rut'
 import { normalizarTelefonoE164 } from '@/lib/telefono'
 import { enviarOtpAUsuario } from '@/server/otp'
 
@@ -26,13 +32,10 @@ async function ipDelCliente(): Promise<string> {
   return reenviada?.split(',')[0]?.trim() || cabeceras.get('x-real-ip') || 'desconocida'
 }
 
-function slugProveedor(rutNormalizado: string): string {
-  return `prov-${rutNormalizado.slice(0, -2)}`
-}
-
 /**
  * Crea User (PROVEEDOR) + Proveedor, persiste cobertura y envía OTP.
- * No abre el marketplace.
+ * Si el RUT ya existe (canónico o solo dígitos), reclama esa fila.
+ * El RUT de Gard ancla a `gard-security`; no se inventa un segundo Gard.
  */
 export async function crearCuentaProveedorAction(
   _estadoPrevio: EstadoCuentaProveedor,
@@ -108,16 +111,24 @@ export async function crearCuentaProveedorAction(
     rubros: rubrosActivos.map((fila) => fila.slug),
   }
 
-  const existente = await prisma.proveedor.findUnique({
-    where: { rutNormalizado },
+  const variantesRut = variantesRutPersistido(rutNormalizado)
+  const candidatos = await prisma.proveedor.findMany({
+    where: {
+      OR: [
+        { rutNormalizado: { in: variantesRut } },
+        ...(esRutGard(rutNormalizado) ? [{ slug: GARD_SLUG }] : []),
+      ],
+    },
     select: {
       id: true,
       slug: true,
       estado: true,
       usuarioId: true,
+      rutNormalizado: true,
       usuario: { select: { id: true, rol: true, telefonoE164Verificado: true } },
     },
   })
+  const existente = elegirFilaProveedorPorRut(candidatos)
 
   if (
     existente?.usuario &&
@@ -163,40 +174,49 @@ export async function crearCuentaProveedorAction(
     })
   }
 
-  const slug = existente?.slug ?? slugProveedor(rutNormalizado)
+  const slug = slugAltaProveedor(rutNormalizado, existente?.slug)
   const comunaBaseId = expansion.nacional ? null : (comunasExpandidas[0]?.id ?? null)
+  const rutOcupadoPorOtro = existente
+    ? Boolean(
+        await prisma.proveedor.findFirst({
+          where: { rutNormalizado, NOT: { id: existente.id } },
+          select: { id: true },
+        }),
+      )
+    : false
 
-  const proveedor = await prisma.proveedor.upsert({
-    where: { rutNormalizado },
-    create: {
-      slug,
-      nombre: nombreEmpresa,
-      razonSocial: nombreEmpresa,
-      rutNormalizado,
-      email,
-      telefonoE164,
-      estado: EstadoProveedor.PENDIENTE,
-      usuarioId,
-      coberturaNacional: expansion.nacional,
-      comunaBaseId,
-      solicitudEspera: snapshot,
-      vistoAt: null,
-    },
-    update: {
-      nombre: nombreEmpresa,
-      razonSocial: nombreEmpresa,
-      email,
-      telefonoE164,
-      estado:
-        existente?.estado === EstadoProveedor.APROBADO
-          ? EstadoProveedor.APROBADO
-          : EstadoProveedor.PENDIENTE,
-      usuarioId,
-      coberturaNacional: expansion.nacional,
-      comunaBaseId,
-      solicitudEspera: snapshot,
-    },
-  })
+  const datosComunes = {
+    nombre: nombreEmpresa,
+    razonSocial: nombreEmpresa,
+    email,
+    telefonoE164,
+    coberturaNacional: expansion.nacional,
+    comunaBaseId,
+    solicitudEspera: snapshot,
+    usuarioId,
+  }
+
+  const proveedor = existente
+    ? await prisma.proveedor.update({
+        where: { id: existente.id },
+        data: {
+          ...datosComunes,
+          estado:
+            existente.estado === EstadoProveedor.APROBADO
+              ? EstadoProveedor.APROBADO
+              : EstadoProveedor.PENDIENTE,
+          ...(!rutOcupadoPorOtro ? { rutNormalizado } : {}),
+        },
+      })
+    : await prisma.proveedor.create({
+        data: {
+          slug,
+          ...datosComunes,
+          rutNormalizado,
+          estado: EstadoProveedor.PENDIENTE,
+          vistoAt: null,
+        },
+      })
 
   await prisma.cobertura.deleteMany({ where: { proveedorId: proveedor.id } })
 

@@ -2,9 +2,12 @@ import { EstadoProveedor, TipoMovimientoCreditos, type PrismaClient } from '@pri
 
 import { asientoAlta, claveAsientoAlta, saldoDesdeMovimientos } from '@/lib/creditos'
 import { leerSnapshotCobertura, type SnapshotCoberturaProveedor } from '@/lib/cobertura'
+import { normalizarRut, variantesRutPersistido } from '@/lib/rut'
 
 export const GARD_SLUG = 'gard-security'
 export const GARD_NOMBRE = 'Gard Security'
+/** Siempre el output de `normalizarRut`. Nunca un string solo-dígitos. */
+export const GARD_RUT = normalizarRut('77.840.623-3')
 
 export const SNAPSHOT_COBERTURA_GARD: SnapshotCoberturaProveedor = {
   modo: 'nacional',
@@ -21,6 +24,30 @@ export function debeAcreditarPackGard(
 ): boolean {
   if (saldo !== 0) return false
   return !idempotencyKeys.includes(claveAsientoAlta(proveedorId))
+}
+
+export function esRutGard(rut: string | null | undefined): boolean {
+  const canon = normalizarRut(rut)
+  return canon !== null && GARD_RUT !== null && canon === GARD_RUT
+}
+
+/** Si hay dos filas con el mismo RUT, gana `gard-security`. No se inventa otra. */
+export function elegirFilaProveedorPorRut<T extends { slug: string }>(
+  filas: readonly T[],
+): T | undefined {
+  return (
+    filas.find((fila) => fila.slug === GARD_SLUG) ??
+    filas.find((fila) => fila.slug.startsWith('gard')) ??
+    filas[0]
+  )
+}
+
+export function slugAltaProveedor(rutNormalizado: string, slugExistente?: string): string {
+  if (slugExistente) return slugExistente
+  if (esRutGard(rutNormalizado)) return GARD_SLUG
+  const canon = normalizarRut(rutNormalizado) ?? rutNormalizado
+  const cuerpo = canon.split('-')[0] ?? canon
+  return `prov-${cuerpo}`
 }
 
 function snapshotConSeguridad(valor: unknown): SnapshotCoberturaProveedor {
@@ -42,7 +69,7 @@ export async function ensureGardSecurity(
 ): Promise<{ id: string; slug: string; creado: boolean }> {
   const existente = await db.proveedor.findFirst({
     where: { OR: [{ slug: GARD_SLUG }, { slug: { startsWith: 'gard' } }] },
-    select: { id: true, slug: true, solicitudEspera: true },
+    select: { id: true, slug: true, solicitudEspera: true, rutNormalizado: true },
   })
 
   let id: string
@@ -52,15 +79,35 @@ export async function ensureGardSecurity(
   if (existente) {
     id = existente.id
     slug = existente.slug
+    const rutCanon =
+      slug === GARD_SLUG
+        ? (GARD_RUT ?? normalizarRut(existente.rutNormalizado))
+        : normalizarRut(existente.rutNormalizado)
+    const rutLibre = rutCanon
+      ? !(await db.proveedor.findFirst({
+          where: {
+            rutNormalizado: { in: variantesRutPersistido(rutCanon) },
+            NOT: { id },
+          },
+          select: { id: true },
+        }))
+      : false
     await db.proveedor.update({
       where: { id },
       data: {
         estado: EstadoProveedor.APROBADO,
         coberturaNacional: true,
         solicitudEspera: snapshotConSeguridad(existente.solicitudEspera),
+        ...(rutLibre && rutCanon ? { rutNormalizado: rutCanon } : {}),
       },
     })
   } else {
+    const rutLibre = GARD_RUT
+      ? !(await db.proveedor.findFirst({
+          where: { rutNormalizado: { in: variantesRutPersistido(GARD_RUT) } },
+          select: { id: true },
+        }))
+      : false
     const fila = await db.proveedor.create({
       data: {
         slug: GARD_SLUG,
@@ -69,6 +116,7 @@ export async function ensureGardSecurity(
         estado: EstadoProveedor.APROBADO,
         coberturaNacional: true,
         solicitudEspera: SNAPSHOT_COBERTURA_GARD,
+        ...(rutLibre && GARD_RUT ? { rutNormalizado: GARD_RUT } : {}),
       },
       select: { id: true, slug: true },
     })
