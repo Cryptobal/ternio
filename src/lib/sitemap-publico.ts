@@ -1,3 +1,5 @@
+import { pathsPublicosBlog } from '@/lib/blog'
+import { urlPublicaSitio } from '@/lib/metadata-publico'
 import { ALIAS_SEO_308, pathPublicoCombo, pathPublicoRubro } from '@/lib/seo-rutas'
 import { COMUNAS_SITEMAP_PILOTO, SLUGS_RUBRO_SITEMAP } from '@/lib/sitemap-piloto'
 
@@ -10,6 +12,7 @@ const LANDINGS_VENTA = SLUGS_RUBRO_SITEMAP.map((slug) => `/${slug}`)
 export const RUTAS_SITEMAP_FIJAS = [
   '/',
   ...LANDINGS_VENTA,
+  '/blog',
   '/proveedores',
   '/privacidad',
   '/terminos',
@@ -36,16 +39,7 @@ export function urlsSitemapFijas(base: string): string[] {
 }
 
 export function baseSitemap(base: string): string {
-  try {
-    const cruda = base.includes('://') ? base : `https://${base}`
-    const url = new URL(cruda)
-    if (url.protocol === 'http:' || url.protocol === 'https:') {
-      return url.origin.replace(/\/+$/, '')
-    }
-  } catch {
-    /* fallback */
-  }
-  return 'https://ternio.cl'
+  return urlPublicaSitio(base)
 }
 
 export function locSitemap(base: string, path: string): string {
@@ -90,6 +84,8 @@ export function pathsSitemapPiloto(): string[] {
 function metaDePath(path: string): Pick<EntradaSitemap, 'changefreq' | 'priority'> {
   if (path === '/') return { changefreq: 'weekly', priority: 1 }
   if (path === '/proveedores') return { changefreq: 'monthly', priority: 0.6 }
+  if (path === '/blog') return { changefreq: 'weekly', priority: 0.7 }
+  if (path.startsWith('/blog/')) return { changefreq: 'monthly', priority: 0.6 }
   if (LANDINGS_VENTA.includes(path)) {
     return { changefreq: 'weekly', priority: 0.9 }
   }
@@ -169,7 +165,13 @@ ${urls}
 export function armarSitemapXml(base: string, now = new Date()): { xml: string; locs: string[] } {
   const lastmod = now.toISOString()
   try {
-    const entradas = entradasSitemap(base, pathsSitemapPiloto())
+    const extras = [...pathsSitemapPiloto()]
+    try {
+      extras.push(...pathsPublicosBlog())
+    } catch {
+      /* blog ilegible: igual se publica /blog por las rutas fijas */
+    }
+    const entradas = entradasSitemap(base, extras)
     return { xml: xmlSitemap(entradas, lastmod), locs: entradas.map((e) => e.loc) }
   } catch {
     const xml = sitemapMinimoXml(base, now)

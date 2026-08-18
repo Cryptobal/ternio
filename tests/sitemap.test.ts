@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+import { urlPublicaSitio } from '@/lib/metadata-publico'
 import {
   armarSitemapXml,
   entradasSitemap,
@@ -14,7 +15,7 @@ import {
   urlsSitemapFijas,
 } from '@/lib/sitemap-publico'
 
-const BASE = 'https://ternio.cl'
+const BASE = 'https://www.ternio.cl'
 
 describe('sitemap público', () => {
   it('el mínimo incluye home y las landings VENTA (no aliases)', () => {
@@ -23,14 +24,16 @@ describe('sitemap público', () => {
     expect(RUTAS_SITEMAP_FIJAS).toContain('/aseo-hogar')
     expect(RUTAS_SITEMAP_FIJAS).toContain('/asesoria-financiera')
     expect(RUTAS_SITEMAP_FIJAS).toContain('/seguros')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/blog')
     expect(RUTAS_SITEMAP_FIJAS).not.toContain('/plagas')
     expect(RUTAS_SITEMAP_FIJAS).not.toContain('/climatizacion')
     expect(RUTAS_SITEMAP_FIJAS).not.toContain('/gasfiter')
     expect(RUTAS_SITEMAP_FIJAS).not.toContain('/creditos')
     expect(RUTAS_SITEMAP_FIJAS).not.toContain('/maestro')
-    expect(urlsSitemapFijas(BASE)[0]).toBe('https://ternio.cl/')
-    expect(urlsSitemapFijas(BASE)).toContain('https://ternio.cl/gasfiteria')
-    expect(urlsSitemapFijas(BASE)).toContain('https://ternio.cl/proveedores')
+    expect(urlsSitemapFijas(BASE)[0]).toBe('https://www.ternio.cl/')
+    expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/gasfiteria')
+    expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/proveedores')
+    expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/blog')
   })
 
   it('excluye /admin y /panel', () => {
@@ -53,8 +56,8 @@ describe('sitemap público', () => {
     expect(paths).toContain('/control-de-plagas/santiago')
     expect(paths).not.toContain('/plagas')
     const locs = armarSitemapXml(BASE).locs
-    expect(locs).toContain('https://ternio.cl/control-de-plagas')
-    expect(locs.some((url) => /\/plagas(\/|$)/.test(url.replace('https://ternio.cl', '')))).toBe(
+    expect(locs).toContain('https://www.ternio.cl/control-de-plagas')
+    expect(locs.some((url) => /\/plagas(\/|$)/.test(url.replace('https://www.ternio.cl', '')))).toBe(
       false,
     )
   })
@@ -62,10 +65,23 @@ describe('sitemap público', () => {
   it('filtra extras prohibidos o alias y no truena', () => {
     const entradas = entradasSitemap(BASE, ['/admin', '/panel', '/guardias', '/plagas', '/seguridad/santiago'])
     const locs = entradas.map((e) => e.loc)
-    expect(locs).toContain('https://ternio.cl/seguridad/santiago')
-    expect(locs).not.toContain('https://ternio.cl/plagas')
+    expect(locs).toContain('https://www.ternio.cl/seguridad/santiago')
+    expect(locs).not.toContain('https://www.ternio.cl/plagas')
     expect(armarSitemapXml(BASE).xml).toMatch(/^<\?xml /)
-    expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/control-de-plagas')
+    expect(sitemapMinimoXml(BASE)).toContain('https://www.ternio.cl/control-de-plagas')
+  })
+
+  it('lista /blog y los slugs de los artículos, con host www', () => {
+    const { locs, xml } = armarSitemapXml('https://ternio.cl')
+    expect(locs).toContain('https://www.ternio.cl/blog')
+    expect(locs).toContain('https://www.ternio.cl/blog/cuanto-cuesta-un-guardia-de-seguridad-en-chile')
+    expect(locs).toContain('https://www.ternio.cl/blog/como-elegir-empresa-de-aseo-industrial')
+    expect(locs).toContain('https://www.ternio.cl/blog/control-de-plagas-casa-o-empresa-que-pedir')
+    expect(locs).toContain('https://www.ternio.cl/blog/mudanza-en-santiago-que-cotizar')
+    expect(locs).toContain('https://www.ternio.cl/blog/contador-para-pyme-f29-y-remuneraciones')
+    expect(locs).toContain('https://www.ternio.cl/blog/gasfiter-de-urgencia-vs-programado')
+    expect(xml).toContain('https://www.ternio.cl/blog')
+    expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
 
   it('el route del sitemap no importa el catálogo ni Prisma', () => {
@@ -74,5 +90,15 @@ describe('sitemap público', () => {
     expect(ruta).not.toMatch(/from ['"]@\/lib\/prisma['"]/)
     expect(ruta).not.toMatch(/from ['"]@prisma\/client['"]/)
     expect(ruta).toMatch(/status: 200/)
+    expect(ruta).toMatch(/urlPublicaSitio/)
+  })
+
+  it('robots.txt apunta al sitemap www y no menciona /admin', () => {
+    const robots = readFileSync(resolve(process.cwd(), 'src/app/robots.ts'), 'utf8')
+    expect(robots).toContain('urlPublicaSitio')
+    expect(robots).not.toContain('/admin')
+    expect(robots).not.toContain("?? 'https://ternio.cl'")
+    expect(urlPublicaSitio('https://ternio.cl')).toBe('https://www.ternio.cl')
+    expect(urlPublicaSitio('https://www.ternio.cl/')).toBe('https://www.ternio.cl')
   })
 })

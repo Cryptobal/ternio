@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ModoRubro } from '@prisma/client'
 
+import { FaqRubro } from '@/components/faq-rubro'
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
 import { MedidorVisita } from '@/components/medidor-embudo'
 import { OtroServicio } from '@/components/otro-servicio'
@@ -10,7 +11,7 @@ import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { parsearCampos } from '@/lib/campos'
 import { combinacionPorSlugs, combinacionesPublicadas } from '@/lib/catalogo'
 import { OG_IMAGE } from '@/lib/metadata-publico'
-import { copyCombo } from '@/lib/seo-contenido'
+import { copyCombo, jsonLdFaq } from '@/lib/seo-contenido'
 import { pathPublicoCombo, pathPublicoRubro, slugPublicoDesdeBd } from '@/lib/seo-rutas'
 
 /** ISR: el contenido cambia poco y la página tiene que salir rápido. */
@@ -139,6 +140,7 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
       },
       provider: { '@type': 'Organization', name: 'Ternio', url: base },
     },
+    ...(generado.faq.length > 0 ? [jsonLdFaq(generado.faq)] : []),
   ]
 
   return (
@@ -190,6 +192,8 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
                 <PasosComoFunciona comuna={comuna.nombre} listaEspera={enCaptura} />
               </section>
             ) : null}
+
+            <FaqRubro items={generado.faq} />
 
             <div id="otro-servicio" className="mt-8">
               <OtroServicio comunaSlug={comuna.slug} />

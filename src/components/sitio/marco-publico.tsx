@@ -45,6 +45,10 @@ export function PiePublico() {
               Privacidad
             </Link>
             <span aria-hidden="true"> · </span>
+            <Link href="/blog" className="underline-offset-4 hover:underline">
+              Blog
+            </Link>
+            <span aria-hidden="true"> · </span>
             <Link href="/entrar" className="underline-offset-4 hover:underline">
               Entrar
             </Link>

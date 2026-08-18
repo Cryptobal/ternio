@@ -13,17 +13,21 @@ El sitemap que Google ve es `https://www.ternio.cl/sitemap.xml`
 ## Cómo se indexa
 
 1. `https://www.ternio.cl/sitemap.xml` ya es **200** y lista home,
-   las landings VENTA (25 slugs) y combos piloto.
-   El código deja fail-soft: si Prisma falla, igual se publican
-   esas URLs fijas (incluidas las landings VENTA). Nunca 500.
+   las landings VENTA (25 slugs), combos piloto, `/blog` y los
+   artículos. El `<loc>` usa el mismo host que los canonicals
+   (`https://www.ternio.cl`). El código deja fail-soft: si Prisma
+   o un `.md` del blog fallan, igual se publican las URLs fijas
+   (incluidas las landings VENTA y `/blog`). Nunca 500.
    Sin `/admin` ni `/panel`.
-2. `robots.txt` apunta al sitemap. **No** menciona `/admin`.
+2. `robots.txt` apunta al sitemap www. **No** menciona `/admin`.
 3. Search Console: enviar el sitemap www y pedir indexación de
    `/` y las landings de rubro.
 4. Canonical = slug real. Alias 308. Sin HTML duplicado.
 
 Código: `src/app/sitemap.xml/route.ts` (fail-soft, sin Prisma),
-`src/lib/seo-rutas.ts`, `next.config.ts`, `src/app/robots.ts`.
+`src/lib/seo-rutas.ts`, `src/lib/blog.ts`, `next.config.ts`,
+`src/app/robots.ts`. Host público: `src/lib/metadata-publico.ts`
+(`urlPublicaSitio`, siempre www).
 
 ---
 
@@ -139,10 +143,37 @@ no bancos.
 | `/plagas` | No (alias 308) | No duplicar contenido. |
 | `/climatizacion` | No (alias 308) | → `/climatizacion-industrial`. |
 | `/proveedores` | Sí | Alta. |
+| `/blog` | Sí | Índice, más nuevo primero. |
+| `/blog/cuanto-cuesta-un-guardia-de-seguridad-en-chile` | Sí | → `/seguridad` |
+| `/blog/como-elegir-empresa-de-aseo-industrial` | Sí | → `/aseo` |
+| `/blog/control-de-plagas-casa-o-empresa-que-pedir` | Sí | → `/control-de-plagas` |
+| `/blog/mudanza-en-santiago-que-cotizar` | Sí | → `/mudanzas` |
+| `/blog/contador-para-pyme-f29-y-remuneraciones` | Sí | → `/contabilidad` |
+| `/blog/gasfiter-de-urgencia-vs-programado` | Sí | → `/gasfiteria` |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |
 | `/panel` | No | Proveedor. |
 | `/admin` | **No** (tampoco en robots) | 404 si no es ADMIN. |
+
+---
+
+## Blog (mid-tail)
+
+Las landings de rubro cubren el head term. El blog cubre how-to y
+precios que esa página no puede (sin inventar volúmenes ni prueba
+social). Markdown en `content/blog/*.md`. RSS opcional:
+`/blog/rss.xml`.
+
+| Keyword (intención) | URL |
+| --- | --- |
+| cuánto cuesta un guardia de seguridad | `/blog/cuanto-cuesta-un-guardia-de-seguridad-en-chile` |
+| cómo elegir empresa de aseo industrial | `/blog/como-elegir-empresa-de-aseo-industrial` |
+| control de plagas casa o empresa | `/blog/control-de-plagas-casa-o-empresa-que-pedir` |
+| mudanza en Santiago qué cotizar | `/blog/mudanza-en-santiago-que-cotizar` |
+| contador pyme F29 remuneraciones | `/blog/contador-para-pyme-f29-y-remuneraciones` |
+| gasfiter urgencia vs programado | `/blog/gasfiter-de-urgencia-vs-programado` |
+
+No es parte de “100% operativa”. Crecimiento.
 
 ---
 
