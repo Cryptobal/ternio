@@ -1,8 +1,8 @@
 /**
  * URLs públicas canónicas vs slugs de BD.
  *
- * El rubro de plagas en BD es `control-de-plagas`. La canónica pública es
- * `/plagas`. Los alias 308 viven acá y en next.config.ts.
+ * Plagas: el slug real (seed y prod) es `control-de-plagas`.
+ * Canónica = `/control-de-plagas`. `/plagas` es alias 308.
  */
 
 export type AliasSeo = {
@@ -10,25 +10,23 @@ export type AliasSeo = {
   destino: string
 }
 
-/** slug público → slug de BD. */
+/** slug público (si alguien entra por alias) → slug de BD. */
 export const SLUG_PUBLICO_A_BD: Record<string, string> = {
   plagas: 'control-de-plagas',
 }
 
-/** slug de BD → path público del rubro (sin slash inicial). */
-export const SLUG_BD_A_PUBLICO: Record<string, string> = {
-  'control-de-plagas': 'plagas',
-}
+/** slug de BD → path público. Identity salvo que se declare otra cosa. */
+export const SLUG_BD_A_PUBLICO: Record<string, string> = {}
 
-export const RUBROS_VENTA_PUBLICOS = ['seguridad', 'aseo', 'plagas'] as const
+export const RUBROS_VENTA_PUBLICOS = ['seguridad', 'aseo', 'control-de-plagas'] as const
 
 export const ALIAS_SEO_308: AliasSeo[] = [
   { origen: '/guardias-de-seguridad', destino: '/seguridad' },
   { origen: '/guardias', destino: '/seguridad' },
   { origen: '/empresas-de-seguridad', destino: '/seguridad' },
   { origen: '/empresas-de-aseo', destino: '/aseo' },
-  { origen: '/control-de-plagas', destino: '/plagas' },
-  { origen: '/control-de-plagas/:comuna', destino: '/plagas/:comuna' },
+  { origen: '/plagas', destino: '/control-de-plagas' },
+  { origen: '/plagas/:comuna', destino: '/control-de-plagas/:comuna' },
   { origen: '/empresas-de-aseo/:comuna', destino: '/aseo/:comuna' },
   { origen: '/guardias-de-seguridad/:comuna', destino: '/seguridad/:comuna' },
   { origen: '/guardias/:comuna', destino: '/seguridad/:comuna' },
@@ -43,10 +41,7 @@ export function slugPublicoDesdeBd(slugBd: string): string {
   return SLUG_BD_A_PUBLICO[slugBd] ?? slugBd
 }
 
-/**
- * Slugs a buscar en BD. El seed usa `control-de-plagas`; en prod el slug
- * podría ser `plagas`. /plagas no puede 404 por ese desfase.
- */
+/** Slugs a buscar en BD: el seed usa `control-de-plagas`. */
 export function slugsBdCandidatos(slugPublicoOBd: string): string[] {
   return [...new Set([slugPublicoOBd, slugBdDesdePublico(slugPublicoOBd), slugPublicoDesdeBd(slugPublicoOBd)])]
 }

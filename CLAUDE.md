@@ -203,10 +203,10 @@ pendiente, y riesgos o supuestos que yo deba confirmar.
 La fuente de verdad operativa es `docs/guia-de-desarrollo.md`. Si este
 archivo choca con esa guía, gana la guía. Deltas conscientes:
 
-- URL canónica de plagas: `/plagas` (página propia; el slug de BD del
-  seed es `control-de-plagas`). `/control-de-plagas` es alias 308.
-- Sitemap: nunca 500; se arma sin Prisma (`sitemap.xml/route.ts`).
-  Mínimo: home + `/seguridad` `/aseo` `/plagas` `/proveedores`.
+- URL canónica de plagas: `/control-de-plagas` (slug real de seed/prod).
+  `/plagas` es alias 308.
+- Sitemap www ya es 200; fail-soft sin Prisma si la DB falla. Mínimo:
+  home + `/seguridad` `/aseo` `/control-de-plagas` `/proveedores`.
 - Créditos de lanzamiento: automáticos al verificar el celular
   (`AJUSTE` `alta:{proveedorId}`, 200.000). Recarga = packs Flow, no MercadoPago.
   El admin no es el cajero.

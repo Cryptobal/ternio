@@ -65,7 +65,7 @@ Sitio: [ternio.cl](https://ternio.cl). Repo: este.
 6. **Ficha anónima hasta el pago.** La PII vive solo en `LeadContacto`.
    Las queries de cara al proveedor no la incluyen. El servidor valida; ocultar
    un botón no protege nada.
-7. **SEO dueño, no alquiler.** Páginas `/seguridad`, `/aseo`, `/plagas` y
+7. **SEO dueño, no alquiler.** Páginas `/seguridad`, `/aseo`, `/control-de-plagas` y
    `{rubro}/{comuna}`. Quien busca “guardias de seguridad” (~3.600/mes Semrush
    CL) cae en `/seguridad` y cotiza. No dependemos de ads para siempre.
 8. **Honestidad.** Sin prueba social falsa. Sin “te van a contactar 5
@@ -85,11 +85,11 @@ producción (`ternio.cl`), sin mentir.
 
 ### A. Comprador encuentra y cotiza
 
-- Google o home → `/seguridad` | `/aseo` | `/plagas` (o alias 308) → elige
+- Google o home → `/seguridad` | `/aseo` | `/control-de-plagas` (o alias 308) → elige
   región / provincia / comuna → cotizador de micro-pasos → Pedir cotización.
 - `sitemap.xml` responde HTTP 200. Nunca 500. Se arma sin Prisma (un
   import de catálogo al cargar el módulo era el 500). Mínimo: home,
-  `/seguridad`, `/aseo`, `/plagas`, `/proveedores`. No incluye `/admin`
+  `/seguridad`, `/aseo`, `/control-de-plagas`, `/proveedores`. No incluye `/admin`
   ni `/panel`.
 - `robots.txt` apunta al sitemap. No lista `/admin` (la revelaría).
 - Search Console puede pedir indexación. El código deja las URLs listas;
@@ -318,16 +318,15 @@ Detalle en [`docs/seo-map.md`](./seo-map.md).
 | empresas de aseo | 2.400 | 23 | `/aseo` | `/empresas-de-aseo` |
 | empresas de aseo santiago | 390 | 15 | `/aseo/santiago` si publicada; si no `/aseo` | — |
 | servicio de aseo | 320 | — | `/aseo` | — |
-| control de plagas | 1.300 | 21 | `/plagas` | `/control-de-plagas` |
-| control de plagas santiago | 170 | — | `/plagas/santiago` si existe | 308 desde `/control-de-plagas/santiago` |
+| control de plagas | 1.300 | 21 | `/control-de-plagas` | `/plagas` |
+| control de plagas santiago | 170 | — | `/control-de-plagas/santiago` si existe | `/plagas/santiago` → 308 |
 | guardias de seguridad santiago | 20 | — | no priorizar | — |
 
-Hoy el slug de BD del rubro de plagas es `control-de-plagas`. La URL
-pública canónica es `/plagas`. `/control-de-plagas` redirige 308.
-`/plagas` debe responder 200, no 404.
+El slug real de plagas (seed y prod) es `control-de-plagas`. Canónica
+`/control-de-plagas`. `/plagas` redirige 308.
 
-Sitemap: fail-soft **sin Prisma**. Si algo falla, igual se listan `/`,
-`/seguridad`, `/aseo`, `/plagas`, `/proveedores`. Nunca 500. No incluye
+Sitemap www ya es 200. Fail-soft si Prisma falla: `/`, `/seguridad`,
+`/aseo`, `/control-de-plagas`, `/proveedores`. Nunca 500. No incluye
 `/admin` ni `/panel`.
 
 No inventar “+1000 empresas” ni prueba social. Schema.org `Service` o

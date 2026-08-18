@@ -15,23 +15,24 @@ indexó ni que hay proveedores comprando.
 - [ ] Gard Security existe (`slug` `gard-security` o fila real Gard),
       `APROBADO`, cobertura nacional, rubro seguridad. Si saldo 0:
       500.000 créditos.
-- [ ] `/seguridad`, `/aseo`, `/plagas` responden **200**.
-- [ ] `/control-de-plagas` → 308 `/plagas`. `/guardias`,
-      `/guardias-de-seguridad`, `/empresas-de-seguridad` → `/seguridad`.
-      `/empresas-de-aseo` → `/aseo`.
+- [ ] `/seguridad`, `/aseo`, `/control-de-plagas` responden **200**.
+- [ ] `/plagas` → 308 `/control-de-plagas`. `/guardias`,
+      `/guardias-de-seguridad` → `/seguridad`. `/empresas-de-aseo` → `/aseo`.
 - [ ] Un combo piloto (ej. `/seguridad/santiago`) abre el cotizador
       precargado.
 - [ ] Home: frase “Cotiza servicios para tu empresa” + atajos + selector.
 
 ## Sitemap y Google
 
-- [ ] `https://ternio.cl/sitemap.xml` → **200**. Si Neon pestañea, igual
-      lista home + 3 rubros. Nunca 500.
+- [ ] `https://www.ternio.cl/sitemap.xml` ya es **200**. Fail-soft si
+      Prisma falla: home + `/seguridad` `/aseo` `/control-de-plagas`.
+      Nunca 500. `ternio.cl` hace 308 a www.
 - [ ] `https://ternio.cl/robots.txt` apunta al sitemap. **No** menciona
       `/admin`.
 - [ ] Search Console: propiedad `ternio.cl` ya existe. Enviar
-      `https://ternio.cl/sitemap.xml`.
-- [ ] Pedir indexación de `/`, `/seguridad`, `/aseo`, `/plagas`.
+      `https://www.ternio.cl/sitemap.xml`.
+- [ ] Pedir indexación de `/`, `/seguridad`, `/aseo`,
+      `/control-de-plagas`.
       Esperar. No inventar que ya están indexadas.
 - [ ] GTM-K3F8GGHV cargado (ya está; no tocarlo). Verificar en GTM
       preview si hace falta.

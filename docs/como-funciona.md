@@ -7,7 +7,7 @@ Si algo de este archivo choca con la guía, gana la guía.
 
 ## A. Comprador
 
-1. Llega por Google a `/seguridad`, `/aseo` o `/plagas` (o un alias 308),
+1. Llega por Google a `/seguridad`, `/aseo` o `/control-de-plagas` (o `/plagas` → 308),
    o entra a la home y elige un atajo / el selector.
 2. Elige Región → Provincia → Comuna (sin typeahead). Si esa combinación
    tiene página publicada, va a `/{rubro}/{comuna}` con el formulario

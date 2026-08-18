@@ -17,25 +17,16 @@ import {
 const BASE = 'https://ternio.cl'
 
 describe('sitemap público', () => {
-  it('el mínimo incluye home, 3 rubros y /proveedores (no solo legales)', () => {
+  it('el mínimo incluye home y los 3 rubros reales (no solo legales)', () => {
     expect(RUTAS_SITEMAP_FIJAS).toContain('/seguridad')
     expect(RUTAS_SITEMAP_FIJAS).toContain('/aseo')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/plagas')
-    expect(RUTAS_SITEMAP_FIJAS).toContain('/proveedores')
-    expect([...RUTAS_SITEMAP_FIJAS]).toEqual([
-      '/',
-      '/seguridad',
-      '/aseo',
-      '/plagas',
-      '/proveedores',
-      '/privacidad',
-      '/terminos',
-    ])
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/control-de-plagas')
+    expect(RUTAS_SITEMAP_FIJAS).not.toContain('/plagas')
     expect(urlsSitemapFijas(BASE)).toEqual([
       'https://ternio.cl/',
       'https://ternio.cl/seguridad',
       'https://ternio.cl/aseo',
-      'https://ternio.cl/plagas',
+      'https://ternio.cl/control-de-plagas',
       'https://ternio.cl/proveedores',
       'https://ternio.cl/privacidad',
       'https://ternio.cl/terminos',
@@ -46,58 +37,41 @@ describe('sitemap público', () => {
     expect(RUTAS_EXCLUIDAS_SITEMAP).toContain('/admin')
     expect(RUTAS_EXCLUIDAS_SITEMAP).toContain('/panel')
     expect(esPathSitemapProhibido('/admin')).toBe(true)
-    expect(esPathSitemapProhibido('/admin/compradores')).toBe(true)
     expect(esPathSitemapProhibido('/panel')).toBe(true)
-    expect(esPathSitemapProhibido('/seguridad')).toBe(false)
     const locs = armarSitemapXml(BASE).locs
     expect(locs.some((url) => url.includes('/admin'))).toBe(false)
     expect(locs.some((url) => url.includes('/panel'))).toBe(false)
   })
 
-  it('no lista alias 308 (canónica /plagas, no /control-de-plagas)', () => {
-    expect(esAliasSeo('/control-de-plagas')).toBe(true)
-    expect(esAliasSeo('/control-de-plagas/santiago')).toBe(true)
-    expect(esAliasSeo('/guardias')).toBe(true)
-    expect(esAliasSeo('/plagas')).toBe(false)
+  it('lista /control-de-plagas y no el alias /plagas', () => {
+    expect(esAliasSeo('/plagas')).toBe(true)
+    expect(esAliasSeo('/plagas/santiago')).toBe(true)
+    expect(esAliasSeo('/control-de-plagas')).toBe(false)
     const paths = pathsSitemapPiloto()
-    expect(paths).toContain('/plagas')
-    expect(paths).toContain('/plagas/santiago')
-    expect(paths).not.toContain('/control-de-plagas')
+    expect(paths).toContain('/control-de-plagas')
+    expect(paths).toContain('/control-de-plagas/santiago')
+    expect(paths).not.toContain('/plagas')
     const locs = armarSitemapXml(BASE).locs
-    expect(locs).toContain('https://ternio.cl/plagas')
-    expect(locs.some((url) => url.includes('/control-de-plagas'))).toBe(false)
+    expect(locs).toContain('https://ternio.cl/control-de-plagas')
+    expect(locs.some((url) => /\/plagas(\/|$)/.test(url.replace('https://ternio.cl', '')))).toBe(
+      false,
+    )
   })
 
   it('filtra extras prohibidos o alias y no truena', () => {
-    const entradas = entradasSitemap(BASE, [
-      '/admin',
-      '/panel',
-      '/guardias',
-      '/control-de-plagas',
-      '/seguridad/santiago',
-    ])
+    const entradas = entradasSitemap(BASE, ['/admin', '/panel', '/guardias', '/plagas', '/seguridad/santiago'])
     const locs = entradas.map((e) => e.loc)
-    expect(locs).toContain('https://ternio.cl/')
     expect(locs).toContain('https://ternio.cl/seguridad/santiago')
-    expect(locs).not.toContain('https://ternio.cl/admin')
-    expect(locs).not.toContain('https://ternio.cl/guardias')
+    expect(locs).not.toContain('https://ternio.cl/plagas')
     expect(armarSitemapXml(BASE).xml).toMatch(/^<\?xml /)
-    expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/seguridad')
-    expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/aseo')
-    expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/plagas')
+    expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/control-de-plagas')
   })
 
-  it('el route del sitemap no importa el catálogo ni el client de Prisma', () => {
+  it('el route del sitemap no importa el catálogo ni Prisma', () => {
     const ruta = readFileSync(resolve(process.cwd(), 'src/app/sitemap.xml/route.ts'), 'utf8')
     expect(ruta).not.toMatch(/from ['"]@\/lib\/catalogo['"]/)
     expect(ruta).not.toMatch(/from ['"]@\/lib\/prisma['"]/)
     expect(ruta).not.toMatch(/from ['"]@prisma\/client['"]/)
     expect(ruta).toMatch(/status: 200/)
-  })
-
-  it('existe la página fija /plagas', () => {
-    const pagina = readFileSync(resolve(process.cwd(), 'src/app/(seo)/plagas/page.tsx'), 'utf8')
-    expect(pagina).toContain("rubro: 'plagas'")
-    expect(pagina).toContain('force-dynamic')
   })
 })

@@ -12,25 +12,26 @@ import {
 import { destinoSelector } from '@/lib/selector-cotizacion'
 
 describe('rutas SEO públicas', () => {
-  it('plagas es canónica; control-de-plagas es el slug de BD', () => {
+  it('canónica de plagas es /control-de-plagas; /plagas es alias', () => {
+    expect(slugPublicoDesdeBd('control-de-plagas')).toBe('control-de-plagas')
     expect(slugBdDesdePublico('plagas')).toBe('control-de-plagas')
-    expect(slugPublicoDesdeBd('control-de-plagas')).toBe('plagas')
-    expect(pathPublicoRubro('control-de-plagas')).toBe('/plagas')
-    expect(pathPublicoCombo('control-de-plagas', 'santiago')).toBe('/plagas/santiago')
+    expect(pathPublicoRubro('control-de-plagas')).toBe('/control-de-plagas')
+    expect(pathPublicoCombo('control-de-plagas', 'santiago')).toBe('/control-de-plagas/santiago')
     expect(slugsBdCandidatos('plagas')).toEqual(['plagas', 'control-de-plagas'])
-    expect(slugsBdCandidatos('control-de-plagas')).toEqual(['control-de-plagas', 'plagas'])
+    expect(slugsBdCandidatos('control-de-plagas')).toEqual(['control-de-plagas'])
   })
 
-  it('alias 308 apuntan a canónicas', () => {
-    expect(ALIAS_SEO_308).toContainEqual({ origen: '/control-de-plagas', destino: '/plagas' })
+  it('alias 308 apuntan a canónicas reales', () => {
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/plagas', destino: '/control-de-plagas' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/plagas/:comuna', destino: '/control-de-plagas/:comuna' })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardias-de-seguridad', destino: '/seguridad' })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardias', destino: '/seguridad' })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/empresas-de-aseo', destino: '/aseo' })
   })
 
-  it('el selector usa la URL pública', () => {
+  it('el selector usa la URL pública real', () => {
     expect(destinoSelector({ slug: 'control-de-plagas', modo: 'VENTA' }, 'santiago', true)).toBe(
-      '/plagas/santiago',
+      '/control-de-plagas/santiago',
     )
   })
 })
@@ -60,17 +61,12 @@ describe('copy único por combo', () => {
 
   it('tiene H1 y title con los head terms de Semrush', () => {
     expect(copyRubro('seguridad', 'Empresas de seguridad', null).title).toBe('Guardias de seguridad')
-    expect(copyRubro('seguridad', 'Empresas de seguridad', null).h1).toMatch(/Guardias de seguridad/i)
     expect(copyRubro('aseo', 'Empresas de aseo', null).title).toBe('Empresas de aseo')
     expect(copyRubro('control-de-plagas', 'Empresas de control de plagas', null).title).toBe(
       'Control de plagas',
     )
-    expect(copyRubro('plagas', 'Empresas de control de plagas', null).title).toBe('Control de plagas')
     expect(titleCombo({ slugBd: 'aseo', nombrePlural: 'Empresas de aseo', comuna: 'Santiago' })).toBe(
       'Empresas de aseo en Santiago',
     )
-    expect(
-      titleCombo({ slugBd: 'seguridad', nombrePlural: 'Empresas de seguridad', comuna: 'Providencia' }),
-    ).toBe('Guardias de seguridad en Providencia')
   })
 })

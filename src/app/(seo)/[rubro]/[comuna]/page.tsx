@@ -36,7 +36,6 @@ export async function generateStaticParams() {
         rubro: slugPublicoDesdeBd(combinacion.rubro),
         comuna: combinacion.comuna,
       }))
-      .filter((fila) => fila.rubro !== 'plagas')
   } catch {
     return []
   }

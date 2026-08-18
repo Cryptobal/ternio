@@ -35,13 +35,10 @@ async function rubroPorParam(slugPublico: string) {
 }
 
 export async function generateStaticParams() {
-  const fijos = RUBROS_VENTA_PUBLICOS.filter((slug) => slug !== 'plagas').map((rubro) => ({ rubro }))
+  const fijos = RUBROS_VENTA_PUBLICOS.map((rubro) => ({ rubro }))
   try {
     const rubros = await rubrosActivos()
-    const extra = rubros
-      .map((rubro) => slugPublicoDesdeBd(rubro.slug))
-      .filter((slug) => slug !== 'plagas')
-      .map((rubro) => ({ rubro }))
+    const extra = rubros.map((rubro) => ({ rubro: slugPublicoDesdeBd(rubro.slug) }))
     const vistos = new Set<string>(fijos.map((fila) => fila.rubro))
     return [...fijos, ...extra.filter((fila) => !vistos.has(fila.rubro))]
   } catch {
