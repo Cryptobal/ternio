@@ -6,6 +6,7 @@ import {
   pathPublicoCombo,
   pathPublicoRubro,
   slugBdDesdePublico,
+  slugsBdCandidatos,
   slugPublicoDesdeBd,
 } from '@/lib/seo-rutas'
 import { destinoSelector } from '@/lib/selector-cotizacion'
@@ -16,6 +17,8 @@ describe('rutas SEO públicas', () => {
     expect(slugPublicoDesdeBd('control-de-plagas')).toBe('plagas')
     expect(pathPublicoRubro('control-de-plagas')).toBe('/plagas')
     expect(pathPublicoCombo('control-de-plagas', 'santiago')).toBe('/plagas/santiago')
+    expect(slugsBdCandidatos('plagas')).toEqual(['plagas', 'control-de-plagas'])
+    expect(slugsBdCandidatos('control-de-plagas')).toEqual(['control-de-plagas', 'plagas'])
   })
 
   it('alias 308 apuntan a canónicas', () => {
@@ -62,6 +65,7 @@ describe('copy único por combo', () => {
     expect(copyRubro('control-de-plagas', 'Empresas de control de plagas', null).title).toBe(
       'Control de plagas',
     )
+    expect(copyRubro('plagas', 'Empresas de control de plagas', null).title).toBe('Control de plagas')
     expect(titleCombo({ slugBd: 'aseo', nombrePlural: 'Empresas de aseo', comuna: 'Santiago' })).toBe(
       'Empresas de aseo en Santiago',
     )

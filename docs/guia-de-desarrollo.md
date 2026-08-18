@@ -310,14 +310,17 @@ Carlos no carga créditos. El sistema sí.
 
 Detalle en [`docs/seo-map.md`](./seo-map.md).
 
-| Keyword | Vol/mes | Canónica | Alias 308 |
-| --- | ---: | --- | --- |
-| guardias de seguridad | 3.600 | `/seguridad` | `/guardias-de-seguridad`, `/guardias` |
-| seguridad privada | 1.900 | `/seguridad` | — |
-| empresas de seguridad | 590 | `/seguridad` | `/empresas-de-seguridad` |
-| empresas de aseo | 2.400 | `/aseo` | `/empresas-de-aseo` |
-| empresas de aseo santiago | 390 | `/aseo/santiago` (si `RubroComuna.activa`) | — |
-| control de plagas | 1.300 | `/plagas` | `/control-de-plagas` |
+| Keyword | Vol/mes | KD | Canónica | Alias 308 |
+| --- | ---: | ---: | --- | --- |
+| guardias de seguridad | 3.600 | 30 | `/seguridad` | `/guardias-de-seguridad`, `/guardias` |
+| seguridad privada | 1.900 | 34 | `/seguridad` | — |
+| empresas de seguridad | 590 | 30 | `/seguridad` | `/empresas-de-seguridad` |
+| empresas de aseo | 2.400 | 23 | `/aseo` | `/empresas-de-aseo` |
+| empresas de aseo santiago | 390 | 15 | `/aseo/santiago` si publicada; si no `/aseo` | — |
+| servicio de aseo | 320 | — | `/aseo` | — |
+| control de plagas | 1.300 | 21 | `/plagas` | `/control-de-plagas` |
+| control de plagas santiago | 170 | — | `/plagas/santiago` si existe | 308 desde `/control-de-plagas/santiago` |
+| guardias de seguridad santiago | 20 | — | no priorizar | — |
 
 Hoy el slug de BD del rubro de plagas es `control-de-plagas`. La URL
 pública canónica es `/plagas`. `/control-de-plagas` redirige 308.

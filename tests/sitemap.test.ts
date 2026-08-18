@@ -17,7 +17,11 @@ import {
 const BASE = 'https://ternio.cl'
 
 describe('sitemap público', () => {
-  it('el mínimo incluye home, 3 rubros y /proveedores', () => {
+  it('el mínimo incluye home, 3 rubros y /proveedores (no solo legales)', () => {
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/seguridad')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/aseo')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/plagas')
+    expect(RUTAS_SITEMAP_FIJAS).toContain('/proveedores')
     expect([...RUTAS_SITEMAP_FIJAS]).toEqual([
       '/',
       '/seguridad',
@@ -79,6 +83,8 @@ describe('sitemap público', () => {
     expect(locs).not.toContain('https://ternio.cl/guardias')
     expect(armarSitemapXml(BASE).xml).toMatch(/^<\?xml /)
     expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/seguridad')
+    expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/aseo')
+    expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/plagas')
   })
 
   it('el route del sitemap no importa el catálogo ni el client de Prisma', () => {
@@ -87,5 +93,11 @@ describe('sitemap público', () => {
     expect(ruta).not.toMatch(/from ['"]@\/lib\/prisma['"]/)
     expect(ruta).not.toMatch(/from ['"]@prisma\/client['"]/)
     expect(ruta).toMatch(/status: 200/)
+  })
+
+  it('existe la página fija /plagas', () => {
+    const pagina = readFileSync(resolve(process.cwd(), 'src/app/(seo)/plagas/page.tsx'), 'utf8')
+    expect(pagina).toContain("rubro: 'plagas'")
+    expect(pagina).toContain('force-dynamic')
   })
 })

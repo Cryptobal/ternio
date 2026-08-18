@@ -34,10 +34,32 @@ export function urlsSitemapFijas(base: string): string[] {
   return RUTAS_SITEMAP_FIJAS.map((ruta) => locSitemap(base, ruta))
 }
 
+export function baseSitemap(base: string): string {
+  try {
+    const cruda = base.includes('://') ? base : `https://${base}`
+    const url = new URL(cruda)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return url.origin.replace(/\/+$/, '')
+    }
+  } catch {
+    /* fallback */
+  }
+  return 'https://ternio.cl'
+}
+
 export function locSitemap(base: string, path: string): string {
-  const origen = base.replace(/\/+$/, '')
+  const origen = baseSitemap(base)
   if (path === '/') return `${origen}/`
   return `${origen}${path.startsWith('/') ? path : `/${path}`}`
+}
+
+export function esLocSitemapValida(loc: string): boolean {
+  try {
+    const url = new URL(loc)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
 }
 
 export function esPathSitemapProhibido(pathname: string): boolean {
@@ -83,7 +105,7 @@ export function entradasSitemap(base: string, extras: readonly string[] = []): E
   for (const path of [...RUTAS_SITEMAP_FIJAS, ...extras]) {
     if (esPathSitemapProhibido(path) || esAliasSeo(path)) continue
     const loc = locSitemap(base, path)
-    if (vistos.has(loc)) continue
+    if (!esLocSitemapValida(loc) || vistos.has(loc)) continue
     vistos.add(loc)
     entradas.push({ loc, ...metaDePath(path) })
   }
@@ -101,11 +123,13 @@ export function escaparXml(valor: string): string {
 }
 
 export function xmlSitemap(entradas: readonly EntradaSitemap[], lastmod: string): string {
+  const fecha = lastmod.includes('T') ? lastmod : `${lastmod}T00:00:00.000Z`
   const urls = entradas
+    .filter((entrada) => esLocSitemapValida(entrada.loc))
     .map(
       (entrada) => `  <url>
     <loc>${escaparXml(entrada.loc)}</loc>
-    <lastmod>${escaparXml(lastmod)}</lastmod>
+    <lastmod>${escaparXml(fecha)}</lastmod>
     <changefreq>${entrada.changefreq}</changefreq>
     <priority>${entrada.priority}</priority>
   </url>`,

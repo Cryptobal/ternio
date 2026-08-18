@@ -43,6 +43,14 @@ export function slugPublicoDesdeBd(slugBd: string): string {
   return SLUG_BD_A_PUBLICO[slugBd] ?? slugBd
 }
 
+/**
+ * Slugs a buscar en BD. El seed usa `control-de-plagas`; en prod el slug
+ * podría ser `plagas`. /plagas no puede 404 por ese desfase.
+ */
+export function slugsBdCandidatos(slugPublicoOBd: string): string[] {
+  return [...new Set([slugPublicoOBd, slugBdDesdePublico(slugPublicoOBd), slugPublicoDesdeBd(slugPublicoOBd)])]
+}
+
 export function pathPublicoRubro(slugBd: string): string {
   return `/${slugPublicoDesdeBd(slugBd)}`
 }

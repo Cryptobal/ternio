@@ -9,7 +9,7 @@ import { OtroServicio } from '@/components/otro-servicio'
 import { parsearCampos } from '@/lib/campos'
 import { combinacionPorSlugs, combinacionesPublicadas } from '@/lib/catalogo'
 import { copyCombo } from '@/lib/seo-contenido'
-import { pathPublicoCombo, pathPublicoRubro, slugBdDesdePublico, slugPublicoDesdeBd } from '@/lib/seo-rutas'
+import { pathPublicoCombo, pathPublicoRubro, slugPublicoDesdeBd } from '@/lib/seo-rutas'
 
 /** ISR: el contenido cambia poco y la página tiene que salir rápido. */
 export const revalidate = 3600
@@ -29,16 +29,22 @@ function leerContenidoSeo(valor: unknown): ContenidoSeo {
 }
 
 export async function generateStaticParams() {
-  const combinaciones = await combinacionesPublicadas()
-  return combinaciones.map((combinacion) => ({
-    rubro: slugPublicoDesdeBd(combinacion.rubro),
-    comuna: combinacion.comuna,
-  }))
+  try {
+    const combinaciones = await combinacionesPublicadas()
+    return combinaciones
+      .map((combinacion) => ({
+        rubro: slugPublicoDesdeBd(combinacion.rubro),
+        comuna: combinacion.comuna,
+      }))
+      .filter((fila) => fila.rubro !== 'plagas')
+  } catch {
+    return []
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { rubro, comuna } = await params
-  const combinacion = await combinacionPorSlugs(slugBdDesdePublico(rubro), comuna)
+  const combinacion = await combinacionPorSlugs(rubro, comuna)
   if (!combinacion) return {}
 
   const copy = copyCombo({
@@ -61,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PaginaRubroComuna({ params }: Props) {
   const { rubro: rubroSlug, comuna: comunaSlug } = await params
-  const combinacion = await combinacionPorSlugs(slugBdDesdePublico(rubroSlug), comunaSlug)
+  const combinacion = await combinacionPorSlugs(rubroSlug, comunaSlug)
 
   if (!combinacion) notFound()
 

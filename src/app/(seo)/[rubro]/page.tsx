@@ -9,7 +9,7 @@ import { parsearCampos } from '@/lib/campos'
 import { combinacionesPublicadas, comunasActivas, rubrosActivos } from '@/lib/catalogo'
 import { prisma } from '@/lib/prisma'
 import { copyRubro } from '@/lib/seo-contenido'
-import { pathPublicoRubro, slugBdDesdePublico, slugPublicoDesdeBd } from '@/lib/seo-rutas'
+import { pathPublicoRubro, RUBROS_VENTA_PUBLICOS, slugsBdCandidatos, slugPublicoDesdeBd } from '@/lib/seo-rutas'
 import { claveCombo } from '@/lib/selector-cotizacion'
 
 export const revalidate = 3600
@@ -21,9 +21,8 @@ type Props = {
 }
 
 async function rubroPorParam(slugPublico: string) {
-  const slugBd = slugBdDesdePublico(slugPublico)
   return prisma.rubro.findFirst({
-    where: { slug: slugBd, activo: true },
+    where: { slug: { in: slugsBdCandidatos(slugPublico) }, activo: true },
     select: {
       slug: true,
       nombre: true,
@@ -36,8 +35,18 @@ async function rubroPorParam(slugPublico: string) {
 }
 
 export async function generateStaticParams() {
-  const rubros = await rubrosActivos()
-  return rubros.map((rubro) => ({ rubro: slugPublicoDesdeBd(rubro.slug) }))
+  const fijos = RUBROS_VENTA_PUBLICOS.filter((slug) => slug !== 'plagas').map((rubro) => ({ rubro }))
+  try {
+    const rubros = await rubrosActivos()
+    const extra = rubros
+      .map((rubro) => slugPublicoDesdeBd(rubro.slug))
+      .filter((slug) => slug !== 'plagas')
+      .map((rubro) => ({ rubro }))
+    const vistos = new Set(fijos.map((fila) => fila.rubro))
+    return [...fijos, ...extra.filter((fila) => !vistos.has(fila.rubro))]
+  } catch {
+    return fijos
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
