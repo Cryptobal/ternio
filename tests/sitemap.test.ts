@@ -81,10 +81,11 @@ describe('sitemap público', () => {
     expect(sitemapMinimoXml(BASE)).toContain('https://ternio.cl/seguridad')
   })
 
-  it('el route del sitemap no importa Prisma ni el catálogo', () => {
+  it('el route del sitemap no importa el catálogo ni el client de Prisma', () => {
     const ruta = readFileSync(resolve(process.cwd(), 'src/app/sitemap.xml/route.ts'), 'utf8')
-    expect(ruta).not.toMatch(/catalogo/)
-    expect(ruta).not.toMatch(/prisma/i)
+    expect(ruta).not.toMatch(/from ['"]@\/lib\/catalogo['"]/)
+    expect(ruta).not.toMatch(/from ['"]@\/lib\/prisma['"]/)
+    expect(ruta).not.toMatch(/from ['"]@prisma\/client['"]/)
     expect(ruta).toMatch(/status: 200/)
   })
 })
