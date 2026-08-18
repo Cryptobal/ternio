@@ -11,7 +11,8 @@ y medición del embudo. Todavía no hay venta de leads ni paneles de proveedor.
 ## Stack
 
 Next.js 15 (App Router) · TypeScript estricto · Prisma + PostgreSQL (Neon) ·
-Tailwind v4 · Auth.js v5 (Google para compradores, Credentials para el admin).
+Tailwind v4 · Auth.js v5 (Credentials para el admin; sesión del comprador por
+teléfono, en el PR de cotizador).
 
 ## Puesta en marcha
 
@@ -29,11 +30,10 @@ Las variables de entorno están documentadas una por una en
 
 Dos que conviene entender antes de desplegar:
 
-- **`ADMIN_PATH`** define el segmento bajo el que se sirve el panel de admin.
-  No aparece en el sitio, ni en el sitemap, ni en `robots.txt` (listarla ahí la
-  revelaría). Esa URL es solo cosmética: la seguridad real es el rol `ADMIN`
-  validado en servidor, y cualquier otro caso responde 404. Rotarla es cambiar
-  la variable; la ruta anterior deja de servir de inmediato.
+- El panel de admin vive en **`/admin`**. No aparece en el sitio, ni en el
+  sitemap, ni en `robots.txt` (listarla ahí la revelaría). Esa URL es
+  cosmética: la seguridad real es el rol `ADMIN` validado en servidor, y
+  cualquier otro caso responde 404.
 - **`TURNSTILE_SECRET_KEY`** es *fail-closed*: si falta en producción, la
   creación de leads falla con un mensaje explícito. Nunca se guarda un lead sin
   pasar la verificación antifraude.
@@ -95,9 +95,10 @@ cliente. `CUENTA_CREADA` se cuenta una vez por cuenta, no por cotización.
 | Ruta | Qué hace |
 | --- | --- |
 | `src/app/(seo)/[rubro]/[comuna]` | Página programática con ISR y el formulario de cotización |
-| `src/app/cotizacion/enviada` | Pantalla post-envío: crear cuenta con Google y reclamar el lead |
+| `src/app/cotizacion/enviada` | Pantalla post-envío y reclamo del lead |
 | `src/app/mis-cotizaciones` | Panel del comprador (solo lectura, `noindex`) |
-| `src/app/admin/*` | Panel del dueño; se sirve solo por el rewrite desde `ADMIN_PATH` |
+| `src/app/proveedores` | Propuesta de valor para empresas proveedoras |
+| `src/app/admin/*` | Panel del dueño en `/admin`; 404 si no hay rol ADMIN |
 | `src/server/*` | Server actions y helpers de sesión |
 | `src/lib/*` | Lógica pura y reutilizable (RUT, teléfono, score, rubros, tokens) |
 | `prisma/` | Schema, migraciones y seed idempotente |

@@ -1,12 +1,26 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-tinta: #0f172a;
-  --color-tinta-suave: #475569;
-  --color-marca: #0b6b5b;
-  --color-marca-oscura: #084f43;
-  --color-arena: #f8fafc;
-  --color-borde: #e2e8f0;
+  --color-tinta: #0e1b2c;
+  --color-tinta-suave: #48566c;
+  --color-papel: #f1f4f8;
+  --color-marca: #14385e;
+  --color-ambar: #ffab1a;
+  --color-ambar-suave: #fff3da;
+  --color-ambar-borde: #f2c266;
+  --color-verde: #0e8a5f;
+  --color-verde-suave: #e2f3eb;
+  --color-rojo: #c1462b;
+  --color-rojo-suave: #fbeae4;
+  --color-borde: #d9e0ea;
+  --color-linea: #e7ecf3;
+
+  /* Alias de compatibilidad con componentes que aún no se restilizan. */
+  --color-arena: #f1f4f8;
+  --color-marca-oscura: #0e1b2c;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-spline), ui-monospace, 'Cascadia Code', monospace;
 }
 
 html {
@@ -14,17 +28,28 @@ html {
 }
 
 body {
-  background-color: var(--color-arena);
+  background-color: var(--color-papel);
   color: var(--color-tinta);
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.02em;
+}
+
+.font-eyebrow {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ambar);
+  outline-offset: 2px;
 }
 
 /* Respeta a quien pide menos movimiento. */

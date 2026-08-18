@@ -62,7 +62,7 @@ export default async function PaginaRubro({ params }: Props) {
         <span className="text-(--color-tinta)">{rubro.nombrePlural ?? rubro.nombre}</span>
       </nav>
 
-      <h1 className="text-3xl font-semibold sm:text-4xl">
+      <h1 className="font-display text-3xl sm:text-4xl">
         {rubro.nombrePlural ?? rubro.nombre}
       </h1>
       {rubro.descripcion ? (
@@ -70,19 +70,19 @@ export default async function PaginaRubro({ params }: Props) {
       ) : null}
 
       {rubro.modo === ModoRubro.CAPTURA ? (
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p className="mt-4 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-4 text-sm text-(--color-tinta)">
           Todavía estamos sumando empresas de este rubro. Deja tu solicitud y te avisamos apenas
           tengamos proveedores en tu zona.
         </p>
       ) : null}
 
-      <h2 className="mt-10 text-xl font-semibold">Elige tu comuna</h2>
+      <h2 className="font-display mt-10 text-xl">Elige tu comuna</h2>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {rubro.comunas.map(({ comuna }) => (
           <li key={comuna.slug}>
             <Link
               href={`/${rubro.slug}/${comuna.slug}`}
-              className="block rounded-xl border border-(--color-borde) bg-white px-4 py-3 transition hover:border-(--color-marca)"
+              className="block rounded-2xl border border-(--color-borde) bg-white px-4 py-3 shadow-sm transition hover:border-(--color-marca)"
             >
               <span className="font-medium">{comuna.nombre}</span>
               <span className="block text-sm text-(--color-tinta-suave)">{comuna.region}</span>

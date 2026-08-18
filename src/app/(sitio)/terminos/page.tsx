@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 export default function Terminos() {
   return (
     <article className="mx-auto w-full max-w-2xl px-4 py-10 sm:py-14">
-      <h1 className="text-3xl font-semibold">Términos de uso</h1>
+      <h1 className="font-display text-3xl">Términos de uso</h1>
       <p className="mt-2 text-sm text-(--color-tinta-suave)">
         Última actualización: agosto de 2026.
       </p>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Qué es Ternio</h2>
+        <h2 className="font-display text-xl">Qué es Ternio</h2>
         <p>
           Ternio conecta empresas que necesitan un servicio con empresas que lo prestan. No
           prestamos los servicios cotizados ni participamos en el contrato que acuerdes con la
@@ -27,7 +27,7 @@ export default function Terminos() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Para quien cotiza</h2>
+        <h2 className="font-display text-xl">Para quien cotiza</h2>
         <p>
           Cotizar es gratis y no te obliga a contratar. Te pedimos que los datos que entregues
           sean verdaderos: con datos falsos no podemos verificar la solicitud ni ofrecerla a
@@ -36,7 +36,7 @@ export default function Terminos() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Para las empresas proveedoras</h2>
+        <h2 className="font-display text-xl">Para las empresas proveedoras</h2>
         <p>
           Las empresas proveedoras compran el contacto de solicitudes verificadas con créditos
           prepagados. El precio depende del rubro, de si la solicitud es exclusiva o compartida
@@ -50,7 +50,7 @@ export default function Terminos() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xl font-semibold">Responsabilidad</h2>
+        <h2 className="font-display text-xl">Responsabilidad</h2>
         <p>
           Verificamos los datos de contacto, no la calidad ni el cumplimiento de las empresas
           proveedoras ni de los compradores. La relación comercial y sus consecuencias son

@@ -126,13 +126,13 @@ export default async function PaginaRubroComuna({ params }: Props) {
 
         <div className="grid gap-10 lg:grid-cols-[1fr_minmax(0,26rem)] lg:items-start">
           <div>
-            <h1 className="text-3xl font-semibold sm:text-4xl">{titulo}</h1>
+            <h1 className="font-display text-3xl sm:text-4xl">{titulo}</h1>
             {intro ? (
               <p className="mt-4 text-lg text-(--color-tinta-suave)">{intro}</p>
             ) : null}
 
             {enCaptura ? (
-              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <div className="mt-6 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-4 text-sm text-(--color-tinta)">
                 <p className="font-medium">
                   Todavía estamos sumando empresas de este rubro en {comuna.nombre}.
                 </p>
@@ -145,7 +145,7 @@ export default async function PaginaRubroComuna({ params }: Props) {
 
             {porQue ? (
               <section className="mt-8">
-                <h2 className="text-xl font-semibold">
+                <h2 className="font-display text-xl">
                   Cómo funciona en {comuna.nombre}
                 </h2>
                 <p className="mt-2 text-(--color-tinta-suave)">{porQue}</p>
@@ -168,7 +168,7 @@ export default async function PaginaRubroComuna({ params }: Props) {
               </section>
             ) : null}
 
-            <div className="mt-8">
+            <div id="otro-servicio" className="mt-8">
               <OtroServicio comunaSlug={comuna.slug} />
             </div>
           </div>
@@ -177,7 +177,7 @@ export default async function PaginaRubroComuna({ params }: Props) {
             id="cotizar"
             className="rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm sm:p-6"
           >
-            <h2 className="text-xl font-semibold">
+            <h2 className="font-display text-xl">
               {enCaptura ? 'Déjanos tu solicitud' : 'Pide tu cotización'}
             </h2>
             <p className="mt-1 mb-5 text-sm text-(--color-tinta-suave)">
