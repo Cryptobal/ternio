@@ -142,9 +142,17 @@ describe('avisarAdmin fail-soft y dedup', () => {
     await avisarAdminLeadCreado('lead-p', { enviar, cargarLead: async () => leadAdmin })
     await avisarAdminLeadVerificado('lead-p', { enviar, cargarLead: async () => leadAdmin })
     expect(enviar).toHaveBeenCalledTimes(2)
-    expect(enviar.mock.calls[0][0].idempotencyKey).toBe('admin:lead:lead-p:RECIBIDO')
-    expect(enviar.mock.calls[1][0].idempotencyKey).toBe('admin:lead:lead-p:VERIFICADO')
-    expect(enviar.mock.calls[1][0].subject).toMatch(/verificada/i)
+    expect(enviar).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ idempotencyKey: 'admin:lead:lead-p:RECIBIDO' }),
+    )
+    expect(enviar).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        idempotencyKey: 'admin:lead:lead-p:VERIFICADO',
+        subject: expect.stringMatching(/verificada/i),
+      }),
+    )
   })
 
   it('omite Gard y no llama a enviarCorreo', async () => {
