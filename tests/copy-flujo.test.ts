@@ -71,12 +71,16 @@ describe('copy público sin mentiras de launch', () => {
       'utf8',
     )
     const home = readFileSync(resolve(process.cwd(), 'src/components/selector-cotizacion.tsx'), 'utf8')
+    const inicio = readFileSync(resolve(process.cwd(), 'src/app/(sitio)/page.tsx'), 'utf8')
     expect(territorio).toContain('debeMostrarNivelTerritorio')
     expect(territorio).not.toMatch(/buscar comuna|typeahead|<select/i)
     expect(territorio).not.toMatch(/Primero elige la región|Primero elige la provincia/)
     expect(home).toContain('{rubro ?')
     expect(home).toContain('SelectorTerritorio')
     expect(home).not.toMatch(/enVenta\[0\]/)
+    expect(inicio).toContain('SelectorCotizacion')
+    expect(inicio).not.toMatch(/atajosHome/)
+    expect(inicio).not.toMatch(/>Servicios</)
   })
 
   it('robots y sitemap no publican /admin', () => {

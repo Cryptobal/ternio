@@ -3,7 +3,7 @@
  * El admin no es el cajero: el alta acredita sola; la recarga son packs.
  */
 
-export const CREDITOS_ALTA = 200_000
+export const CREDITOS_ALTA = 50_000
 export const CREDITOS_SEMILLA_GARD = 500_000
 
 export const PACKS_CREDITOS = [

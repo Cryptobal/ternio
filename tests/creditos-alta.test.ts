@@ -10,14 +10,14 @@ import {
 } from '@/lib/creditos'
 
 describe('asiento de alta (idempotente)', () => {
-  it('usa la key alta:{proveedorId} y 200.000 créditos', () => {
+  it('usa la key alta:{proveedorId} y 50.000 créditos', () => {
     expect(claveAsientoAlta('prov-1')).toBe('alta:prov-1')
     const asiento = asientoAlta({ proveedorId: 'prov-1', saldoActual: 0 })
     expect(asiento.montoCreditos).toBe(CREDITOS_ALTA)
-    expect(asiento.montoCreditos).toBe(200_000)
+    expect(asiento.montoCreditos).toBe(50_000)
     expect(asiento.idempotencyKey).toBe('alta:prov-1')
     expect(asiento.tipo).toBe('AJUSTE')
-    expect(asiento.saldoPosterior).toBe(200_000)
+    expect(asiento.saldoPosterior).toBe(50_000)
   })
 
   it('no duplica si ya existe un asiento alta:', () => {

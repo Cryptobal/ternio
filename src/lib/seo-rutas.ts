@@ -13,12 +13,22 @@ export type AliasSeo = {
 /** slug público (si alguien entra por alias) → slug de BD. */
 export const SLUG_PUBLICO_A_BD: Record<string, string> = {
   plagas: 'control-de-plagas',
+  climatizacion: 'climatizacion-industrial',
 }
 
 /** slug de BD → path público. Identity salvo que se declare otra cosa. */
 export const SLUG_BD_A_PUBLICO: Record<string, string> = {}
 
-export const RUBROS_VENTA_PUBLICOS = ['seguridad', 'aseo', 'control-de-plagas'] as const
+export const RUBROS_VENTA_PUBLICOS = [
+  'seguridad',
+  'aseo',
+  'control-de-plagas',
+  'banos-quimicos',
+  'generadores',
+  'transporte-de-personal',
+  'transporte-de-carga',
+  'climatizacion-industrial',
+] as const
 
 export const ALIAS_SEO_308: AliasSeo[] = [
   { origen: '/guardias-de-seguridad', destino: '/seguridad' },
@@ -31,6 +41,8 @@ export const ALIAS_SEO_308: AliasSeo[] = [
   { origen: '/guardias-de-seguridad/:comuna', destino: '/seguridad/:comuna' },
   { origen: '/guardias/:comuna', destino: '/seguridad/:comuna' },
   { origen: '/empresas-de-seguridad/:comuna', destino: '/seguridad/:comuna' },
+  { origen: '/climatizacion', destino: '/climatizacion-industrial' },
+  { origen: '/climatizacion/:comuna', destino: '/climatizacion-industrial/:comuna' },
 ]
 
 export function slugBdDesdePublico(slugPublico: string): string {

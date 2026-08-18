@@ -101,7 +101,7 @@ producción (`ternio.cl`), sin mentir.
 
 - `/proveedores` crea cuenta (RUT con DV + OTP de celular).
 - Al verificar el celular, si el RUT es válido, la cuenta queda
-  **APROBADA** sola y el sistema acredita 200.000 créditos (`AJUSTE`,
+  **APROBADA** sola y el sistema acredita 50.000 créditos (`AJUSTE`,
   `idempotencyKey = alta:{proveedorId}`). Carlos no carga créditos.
 - `/panel`: si el celular aún no se confirma, un mensaje claro, sin lista
   de leads. Si está aprobado: compradores que calzan cobertura (nacional,
@@ -279,7 +279,7 @@ Carlos no carga créditos. El sistema sí.
 - Ledger: solo asientos. Tipos: `COMPRA_PACK`, `CONSUMO_LEAD`, `REVERSA`,
   `AJUSTE`.
 - **Alta:** al confirmar el celular por OTP, si el RUT tiene DV válido,
-  estado `APROBADO` + `AJUSTE` de 200.000. Key `alta:{proveedorId}`. Si
+  estado `APROBADO` + `AJUSTE` de 50.000. Key `alta:{proveedorId}`. Si
   el asiento ya existe, no duplicar. Si el RUT no es válido, no se aprueba
   ni se acredita.
 - **Recarga:** packs en `/panel` — 50.000 / 200.000 / 500.000 CLP = esos
@@ -307,7 +307,7 @@ Carlos no carga créditos. El sistema sí.
   no existe, crea `slug=gard-security`, `APROBADO`,
   `coberturaNacional=true`, snapshot nacional + rubro `seguridad`. Si ya
   hay una fila `gard*`, la usa. Pack de arranque si saldo 0 y no hay
-  asiento `alta:{id}`: `AJUSTE` 200.000. Sin teléfono inventado (se
+  asiento `alta:{id}`: `AJUSTE` 50.000. Sin teléfono inventado (se
   reclama después). Sin reseñas inventadas.
 
 ---
@@ -319,8 +319,8 @@ Carlos no carga créditos. El sistema sí.
 - Región → Provincia → Comuna. Un solo nivel visible a la vez. Sin typeahead.
 - “Saltar” solo en pasos opcionales. Continuar bloquea identidad.
 - Móvil primero. Targets grandes (`min-h-11`).
-- Home: una frase (“Cotiza servicios para tu empresa”), atajos a
-  Seguridad / Aseo / Plagas, después el selector.
+- Home: una frase (“Cotiza servicios para tu empresa”) y un solo
+  cotizador. El primer paso elige el rubro. Sin lista duplicada.
 - `/panel` de un comprador: “esta es la cuenta de proveedores” + link a
   `/proveedores`. No fingir que es el otro lado.
 
@@ -345,9 +345,12 @@ Detalle en [`docs/seo-map.md`](./seo-map.md).
 El slug real de plagas (seed y prod) es `control-de-plagas`. Canónica
 `/control-de-plagas`. `/plagas` redirige 308.
 
-Sitemap www ya es 200. Fail-soft si Prisma falla: `/`, `/seguridad`,
-`/aseo`, `/control-de-plagas`, `/proveedores`. Nunca 500. No incluye
-`/admin` ni `/panel`.
+Sitemap www ya es 200. Fail-soft si Prisma falla: `/`, las 8 landings
+VENTA (`/seguridad`, `/aseo`, `/control-de-plagas`, `/banos-quimicos`,
+`/generadores`, `/transporte-de-personal`, `/transporte-de-carga`,
+`/climatizacion-industrial`) y `/proveedores`. Nunca 500. No incluye
+`/admin` ni `/panel`. `/climatizacion` es alias 308 de
+`/climatizacion-industrial`.
 
 No inventar “+1000 empresas” ni prueba social. Schema.org `Service` o
 `LocalBusiness` donde corresponda, con datos reales.

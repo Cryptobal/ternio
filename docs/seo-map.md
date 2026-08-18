@@ -13,13 +13,13 @@ El sitemap que Google ve es `https://www.ternio.cl/sitemap.xml`
 ## Cómo se indexa
 
 1. `https://www.ternio.cl/sitemap.xml` ya es **200** y lista home,
-   `/seguridad`, `/aseo`, `/control-de-plagas` y combos piloto.
+   las 8 landings VENTA y combos piloto.
    El código deja fail-soft: si Prisma falla, igual se publican
-   esas URLs fijas (incluidos los 3 rubros VENTA). Nunca 500.
+   esas URLs fijas (incluidas las 8 landings VENTA). Nunca 500.
    Sin `/admin` ni `/panel`.
 2. `robots.txt` apunta al sitemap. **No** menciona `/admin`.
 3. Search Console: enviar el sitemap www y pedir indexación de
-   `/`, `/seguridad`, `/aseo`, `/control-de-plagas`.
+   `/` y las landings de rubro.
 4. Canonical = slug real. Alias 308. Sin HTML duplicado.
 
 Código: `src/app/sitemap.xml/route.ts` (fail-soft, sin Prisma),
@@ -37,6 +37,8 @@ Por eso `https://ternio.cl/plagas` da 404: no es la canónica.
 | `/control-de-plagas` | Canónica. 200. |
 | `/plagas` | Alias 308 → `/control-de-plagas` |
 | `/plagas/{comuna}` | Alias 308 → `/control-de-plagas/{comuna}` |
+| `/climatizacion` | Alias 308 → `/climatizacion-industrial` |
+| `/climatizacion/{comuna}` | Alias 308 → `/climatizacion-industrial/{comuna}` |
 
 ---
 
@@ -78,15 +80,18 @@ Comuna. Se mejora copy/metadata/CTA; no se reinventa el flujo.
 
 ---
 
-## Rubros en CAPTURA
+## Rubros en VENTA (antes CAPTURA)
+
+Los 5 que nacieron en lista de espera cotizan igual que seguridad /
+aseo / plagas. `/climatizacion` es alias 308.
 
 | Rubro | URL canónica | Estado |
 | --- | --- | --- |
-| Arriendo de baños químicos | `/banos-quimicos` | CAPTURA |
-| Arriendo de generadores | `/generadores` | CAPTURA |
-| Transporte de personal | `/transporte-de-personal` | CAPTURA |
-| Transporte de carga | `/transporte-de-carga` | CAPTURA |
-| Climatización industrial | `/climatizacion-industrial` | CAPTURA |
+| Arriendo de baños químicos | `/banos-quimicos` | VENTA |
+| Arriendo de generadores | `/generadores` | VENTA |
+| Transporte de personal | `/transporte-de-personal` | VENTA |
+| Transporte de carga | `/transporte-de-carga` | VENTA |
+| Climatización industrial | `/climatizacion-industrial` | VENTA |
 
 ---
 
@@ -98,7 +103,13 @@ Comuna. Se mejora copy/metadata/CTA; no se reinventa el flujo.
 | `/seguridad` | Sí | 200 en prod. |
 | `/aseo` | Sí | 200 en prod. |
 | `/control-de-plagas` | Sí | Canónica de plagas. 200 en prod. |
+| `/banos-quimicos` | Sí | VENTA. |
+| `/generadores` | Sí | VENTA. |
+| `/transporte-de-personal` | Sí | VENTA. |
+| `/transporte-de-carga` | Sí | VENTA. |
+| `/climatizacion-industrial` | Sí | VENTA. |
 | `/plagas` | No (alias 308) | No duplicar contenido. |
+| `/climatizacion` | No (alias 308) | → `/climatizacion-industrial`. |
 | `/proveedores` | Sí | Alta. |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |

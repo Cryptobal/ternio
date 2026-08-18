@@ -59,7 +59,7 @@ function snapshotConSeguridad(valor: unknown): SnapshotCoberturaProveedor {
 
 /**
  * Garantiza Gard Security (`gard-security` o una fila `gard*`) APROBADO,
- * con cobertura nacional + rubro seguridad, y pack de arranque (200.000,
+ * con cobertura nacional + rubro seguridad, y pack de arranque (50.000,
  * `alta:{id}`) si el saldo es 0 y el asiento no existe.
  * Idempotente. El seed de Vercel no corre solo: también se llama en
  * `/admin` y `/panel`.

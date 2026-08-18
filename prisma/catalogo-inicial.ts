@@ -4,9 +4,8 @@ import type { CampoFormulario } from '../src/lib/campos'
 import { COMUNAS_CHILE } from './comunas-chile'
 
 /**
- * Catálogo de lanzamiento: 3 rubros en VENTA (con precios) y 5 en CAPTURA
- * (sin precios, solo SEO + lista de espera). Las comunas son las 346 del CUT;
- * las páginas programáticas se publican solo para COMUNAS_SEO.
+ * Catálogo de lanzamiento: 8 rubros en VENTA (con precios). Las comunas son
+ * las 346 del CUT; las páginas programáticas se publican solo para COMUNAS_SEO.
  *
  * Vive aparte del seed para poder probarlo sin base de datos.
  */
@@ -167,28 +166,124 @@ export const CAMPOS_PLAGAS: CampoFormulario[] = [
   { nombre: 'detalle', etiqueta: 'Cuéntanos un poco más', tipo: 'textarea', requerido: false },
 ]
 
-/** Formulario genérico para los rubros que todavía están en CAPTURA. */
-export const CAMPOS_CAPTURA: CampoFormulario[] = [
+const PLAZO_CORTOS: CampoFormulario = {
+  nombre: 'plazo',
+  etiqueta: '¿Para cuándo lo necesitas?',
+  tipo: 'select',
+  requerido: true,
+  opciones: [
+    { valor: 'urgente', etiqueta: 'Lo antes posible' },
+    { valor: 'este_mes', etiqueta: 'Dentro de este mes' },
+    { valor: 'tres_meses', etiqueta: 'En los próximos 3 meses' },
+    { valor: 'cotizando', etiqueta: 'Solo estoy cotizando' },
+  ],
+}
+
+function camposCortos(tipo: CampoFormulario, placeholderDetalle: string): CampoFormulario[] {
+  return [
+    tipo,
+    PLAZO_CORTOS,
+    {
+      nombre: 'detalle',
+      etiqueta: 'Cuéntanos un poco más',
+      tipo: 'textarea',
+      requerido: false,
+      placeholder: placeholderDetalle,
+    },
+  ]
+}
+
+/** Formulario corto (qué / cuándo / notas). Sirve si un rubro no tiene módulo propio. */
+export const CAMPOS_CAPTURA: CampoFormulario[] = camposCortos(
   {
-    nombre: 'plazo',
-    etiqueta: '¿Para cuándo lo necesitas?',
+    nombre: 'tipo_servicio',
+    etiqueta: '¿Qué necesitas?',
+    tipo: 'texto',
+    requerido: true,
+    placeholder: 'En una frase',
+  },
+  'Mientras más nos cuentes, más útil es la cotización.',
+)
+
+export const CAMPOS_BANOS_QUIMICOS: CampoFormulario[] = camposCortos(
+  {
+    nombre: 'tipo_uso',
+    etiqueta: '¿Para qué los necesitas?',
     tipo: 'select',
     requerido: true,
     opciones: [
-      { valor: 'urgente', etiqueta: 'Lo antes posible' },
-      { valor: 'este_mes', etiqueta: 'Dentro de este mes' },
-      { valor: 'tres_meses', etiqueta: 'En los próximos 3 meses' },
-      { valor: 'cotizando', etiqueta: 'Solo estoy cotizando' },
+      { valor: 'obra', etiqueta: 'Obra o faena' },
+      { valor: 'evento', etiqueta: 'Evento' },
+      { valor: 'industria', etiqueta: 'Planta o recinto industrial' },
+      { valor: 'otro', etiqueta: 'Otro' },
     ],
   },
+  '¿Cuántos baños? ¿Por cuántos días?',
+)
+
+export const CAMPOS_GENERADORES: CampoFormulario[] = camposCortos(
   {
-    nombre: 'detalle',
-    etiqueta: 'Cuéntanos qué necesitas',
-    tipo: 'textarea',
+    nombre: 'tipo_uso',
+    etiqueta: '¿Para qué el generador?',
+    tipo: 'select',
     requerido: true,
-    placeholder: 'Mientras más nos cuentes, mejor podemos buscarte proveedores.',
+    opciones: [
+      { valor: 'obra', etiqueta: 'Obra o faena' },
+      { valor: 'respaldo', etiqueta: 'Respaldo eléctrico' },
+      { valor: 'evento', etiqueta: 'Evento' },
+      { valor: 'otro', etiqueta: 'Otro' },
+    ],
   },
-]
+  '¿Qué potencia aproximada? ¿Por cuántos días?',
+)
+
+export const CAMPOS_TRANSPORTE_PERSONAL: CampoFormulario[] = camposCortos(
+  {
+    nombre: 'tipo_servicio',
+    etiqueta: '¿Qué traslado necesitas?',
+    tipo: 'select',
+    requerido: true,
+    opciones: [
+      { valor: 'turnos', etiqueta: 'Acercamiento por turno' },
+      { valor: 'recorrido_fijo', etiqueta: 'Recorrido fijo' },
+      { valor: 'puntual', etiqueta: 'Un traslado puntual' },
+      { valor: 'otro', etiqueta: 'Otro' },
+    ],
+  },
+  '¿Cuántas personas? ¿De dónde a dónde?',
+)
+
+export const CAMPOS_TRANSPORTE_CARGA: CampoFormulario[] = camposCortos(
+  {
+    nombre: 'tipo_carga',
+    etiqueta: '¿Qué hay que mover?',
+    tipo: 'select',
+    requerido: true,
+    opciones: [
+      { valor: 'general', etiqueta: 'Carga general' },
+      { valor: 'distribucion', etiqueta: 'Distribución o flete frecuente' },
+      { valor: 'maquinaria', etiqueta: 'Maquinaria o carga especial' },
+      { valor: 'otro', etiqueta: 'Otro' },
+    ],
+  },
+  '¿Origen, destino y si es un viaje o varios?',
+)
+
+export const CAMPOS_CLIMATIZACION: CampoFormulario[] = camposCortos(
+  {
+    nombre: 'tipo_servicio',
+    etiqueta: '¿Qué necesitas?',
+    tipo: 'select',
+    requerido: true,
+    opciones: [
+      { valor: 'instalacion', etiqueta: 'Instalación nueva' },
+      { valor: 'mantencion', etiqueta: 'Mantención' },
+      { valor: 'reparacion', etiqueta: 'Reparación' },
+      { valor: 'otro', etiqueta: 'Otro' },
+    ],
+  },
+  '¿Qué recinto es? ¿Cuántos equipos?',
+)
 
 export type SemillaRubro = {
   slug: string
@@ -261,15 +356,16 @@ export const RUBROS: SemillaRubro[] = [
     nombre: 'Arriendo de baños químicos',
     nombrePlural: 'Empresas de arriendo de baños químicos',
     descripcion: 'Baños químicos para obras, faenas y eventos.',
-    modo: ModoRubro.CAPTURA,
+    modo: ModoRubro.VENTA,
     orden: 4,
-    precioExclusivoClp: null,
-    precioCompartidoClp: null,
-    campos: CAMPOS_CAPTURA,
+    precioExclusivoClp: 15_000,
+    precioCompartidoClp: 6_000,
+    campos: CAMPOS_BANOS_QUIMICOS,
     contenidoSeo: {
       intro:
-        'Todavía estamos sumando empresas de arriendo de baños químicos en esta zona. Déjanos tu solicitud y te avisamos apenas tengamos proveedores.',
-      porQue: 'Nos sirve saber cuánta demanda hay para abrir el rubro con buenas empresas.',
+        'Cuéntanos cuántos baños químicos necesitas y para cuándo. Te contactan empresas que arriendan en tu zona.',
+      porQue:
+        'En baños químicos el plazo y la cantidad cambian el precio. Mientras más claro lo dejes, más firme es la cotización.',
     },
   },
   {
@@ -277,15 +373,16 @@ export const RUBROS: SemillaRubro[] = [
     nombre: 'Arriendo de generadores',
     nombrePlural: 'Empresas de arriendo de generadores',
     descripcion: 'Generadores eléctricos para obras, respaldo y eventos.',
-    modo: ModoRubro.CAPTURA,
+    modo: ModoRubro.VENTA,
     orden: 5,
-    precioExclusivoClp: null,
-    precioCompartidoClp: null,
-    campos: CAMPOS_CAPTURA,
+    precioExclusivoClp: 25_000,
+    precioCompartidoClp: 10_000,
+    campos: CAMPOS_GENERADORES,
     contenidoSeo: {
       intro:
-        'Todavía estamos sumando empresas de arriendo de generadores en esta zona. Déjanos tu solicitud y te avisamos apenas tengamos proveedores.',
-      porQue: 'Nos sirve saber cuánta demanda hay para abrir el rubro con buenas empresas.',
+        'Di para qué necesitas el generador y por cuántos días. Te contactan empresas de arriendo que atienden tu comuna.',
+      porQue:
+        'La potencia y los días de arriendo mandan el precio. Un respaldo de oficina no se cotiza igual que una faena.',
     },
   },
   {
@@ -293,15 +390,16 @@ export const RUBROS: SemillaRubro[] = [
     nombre: 'Transporte de personal',
     nombrePlural: 'Empresas de transporte de personal',
     descripcion: 'Acercamiento de trabajadores y traslados por turno.',
-    modo: ModoRubro.CAPTURA,
+    modo: ModoRubro.VENTA,
     orden: 6,
-    precioExclusivoClp: null,
-    precioCompartidoClp: null,
-    campos: CAMPOS_CAPTURA,
+    precioExclusivoClp: 20_000,
+    precioCompartidoClp: 8_000,
+    campos: CAMPOS_TRANSPORTE_PERSONAL,
     contenidoSeo: {
       intro:
-        'Todavía estamos sumando empresas de transporte de personal en esta zona. Déjanos tu solicitud y te avisamos apenas tengamos proveedores.',
-      porQue: 'Nos sirve saber cuánta demanda hay para abrir el rubro con buenas empresas.',
+        'Cuéntanos cuántas personas y en qué horario. Te contactan empresas de transporte de personal que cubren tu comuna.',
+      porQue:
+        'El recorrido y los turnos cambian el valor. Un acercamiento diario no se cotiza igual que un traslado puntual.',
     },
   },
   {
@@ -309,15 +407,16 @@ export const RUBROS: SemillaRubro[] = [
     nombre: 'Transporte de carga',
     nombrePlural: 'Empresas de transporte de carga',
     descripcion: 'Fletes, distribución y transporte de carga para empresas.',
-    modo: ModoRubro.CAPTURA,
+    modo: ModoRubro.VENTA,
     orden: 7,
-    precioExclusivoClp: null,
-    precioCompartidoClp: null,
-    campos: CAMPOS_CAPTURA,
+    precioExclusivoClp: 20_000,
+    precioCompartidoClp: 8_000,
+    campos: CAMPOS_TRANSPORTE_CARGA,
     contenidoSeo: {
       intro:
-        'Todavía estamos sumando empresas de transporte de carga en esta zona. Déjanos tu solicitud y te avisamos apenas tengamos proveedores.',
-      porQue: 'Nos sirve saber cuánta demanda hay para abrir el rubro con buenas empresas.',
+        'Di qué hay que mover y de dónde a dónde. Te contactan empresas de transporte de carga que atienden tu zona.',
+      porQue:
+        'El tipo de carga y la frecuencia mandan. Un flete único no se cotiza igual que una distribución semanal.',
     },
   },
   {
@@ -325,15 +424,16 @@ export const RUBROS: SemillaRubro[] = [
     nombre: 'Climatización industrial',
     nombrePlural: 'Empresas de climatización industrial',
     descripcion: 'Instalación y mantención de climatización para industria y oficinas.',
-    modo: ModoRubro.CAPTURA,
+    modo: ModoRubro.VENTA,
     orden: 8,
-    precioExclusivoClp: null,
-    precioCompartidoClp: null,
-    campos: CAMPOS_CAPTURA,
+    precioExclusivoClp: 25_000,
+    precioCompartidoClp: 10_000,
+    campos: CAMPOS_CLIMATIZACION,
     contenidoSeo: {
       intro:
-        'Todavía estamos sumando empresas de climatización industrial en esta zona. Déjanos tu solicitud y te avisamos apenas tengamos proveedores.',
-      porQue: 'Nos sirve saber cuánta demanda hay para abrir el rubro con buenas empresas.',
+        'Cuéntanos si es instalación o mantención y en qué recinto. Te contactan empresas de climatización que cubren tu comuna.',
+      porQue:
+        'El recinto y el tipo de equipo cambian el precio. Una sala de servidores no se cotiza igual que una planta.',
     },
   },
 ]

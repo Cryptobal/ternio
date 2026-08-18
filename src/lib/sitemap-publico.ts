@@ -10,6 +10,11 @@ export const RUTAS_SITEMAP_FIJAS = [
   '/seguridad',
   '/aseo',
   '/control-de-plagas',
+  '/banos-quimicos',
+  '/generadores',
+  '/transporte-de-personal',
+  '/transporte-de-carga',
+  '/climatizacion-industrial',
   '/proveedores',
   '/privacidad',
   '/terminos',
@@ -90,7 +95,16 @@ export function pathsSitemapPiloto(): string[] {
 function metaDePath(path: string): Pick<EntradaSitemap, 'changefreq' | 'priority'> {
   if (path === '/') return { changefreq: 'weekly', priority: 1 }
   if (path === '/proveedores') return { changefreq: 'monthly', priority: 0.6 }
-  if (path === '/seguridad' || path === '/aseo' || path === '/control-de-plagas') {
+  if (
+    path === '/seguridad' ||
+    path === '/aseo' ||
+    path === '/control-de-plagas' ||
+    path === '/banos-quimicos' ||
+    path === '/generadores' ||
+    path === '/transporte-de-personal' ||
+    path === '/transporte-de-carga' ||
+    path === '/climatizacion-industrial'
+  ) {
     return { changefreq: 'weekly', priority: 0.9 }
   }
   if (path.split('/').filter(Boolean).length === 1) {
@@ -154,9 +168,18 @@ export function sitemapMinimoXml(base: string, now = new Date()): string {
   try {
     return xmlSitemap(entradasSitemap(base), lastmod)
   } catch {
-    const locs = ['/', '/seguridad', '/aseo', '/control-de-plagas', '/proveedores'].map((path) =>
-      locSitemap(base, path),
-    )
+    const locs = [
+      '/',
+      '/seguridad',
+      '/aseo',
+      '/control-de-plagas',
+      '/banos-quimicos',
+      '/generadores',
+      '/transporte-de-personal',
+      '/transporte-de-carga',
+      '/climatizacion-industrial',
+      '/proveedores',
+    ].map((path) => locSitemap(base, path))
     const urls = locs
       .map((loc) => `  <url><loc>${escaparXml(loc)}</loc></url>`)
       .join('\n')

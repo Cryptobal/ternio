@@ -27,6 +27,14 @@ describe('rutas SEO públicas', () => {
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardias-de-seguridad', destino: '/seguridad' })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardias', destino: '/seguridad' })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/empresas-de-aseo', destino: '/aseo' })
+    expect(ALIAS_SEO_308).toContainEqual({
+      origen: '/climatizacion',
+      destino: '/climatizacion-industrial',
+    })
+    expect(ALIAS_SEO_308).toContainEqual({
+      origen: '/climatizacion/:comuna',
+      destino: '/climatizacion-industrial/:comuna',
+    })
   })
 
   it('el selector usa la URL pública real', () => {
@@ -60,7 +68,16 @@ describe('copy único por combo', () => {
   })
 
   it('el H1 del rubro no nombra una comuna; la ciudad va en el combo', () => {
-    for (const slug of ['seguridad', 'aseo', 'control-de-plagas'] as const) {
+    for (const slug of [
+      'seguridad',
+      'aseo',
+      'control-de-plagas',
+      'banos-quimicos',
+      'generadores',
+      'transporte-de-personal',
+      'transporte-de-carga',
+      'climatizacion-industrial',
+    ] as const) {
       const copy = copyRubro(slug, 'Nombre', null)
       expect(copy.h1).not.toMatch(/Santiago|Valdivia|Providencia/i)
       expect(copy.title).not.toMatch(/Santiago|Valdivia|Providencia/i)
@@ -77,5 +94,45 @@ describe('copy único por combo', () => {
     expect(titleCombo({ slugBd: 'aseo', nombrePlural: 'Empresas de aseo', comuna: 'Santiago' })).toBe(
       'Empresas de aseo en Santiago',
     )
+    expect(copyRubro('banos-quimicos', 'Empresas de arriendo de baños químicos', null).title).toBe(
+      'Arriendo de baños químicos',
+    )
+    expect(copyRubro('generadores', 'Empresas de arriendo de generadores', null).title).toBe(
+      'Arriendo de generadores',
+    )
+    expect(copyRubro('transporte-de-personal', 'Empresas de transporte de personal', null).title).toBe(
+      'Transporte de personal',
+    )
+    expect(copyRubro('transporte-de-carga', 'Empresas de transporte de carga', null).title).toBe(
+      'Transporte de carga',
+    )
+    expect(copyRubro('climatizacion-industrial', 'Empresas de climatización industrial', null).title).toBe(
+      'Climatización industrial',
+    )
+    expect(copyRubro('climatizacion', 'Empresas de climatización industrial', null).title).toBe(
+      'Climatización industrial',
+    )
+  })
+
+  it('cada landing VENTA tiene title e H1 propios, sin copy de lista de espera', () => {
+    const slugs = [
+      'seguridad',
+      'aseo',
+      'control-de-plagas',
+      'banos-quimicos',
+      'generadores',
+      'transporte-de-personal',
+      'transporte-de-carga',
+      'climatizacion-industrial',
+    ] as const
+    const titles = slugs.map((slug) => copyRubro(slug, 'Nombre', null).title)
+    const h1s = slugs.map((slug) => copyRubro(slug, 'Nombre', null).h1)
+    expect(new Set(titles).size).toBe(slugs.length)
+    expect(new Set(h1s).size).toBe(slugs.length)
+    for (const slug of slugs) {
+      const copy = copyRubro(slug, 'Nombre', null)
+      expect(copy.intro).not.toMatch(/te avisamos|lista de espera|sumando empresas/i)
+      expect(copy.cta).toMatch(/cotizaci/i)
+    }
   })
 })

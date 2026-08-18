@@ -206,16 +206,16 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
 - URL canónica de plagas: `/control-de-plagas` (slug real de seed/prod).
   `/plagas` es alias 308.
 - Sitemap www ya es 200; fail-soft sin Prisma si la DB falla. Mínimo:
-  home + `/seguridad` `/aseo` `/control-de-plagas` `/proveedores`.
+  home + las 8 landings VENTA + `/proveedores`.
 - Créditos de lanzamiento: automáticos al verificar el celular
-  (`AJUSTE` `alta:{proveedorId}`, 200.000). Recarga = packs Flow
+  (`AJUSTE` `alta:{proveedorId}`, 50.000). Recarga = packs Flow
   (receta oficial create-order + order-confirmation; no MercadoPago).
   El admin no es el cajero.
 - Matching y toma de lead viven en `src/lib/matching.ts` +
   `src/server/marketplace.ts` (este prompt los dejaba en Fase 3).
-- Al aprobar un proveedor se acreditan 200.000 (idempotente). Gard:
+- Al aprobar un proveedor se acreditan 50.000 (idempotente). Gard:
   `ensureGardSecurity` (seed / `/admin` / `/panel`) crea
-  `gard-security` nacional + seguridad; pack de arranque 200.000 si
+  `gard-security` nacional + seguridad; pack de arranque 50.000 si
   saldo 0.
 - `/admin/rubros` crea y edita rubros (desactivar, no borrar).
   VENTA exige ambos precios > 0. El sitio usa `motion` con
