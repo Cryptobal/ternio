@@ -212,5 +212,7 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
   El admin no es el cajero.
 - Matching y toma de lead viven en `src/lib/matching.ts` +
   `src/server/marketplace.ts` (este prompt los dejaba en Fase 3).
-- Al aprobar un proveedor se acreditan 200.000 (idempotente). Gard
-  semilla: 500.000 si saldo 0.
+- Al aprobar un proveedor se acreditan 200.000 (idempotente). Gard:
+  `ensureGardSecurity` (seed / `/admin` / `/panel`) crea
+  `gard-security` nacional + seguridad; pack de arranque 200.000 si
+  saldo 0.

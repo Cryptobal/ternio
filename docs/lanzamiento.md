@@ -13,8 +13,9 @@ indexó ni que hay proveedores comprando.
       piloto (`COMUNAS_SEO`), cuenta admin. Comando: `pnpm db:seed`
       (no corre solo en el build de Vercel).
 - [ ] Gard Security existe (`slug` `gard-security` o fila real Gard),
-      `APROBADO`, cobertura nacional, rubro seguridad. Si saldo 0:
-      500.000 créditos.
+      `APROBADO`, cobertura nacional, rubro seguridad. El seed **y**
+      `ensureGardSecurity` (al abrir `/admin` o `/panel`) lo crean si
+      falta. Si saldo 0 y no hay `alta:{id}`: pack de arranque 200.000.
 - [ ] `/seguridad`, `/aseo`, `/control-de-plagas` responden **200**.
 - [ ] `/plagas` → 308 `/control-de-plagas`. `/guardias`,
       `/guardias-de-seguridad` → `/seguridad`. `/empresas-de-aseo` → `/aseo`.

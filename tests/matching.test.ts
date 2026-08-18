@@ -5,6 +5,7 @@ import {
   faseVentanaGard,
   factorFreshness,
   GARD_VENTANA_MS,
+  geografiaCubreLead,
   leadSePuedeVender,
   puedeTomarLead,
   precioVigente,
@@ -21,6 +22,8 @@ function lead(parcial: Partial<LeadMatch> = {}): LeadMatch {
   return {
     rubroSlug: 'seguridad',
     comunaSlug: 'santiago',
+    region: 'Región Metropolitana',
+    provincia: 'Santiago',
     estado: 'VERIFICADO',
     modoRubroAlCrear: 'VENTA',
     rutValido: true,
@@ -29,6 +32,9 @@ function lead(parcial: Partial<LeadMatch> = {}): LeadMatch {
     ...parcial,
   }
 }
+
+const leadProvidencia = () =>
+  lead({ comunaSlug: 'providencia', region: 'Región Metropolitana', provincia: 'Santiago' })
 
 function proveedor(parcial: Partial<ProveedorMatch> = {}): ProveedorMatch {
   return {
@@ -51,10 +57,71 @@ describe('matching', () => {
     expect(proveedorCubreLead(nacional, lead({ comunaSlug: 'valdivia' }))).toBe(true)
   })
 
-  it('sin nacional exige Cobertura activa de rubro+comuna', () => {
+  it('sin nacional ni snapshot geográfico exige Cobertura activa de rubro+comuna', () => {
     const local = proveedor({ coberturaNacional: false })
     expect(proveedorCubreLead(local, lead({ comunaSlug: 'santiago' }))).toBe(true)
     expect(proveedorCubreLead(local, lead({ comunaSlug: 'valdivia' }))).toBe(false)
+  })
+
+  it('snapshot RM + seguridad cubre Providencia sin fila Cobertura', () => {
+    const rm = proveedor({
+      coberturaNacional: false,
+      coberturas: [],
+      solicitudEspera: {
+        modo: 'region',
+        rubros: ['seguridad'],
+        regiones: ['Región Metropolitana'],
+        provincias: [],
+        comunas: [],
+      },
+    })
+    expect(proveedorCubreLead(rm, leadProvidencia())).toBe(true)
+    expect(
+      proveedorCubreLead(
+        rm,
+        lead({ comunaSlug: 'valdivia', region: 'Región de Los Ríos', provincia: 'Valdivia' }),
+      ),
+    ).toBe(false)
+  })
+
+  it('snapshot provincia Santiago cubre Providencia', () => {
+    const provincia = proveedor({
+      coberturaNacional: false,
+      coberturas: [],
+      solicitudEspera: {
+        modo: 'provincia',
+        rubros: ['seguridad'],
+        regiones: [],
+        provincias: [{ region: 'Región Metropolitana', provincia: 'Santiago' }],
+        comunas: [],
+      },
+    })
+    expect(proveedorCubreLead(provincia, leadProvidencia())).toBe(true)
+  })
+
+  it('snapshot comuna providencia cubre el lead de prod', () => {
+    const local = proveedor({
+      coberturaNacional: false,
+      coberturas: [],
+      solicitudEspera: {
+        modo: 'comuna',
+        rubros: ['seguridad'],
+        regiones: [],
+        provincias: [],
+        comunas: ['providencia'],
+      },
+    })
+    expect(proveedorCubreLead(local, leadProvidencia())).toBe(true)
+    expect(geografiaCubreLead(local, lead({ comunaSlug: 'santiago' }))).toBe(false)
+  })
+
+  it('fila Cobertura providencia+seguridad cubre aunque el snapshot esté vacío', () => {
+    const porFila = proveedor({
+      coberturaNacional: false,
+      solicitudEspera: { modo: 'comuna', rubros: [], regiones: [], provincias: [], comunas: [] },
+      coberturas: [{ rubroSlug: 'seguridad', comunaSlug: 'providencia', activa: true }],
+    })
+    expect(proveedorCubreLead(porFila, leadProvidencia())).toBe(true)
   })
 
   it('el rubro tiene que estar en el snapshot o en coberturas', () => {

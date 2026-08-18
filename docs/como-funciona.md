@@ -84,8 +84,9 @@ Ruta `/admin`. Sin links en el sitio. Fuera del sitemap. **No** está en
 Módulo: `src/lib/matching.ts`.
 
 Calza si el proveedor está `APROBADO`, el rubro del lead está en sus
-rubros (`solicitudEspera` o `Cobertura`) y (`coberturaNacional` **o**
-hay `Cobertura` activa de ese proveedor + rubro + comuna).
+rubros (`solicitudEspera` o `Cobertura`) y la geografía cubre: nacional,
+snapshot (RM cubre Providencia) o `Cobertura` activa de ese proveedor +
+rubro + comuna.
 
 No se ofrece: `CAPTURA` al nacer, no verificado, RUT inválido, teléfono
 sin OTP, más de 7 días desde `verificadoAt`, cupos llenos.

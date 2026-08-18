@@ -4,6 +4,7 @@ import { AccionesRapidasLead } from '@/app/admin/acciones-rapidas'
 import { AccionesProveedor } from '@/app/admin/proveedores/acciones-proveedor'
 import { rutaAdmin } from '@/lib/admin-ruta'
 import { prisma } from '@/lib/prisma'
+import { ensureGardSecurity } from '@/server/gard'
 import { requerirAdmin } from '@/server/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -19,6 +20,7 @@ function Numero({ titulo, valor }: { titulo: string; valor: number }) {
 
 export default async function AdminInicio() {
   await requerirAdmin()
+  await ensureGardSecurity()
 
   const [porRevisar, proveedoresNuevos, aLaVenta, pendientes, ultimos] = await Promise.all([
     prisma.lead.count({

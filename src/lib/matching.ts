@@ -33,6 +33,10 @@ export type ProveedorMatch = {
 export type LeadMatch = {
   rubroSlug: string
   comunaSlug: string
+  /** Nombre CUT, p. ej. `Región Metropolitana`. */
+  region: string
+  /** Nombre CUT, p. ej. `Santiago`. */
+  provincia: string
   estado: string
   modoRubroAlCrear: string
   rutValido: boolean
@@ -56,17 +60,49 @@ export function slugsRubroDelProveedor(proveedor: {
   return [...new Set([...deSnapshot, ...deCobertura])]
 }
 
-export function proveedorCubreLead(proveedor: ProveedorMatch, lead: LeadMatch): boolean {
-  if (proveedor.estado !== 'APROBADO') return false
-  const rubros = slugsRubroDelProveedor(proveedor)
-  if (!rubros.includes(lead.rubroSlug)) return false
+/**
+ * Nacional cubre todo. Un snapshot de Región Metropolitana cubre
+ * Providencia aunque no haya fila `Cobertura`. La fila activa
+ * (rubro + comuna) también cubre.
+ */
+export function geografiaCubreLead(
+  proveedor: Pick<ProveedorMatch, 'coberturaNacional' | 'solicitudEspera' | 'coberturas'>,
+  lead: Pick<LeadMatch, 'rubroSlug' | 'comunaSlug' | 'region' | 'provincia'>,
+): boolean {
   if (proveedor.coberturaNacional) return true
+
+  const snap = leerSnapshotCobertura(proveedor.solicitudEspera)
+  if (snap?.modo === 'nacional') return true
+
+  if (snap?.modo === 'region' && lead.region && snap.regiones.includes(lead.region)) {
+    return true
+  }
+
+  if (
+    snap?.modo === 'provincia' &&
+    lead.provincia &&
+    snap.provincias.some((item) => item.region === lead.region && item.provincia === lead.provincia)
+  ) {
+    return true
+  }
+
+  if (snap?.modo === 'comuna' && snap.comunas.includes(lead.comunaSlug)) {
+    return true
+  }
+
   return proveedor.coberturas.some(
     (fila) =>
       fila.activa &&
       fila.rubroSlug === lead.rubroSlug &&
       fila.comunaSlug === lead.comunaSlug,
   )
+}
+
+export function proveedorCubreLead(proveedor: ProveedorMatch, lead: LeadMatch): boolean {
+  if (proveedor.estado !== 'APROBADO') return false
+  const rubros = slugsRubroDelProveedor(proveedor)
+  if (!rubros.includes(lead.rubroSlug)) return false
+  return geografiaCubreLead(proveedor, lead)
 }
 
 export function leadSePuedeVender(lead: LeadMatch, ahora = new Date()): boolean {

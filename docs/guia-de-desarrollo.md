@@ -104,11 +104,13 @@ producción (`ternio.cl`), sin mentir.
   **APROBADA** sola y el sistema acredita 200.000 créditos (`AJUSTE`,
   `idempotencyKey = alta:{proveedorId}`). Carlos no carga créditos.
 - `/panel`: si el celular aún no se confirma, un mensaje claro, sin lista
-  de leads. Si está aprobado: compradores que calzan cobertura (nacional
-  **o** fila `Cobertura` activa de proveedor + rubro + comuna). Ficha
-  anónima. Precio visible. Tomar exclusivo o compartido. Recién ahí ve
-  teléfono, correo, RUT y razón social.
-- Matching respeta `coberturaNacional`. Gard 15 min en seguridad.
+  de leads. Si está aprobado: compradores que calzan cobertura (nacional,
+  snapshot de región/provincia/comuna, **o** fila `Cobertura` activa de
+  proveedor + rubro + comuna). Ficha anónima. Precio visible. Tomar
+  exclusivo o compartido. Recién ahí ve teléfono, correo, RUT y razón
+  social.
+- Matching respeta `coberturaNacional` y el snapshot. Gard 15 min en
+  seguridad. `ensureGardSecurity` corre en seed, `/admin` y `/panel`.
 - Saldo visible. Recarga = packs self-serve (50.000 / 200.000 / 500.000)
   por Flow Checkout. Sin botón “pídele a Ternio”.
 - Ledger cuadrado: 1 crédito = 1 CLP. Nunca un saldo mutable sin asiento.
@@ -203,6 +205,7 @@ Datos y venta:
 | Venta | `CompraLead` + `MovimientoCreditos` |
 | Matching | `src/lib/matching.ts` |
 | Precio / ventana Gard / cupos | `src/lib/matching.ts` (funciones puras) |
+| Ensure Gard | `src/lib/gard.ts` + `src/server/gard.ts` |
 | Tomar lead + ledger | `src/server/marketplace.ts` |
 | Packs / Flow | `src/lib/flow.ts` + `src/server/packs.ts` + `/api/flow/confirmacion` |
 | Acciones admin | `src/server/admin.ts` |
@@ -227,8 +230,10 @@ Un lead calza con un proveedor si y solo si:
 1. `proveedor.estado === APROBADO`
 2. El rubro del lead está en los rubros del proveedor (snapshot
    `solicitudEspera.rubros` **o** filas `Cobertura`)
-3. Y (`proveedor.coberturaNacional === true` **o** existe `Cobertura`
-   activa para ese proveedor + rubro + comuna)
+3. Y la geografía calza: `coberturaNacional` **o** snapshot
+   `solicitudEspera` (modo `nacional` / región / provincia / comuna;
+   p. ej. Región Metropolitana cubre Providencia) **o** existe
+   `Cobertura` activa para ese proveedor + rubro + comuna
 
 Un lead se ofrece solo si:
 
@@ -285,10 +290,12 @@ Carlos no carga créditos. El sistema sí.
   + Preview). Ver `docs/lanzamiento.md`.
 - Admin: puede ver saldo, Suspender y revertir un lead falso (`REVERSA`).
   No es el flujo de recarga. Un ajuste de emergencia escondido está ok.
-- Semilla Gard Security: si no existe, crear `slug=gard-security`,
-  `APROBADO`, `coberturaNacional=true`, rubro seguridad. Si ya existe una
-  fila real Gard, usarla. Si su saldo es 0, `AJUSTE` 500.000
-  (`semilla-gard:{id}`). Sin reseñas inventadas.
+- Gard Security: `ensureGardSecurity` (seed + `/admin` + `/panel`). Si
+  no existe, crea `slug=gard-security`, `APROBADO`,
+  `coberturaNacional=true`, snapshot nacional + rubro `seguridad`. Si ya
+  hay una fila `gard*`, la usa. Pack de arranque si saldo 0 y no hay
+  asiento `alta:{id}`: `AJUSTE` 200.000. Sin teléfono inventado (se
+  reclama después). Sin reseñas inventadas.
 
 ---
 

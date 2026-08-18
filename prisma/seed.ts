@@ -1,6 +1,6 @@
-import { EstadoProveedor, ModoRubro, PrismaClient, RolUsuario, TipoMovimientoCreditos } from '@prisma/client'
+import { ModoRubro, PrismaClient, RolUsuario } from '@prisma/client'
 
-import { CREDITOS_SEMILLA_GARD, claveSemillaGard } from '../src/lib/creditos'
+import { ensureGardSecurity } from '../src/lib/gard'
 import { COMUNAS, COMUNAS_SEO, RUBROS } from './catalogo-inicial'
 import { validarModoRubro } from '../src/lib/rubros'
 
@@ -12,6 +12,7 @@ import { validarModoRubro } from '../src/lib/rubros'
  * - RubroComuna: crea solo las combinaciones piloto (COMUNAS_SEO).
  *   No activa ni crea páginas para el resto de Chile.
  * - Admin: upsert desde el entorno, igual que antes.
+ * - Gard: `ensureGardSecurity` (nacional + seguridad + pack si saldo 0).
  */
 
 const prisma = new PrismaClient()
@@ -21,7 +22,8 @@ async function main(): Promise<void> {
   await sembrarComunas()
   await sembrarPaginasSeo()
   await sembrarAdmin()
-  await sembrarGard()
+  const gard = await ensureGardSecurity(prisma)
+  console.log(`Gard listo (${gard.slug}${gard.creado ? ', creado' : ''}).`)
 
   const ventas = await prisma.rubro.count({ where: { modo: ModoRubro.VENTA } })
   const capturas = await prisma.rubro.count({ where: { modo: ModoRubro.CAPTURA } })
@@ -129,74 +131,6 @@ async function sembrarAdmin(): Promise<void> {
   })
 
   console.log(`Cuenta de admin lista para ${email}.`)
-}
-
-/**
- * Gard Security: comprador ancla de seguridad. Si ya hay una fila real
- * (slug gard-*), se usa. Sin reseñas inventadas.
- */
-async function sembrarGard(): Promise<void> {
-  const seguridad = await prisma.rubro.findUnique({
-    where: { slug: 'seguridad' },
-    select: { id: true },
-  })
-  if (!seguridad) {
-    console.warn('Sin rubro seguridad: no se sembró Gard.')
-    return
-  }
-
-  const existente = await prisma.proveedor.findFirst({
-    where: { OR: [{ slug: 'gard-security' }, { slug: { startsWith: 'gard' } }] },
-    select: { id: true, slug: true, estado: true },
-  })
-
-  const proveedor =
-    existente ??
-    (await prisma.proveedor.create({
-      data: {
-        slug: 'gard-security',
-        nombre: 'Gard Security',
-        razonSocial: 'Gard Security',
-        estado: EstadoProveedor.APROBADO,
-        coberturaNacional: true,
-        solicitudEspera: {
-          modo: 'nacional',
-          regiones: [],
-          provincias: [],
-          comunas: [],
-          rubros: ['seguridad'],
-        },
-      },
-    }))
-
-  if (proveedor.estado !== EstadoProveedor.APROBADO) {
-    await prisma.proveedor.update({
-      where: { id: proveedor.id },
-      data: { estado: EstadoProveedor.APROBADO, coberturaNacional: true },
-    })
-  }
-
-  const movimientos = await prisma.movimientoCreditos.findMany({
-    where: { proveedorId: proveedor.id },
-    select: { montoCreditos: true, idempotencyKey: true },
-  })
-  const saldo = movimientos.reduce((suma, fila) => suma + fila.montoCreditos, 0)
-  const key = claveSemillaGard(proveedor.id)
-  const yaSemilla = movimientos.some((fila) => fila.idempotencyKey === key)
-  if (saldo === 0 && !yaSemilla) {
-    await prisma.movimientoCreditos.create({
-      data: {
-        proveedorId: proveedor.id,
-        tipo: TipoMovimientoCreditos.AJUSTE,
-        montoCreditos: CREDITOS_SEMILLA_GARD,
-        saldoPosterior: CREDITOS_SEMILLA_GARD,
-        idempotencyKey: key,
-        descripcion: 'Semilla Gard Security (saldo en cero)',
-      },
-    })
-  }
-
-  console.log(`Gard listo (${proveedor.slug}).`)
 }
 
 main()
