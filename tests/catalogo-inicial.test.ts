@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ModoRubro } from '@prisma/client'
 
-import { COMUNAS, RUBROS } from '../prisma/catalogo-inicial'
+import { COMUNAS, COMUNAS_SEO, RUBROS } from '../prisma/catalogo-inicial'
 import { camposFormularioSchema } from '@/lib/campos'
 import { rubroPuedeVender, validarModoRubro } from '@/lib/rubros'
 
@@ -49,10 +49,32 @@ describe('catálogo de lanzamiento', () => {
     expect(new Set(COMUNAS.map((comuna) => comuna.slug)).size).toBe(COMUNAS.length)
   })
 
-  it('trae las comunas piloto de la Región Metropolitana', () => {
-    expect(COMUNAS.length).toBeGreaterThanOrEqual(8)
-    expect(COMUNAS.map((comuna) => comuna.slug)).toContain('las-condes')
-    expect(COMUNAS.map((comuna) => comuna.slug)).toContain('quilicura')
+  it('trae las 346 comunas del CUT y conserva los slugs piloto', () => {
+    expect(COMUNAS).toHaveLength(346)
+    expect(new Set(COMUNAS.map((comuna) => comuna.cut)).size).toBe(346)
+    expect(COMUNAS_SEO).toEqual([
+      'santiago',
+      'las-condes',
+      'providencia',
+      'vitacura',
+      'nunoa',
+      'maipu',
+      'quilicura',
+      'pudahuel',
+    ])
+    const slugs = COMUNAS.map((comuna) => comuna.slug)
+    for (const slug of COMUNAS_SEO) {
+      expect(slugs).toContain(slug)
+    }
+    const santiago = COMUNAS.find((comuna) => comuna.slug === 'santiago')
+    expect(santiago).toMatchObject({
+      nombre: 'Santiago',
+      region: 'Región Metropolitana',
+      provincia: 'Santiago',
+      cut: '13101',
+    })
+    expect(new Set(COMUNAS.map((comuna) => comuna.region)).size).toBe(16)
+    expect(new Set(COMUNAS.map((comuna) => `${comuna.region}/${comuna.provincia}`)).size).toBe(56)
   })
 
   it('usa slugs limpios para las URL programáticas', () => {

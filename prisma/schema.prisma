@@ -72,6 +72,7 @@ enum EstadoProveedor {
   PENDIENTE
   APROBADO
   SUSPENDIDO
+  RECHAZADO
 }
 
 enum TipoCompraLead {
@@ -212,12 +213,13 @@ model Rubro {
 }
 
 model Comuna {
-  id     String  @id @default(cuid())
-  slug   String  @unique
-  nombre String
-  region String
-  activa Boolean @default(true)
-  orden  Int     @default(0)
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  nombre    String
+  region    String
+  provincia String  @default("")
+  activa    Boolean @default(true)
+  orden     Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -228,6 +230,8 @@ model Comuna {
   proveedores      Proveedor[]
   solicitudesRubro SolicitudRubro[]
   eventos          EventoAnalitica[]
+
+  @@index([region, provincia])
 }
 
 /// Combinación publicada {rubro}/{comuna}, con su contenido único.
@@ -271,6 +275,11 @@ model Proveedor {
   /// Modo auto-compra con tope de gasto mensual (lógica en F3, UI en F4).
   autoCompra     Boolean @default(false)
   topeMensualClp Int?
+
+  /// Lista de espera pública (/proveedores): rubros, región, provincia y comunas
+  /// pedidas. No implica que ya esté en el marketplace.
+  solicitudEspera Json?
+  vistoAt         DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

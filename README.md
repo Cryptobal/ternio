@@ -20,7 +20,7 @@ pnpm install
 cp .env.example .env.local     # completa los valores; nunca los subas al repo
 pnpm prisma migrate deploy     # o `pnpm db:migrate` en desarrollo
 pnpm hash:password 'tu-contraseña'   # el hash va en ADMIN_PASSWORD_HASH
-pnpm db:seed                   # 8 rubros, comunas piloto y cuenta de admin
+pnpm db:seed                   # 8 rubros, 346 comunas CUT y cuenta de admin
 pnpm dev
 ```
 
@@ -38,9 +38,11 @@ Las variables de entorno están documentadas una por una en
 - `ADMIN_PASSWORD_HASH` — hash bcrypt; se genera con
   `pnpm hash:password 'tu-contraseña'`.
 
-El seed (`pnpm db:seed`) es **manual y de una sola vez**. No corre en el build
-de Vercel. Usa upsert con `update`: re-correrlo pisa precios u otros campos
-editados desde el admin.
+El seed (`pnpm db:seed`) es **seguro de re-ejecutar**: crea rubros si faltan
+(no pisa copy ni precios del admin), hace upsert de las 346 comunas del CUT y
+solo publica páginas SEO para las 8 comunas piloto. Sigue siendo un comando
+aparte: no corre en el build de Vercel (tsx vive en devDependencies). Si la
+home sale vacía en producción, corre el seed contra Neon.
 
 El build de producción aplica las migraciones (`prisma generate`,
 `prisma migrate deploy` con reintentos, `next build`). El comando vive solo

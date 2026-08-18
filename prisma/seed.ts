@@ -1,80 +1,107 @@
 import { ModoRubro, PrismaClient, RolUsuario } from '@prisma/client'
 
-import { COMUNAS, REGION, RUBROS } from './catalogo-inicial'
+import { COMUNAS, COMUNAS_SEO, RUBROS } from './catalogo-inicial'
 import { validarModoRubro } from '../src/lib/rubros'
 
 /**
- * Seed idempotente (upsert en todo). Se puede correr las veces que sea.
+ * Seed idempotente y seguro de re-ejecutar.
  *
- * Deja el catálogo de lanzamiento: 3 rubros en VENTA (con precios) y 5 en
- * CAPTURA (sin precios, solo SEO + lista de espera), las comunas piloto de la
- * Región Metropolitana y la cuenta de admin tomada desde el entorno.
+ * - Rubros: crea si faltan; no pisa copy ni precios editados en admin.
+ * - Comunas: upsert de las 346 del CUT (región + provincia).
+ * - RubroComuna: crea solo las combinaciones piloto (COMUNAS_SEO).
+ *   No activa ni crea páginas para el resto de Chile.
+ * - Admin: upsert desde el entorno, igual que antes.
  */
 
 const prisma = new PrismaClient()
 
-
 async function main(): Promise<void> {
+  await sembrarRubros()
+  await sembrarComunas()
+  await sembrarPaginasSeo()
+  await sembrarAdmin()
+
+  const ventas = await prisma.rubro.count({ where: { modo: ModoRubro.VENTA } })
+  const capturas = await prisma.rubro.count({ where: { modo: ModoRubro.CAPTURA } })
+  const comunas = await prisma.comuna.count()
+  const combinaciones = await prisma.rubroComuna.count({ where: { activa: true } })
+
+  console.log(
+    `Seed listo: ${ventas} rubros en VENTA, ${capturas} en CAPTURA, ` +
+      `${comunas} comunas, ${combinaciones} páginas {rubro}/{comuna} activas ` +
+      `(solo el piloto SEO).`,
+  )
+}
+
+async function sembrarRubros(): Promise<void> {
   for (const rubro of RUBROS) {
-    // Un rubro en VENTA sin ambos precios sería un lead vendible a $0.
     const validacion = validarModoRubro({ ...rubro, activo: true })
     if (!validacion.ok) {
       throw new Error(`Rubro "${rubro.slug}" inválido: ${validacion.motivo}`)
     }
 
-    const datos = {
-      nombre: rubro.nombre,
-      nombrePlural: rubro.nombrePlural,
-      descripcion: rubro.descripcion,
-      modo: rubro.modo,
-      activo: true,
-      orden: rubro.orden,
-      precioExclusivoClp: rubro.precioExclusivoClp,
-      precioCompartidoClp: rubro.precioCompartidoClp,
-      camposFormulario: rubro.campos,
-      contenidoSeo: rubro.contenidoSeo,
-    }
-
-    await prisma.rubro.upsert({
+    const existe = await prisma.rubro.findUnique({
       where: { slug: rubro.slug },
-      create: { slug: rubro.slug, ...datos },
-      update: datos,
+      select: { id: true },
+    })
+    if (existe) continue
+
+    await prisma.rubro.create({
+      data: {
+        slug: rubro.slug,
+        nombre: rubro.nombre,
+        nombrePlural: rubro.nombrePlural,
+        descripcion: rubro.descripcion,
+        modo: rubro.modo,
+        activo: true,
+        orden: rubro.orden,
+        precioExclusivoClp: rubro.precioExclusivoClp,
+        precioCompartidoClp: rubro.precioCompartidoClp,
+        camposFormulario: rubro.campos,
+        contenidoSeo: rubro.contenidoSeo,
+      },
     })
   }
+}
 
-  for (const comuna of COMUNAS) {
-    const datos = { nombre: comuna.nombre, region: REGION, activa: true, orden: comuna.orden }
+async function sembrarComunas(): Promise<void> {
+  for (const [indice, comuna] of COMUNAS.entries()) {
+    const datos = {
+      nombre: comuna.nombre,
+      region: comuna.region,
+      provincia: comuna.provincia,
+      activa: true,
+      orden: indice + 1,
+    }
     await prisma.comuna.upsert({
       where: { slug: comuna.slug },
       create: { slug: comuna.slug, ...datos },
       update: datos,
     })
   }
+}
 
-  // Publica todas las combinaciones rubro × comuna piloto.
+async function sembrarPaginasSeo(): Promise<void> {
   const rubrosDb = await prisma.rubro.findMany({ select: { id: true, slug: true } })
-  const comunasDb = await prisma.comuna.findMany({ select: { id: true, slug: true } })
+  const comunasDb = await prisma.comuna.findMany({
+    where: { slug: { in: [...COMUNAS_SEO] } },
+    select: { id: true, slug: true },
+  })
+
+  if (comunasDb.length !== COMUNAS_SEO.length) {
+    const faltan = COMUNAS_SEO.filter((slug) => !comunasDb.some((fila) => fila.slug === slug))
+    throw new Error(`Faltan comunas SEO en el seed: ${faltan.join(', ')}`)
+  }
 
   for (const rubro of rubrosDb) {
     for (const comuna of comunasDb) {
       await prisma.rubroComuna.upsert({
         where: { rubroId_comunaId: { rubroId: rubro.id, comunaId: comuna.id } },
         create: { rubroId: rubro.id, comunaId: comuna.id, activa: true },
-        update: { activa: true },
+        update: {},
       })
     }
   }
-
-  await sembrarAdmin()
-
-  const ventas = await prisma.rubro.count({ where: { modo: ModoRubro.VENTA } })
-  const capturas = await prisma.rubro.count({ where: { modo: ModoRubro.CAPTURA } })
-  const combinaciones = await prisma.rubroComuna.count()
-
-  console.log(
-    `Seed listo: ${ventas} rubros en VENTA, ${capturas} en CAPTURA, ` +
-      `${comunasDb.length} comunas, ${combinaciones} páginas {rubro}/{comuna}.`,
-  )
 }
 
 /**
