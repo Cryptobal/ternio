@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 
+import { NavAdmin } from '@/components/admin/nav-admin'
+
 export const metadata: Metadata = {
   title: 'Panel',
   robots: { index: false, follow: false, nocache: true },
@@ -11,5 +13,10 @@ export const metadata: Metadata = {
  * carcasa, sin cabecera ni pie comerciales del sitio público.
  */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-6xl px-4 py-8">{children}</div>
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <NavAdmin />
+      {children}
+    </div>
+  )
 }

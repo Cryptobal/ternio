@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ActorTransicion, EstadoLead, TipoTransicionLead } from '@prisma/client'
+import { ActorTransicion, EstadoLead, EstadoProveedor, TipoTransicionLead } from '@prisma/client'
 
 import { rutaAdmin } from '@/lib/admin-ruta'
 import { prisma } from '@/lib/prisma'
@@ -108,6 +108,7 @@ export async function moverEstadoLead(
   ])
 
   revalidatePath(rutaAdmin())
+  revalidatePath(rutaAdmin('compradores'))
   revalidatePath(rutaAdmin(`leads/${lead.id}`))
 
   return { ok: true, mensaje: 'Estado actualizado.' }
@@ -149,6 +150,59 @@ export async function marcarTelefonoVerificado(
   ])
 
   revalidatePath(rutaAdmin(`leads/${lead.id}`))
+  revalidatePath(rutaAdmin('compradores'))
 
   return { ok: true, mensaje: 'Teléfono marcado como verificado.' }
+}
+
+const ACCIONES_ESPERA = ['visto', 'aprobar', 'rechazar'] as const
+type AccionEspera = (typeof ACCIONES_ESPERA)[number]
+
+function esAccionEspera(valor: string): valor is AccionEspera {
+  return (ACCIONES_ESPERA as readonly string[]).includes(valor)
+}
+
+/**
+ * Revisa la lista de espera de /proveedores.
+ * Aprobar o rechazar no crea créditos ni matching.
+ */
+export async function marcarListaEsperaProveedor(
+  _estadoPrevio: ResultadoAccionAdmin,
+  formData: FormData,
+): Promise<ResultadoAccionAdmin> {
+  await requerirAdmin()
+
+  const proveedorId = String(formData.get('proveedorId') ?? '')
+  const accionBruta = String(formData.get('accion') ?? '')
+  if (!esAccionEspera(accionBruta)) {
+    return { ok: false, mensaje: 'Esa acción no existe.' }
+  }
+
+  const proveedor = await prisma.proveedor.findUnique({
+    where: { id: proveedorId },
+    select: { id: true, solicitudEspera: true },
+  })
+  if (!proveedor || proveedor.solicitudEspera == null) {
+    return { ok: false, mensaje: 'No encontramos esa inscripción.' }
+  }
+
+  if (accionBruta === 'visto') {
+    await prisma.proveedor.update({
+      where: { id: proveedor.id },
+      data: { vistoAt: new Date() },
+    })
+  } else if (accionBruta === 'aprobar') {
+    await prisma.proveedor.update({
+      where: { id: proveedor.id },
+      data: { estado: EstadoProveedor.APROBADO, vistoAt: new Date() },
+    })
+  } else {
+    await prisma.proveedor.update({
+      where: { id: proveedor.id },
+      data: { estado: EstadoProveedor.RECHAZADO, vistoAt: new Date() },
+    })
+  }
+
+  revalidatePath(rutaAdmin('proveedores'))
+  return { ok: true, mensaje: 'Lista de espera actualizada.' }
 }

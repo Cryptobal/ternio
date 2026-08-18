@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { FormularioListaEspera } from '@/components/formulario-lista-espera'
+import { comunasActivas, rubrosActivos } from '@/lib/catalogo'
+
 export const metadata: Metadata = {
   title: 'Para empresas proveedoras',
   description:
@@ -8,9 +11,13 @@ export const metadata: Metadata = {
   alternates: { canonical: '/proveedores' },
 }
 
+export const dynamic = 'force-dynamic'
+
 const CORREO = process.env.NEXT_PUBLIC_CONTACTO_PROVEEDORES
 
-export default function Proveedores() {
+export default async function Proveedores() {
+  const [rubros, comunas] = await Promise.all([rubrosActivos(), comunasActivas()])
+
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-12 sm:py-16">
       <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">Para empresas</p>
@@ -57,19 +64,27 @@ export default function Proveedores() {
         </li>
       </ul>
 
-      {CORREO ? (
-        <div className="mt-10 rounded-2xl bg-(--color-tinta) p-6 text-white">
-          <h2 className="font-display text-2xl">¿Quieres entrar?</h2>
-          <p className="mt-2 text-white/80">
-            Escríbenos y te avisamos cuando se abra el onboarding.
+      <div className="mt-10" id="lista-espera">
+        {rubros.length === 0 ? (
+          <p className="rounded-2xl border border-(--color-borde) bg-white p-5 text-(--color-tinta-suave)">
+            Aún no podemos anotar empresas: falta el catálogo de rubros. Vuelve en un rato.
           </p>
-          <a
-            href={`mailto:${CORREO}`}
-            className="mt-4 inline-flex min-h-11 items-center rounded-2xl bg-(--color-ambar) px-5 py-3 font-semibold text-(--color-tinta)"
-          >
-            Escribir a {CORREO}
+        ) : (
+          <FormularioListaEspera
+            rubros={rubros.map((rubro) => ({ slug: rubro.slug, nombre: rubro.nombre }))}
+            comunas={comunas}
+          />
+        )}
+      </div>
+
+      {CORREO ? (
+        <p className="mt-6 text-sm text-(--color-tinta-suave)">
+          Si prefieres, escríbenos a{' '}
+          <a href={`mailto:${CORREO}`} className="font-medium text-(--color-marca) underline-offset-4 hover:underline">
+            {CORREO}
           </a>
-        </div>
+          .
+        </p>
       ) : null}
 
       <p className="mt-8 text-sm text-(--color-tinta-suave)">
