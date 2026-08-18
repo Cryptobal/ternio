@@ -2,17 +2,26 @@
 
 import { useMemo } from 'react'
 
+import { ChipMiga } from '@/components/chip-miga'
+import { SelectorTerritorio } from '@/components/selector-territorio'
+import { PasoAnimado } from '@/components/ui/motion'
 import {
   claveProvincia,
   etiquetaModoCobertura,
   type ModoCobertura,
   type SeleccionCobertura,
 } from '@/lib/cobertura'
-import { provinciasDe, regionesDe, type ComunaTerritorio } from '@/lib/territorio'
-import { SelectorTerritorio } from '@/components/selector-territorio'
+import {
+  debeMostrarNivelTerritorio,
+  preguntaNivelTerritorio,
+  provinciasDe,
+  regionesDe,
+  type ComunaTerritorio,
+} from '@/lib/territorio'
 import { CLASE_CHIP, CLASE_CHIP_ACTIVO } from '@/lib/ui'
 
 const MODOS: ModoCobertura[] = ['nacional', 'region', 'provincia', 'comuna']
+const CLASE_LISTA = 'grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2'
 
 function Chip({
   seleccionado,
@@ -44,10 +53,19 @@ export function SelectorCobertura({
   onChange: (siguiente: SeleccionCobertura) => void
 }) {
   const regiones = useMemo(() => regionesDe(comunas), [comunas])
+  const regionProvincia = value.regiones[0] ?? ''
   const provincias = useMemo(() => {
-    if (value.modo !== 'provincia' || value.regiones.length !== 1) return []
-    return provinciasDe(comunas, value.regiones[0] ?? '')
-  }, [comunas, value.modo, value.regiones])
+    if (value.modo !== 'provincia' || !regionProvincia) return []
+    return provinciasDe(comunas, regionProvincia)
+  }, [comunas, value.modo, regionProvincia])
+
+  const mostrarRegionesProvincia = debeMostrarNivelTerritorio(
+    'region',
+    regionProvincia,
+    '',
+    '',
+  )
+  const mostrarProvincias = debeMostrarNivelTerritorio('provincia', regionProvincia, '', '')
 
   function setModo(modo: ModoCobertura) {
     onChange({ modo, regiones: [], provincias: [], comunas: [] })
@@ -95,8 +113,8 @@ export function SelectorCobertura({
 
       {value.modo === 'region' ? (
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">Regiones</legend>
-          <ul className="grid gap-2 sm:grid-cols-2">
+          <legend className="mb-2 text-sm font-medium">{preguntaNivelTerritorio('region')}</legend>
+          <ul className={`${CLASE_LISTA} sm:grid-cols-2`}>
             {regiones.map((region) => (
               <li key={region}>
                 <Chip seleccionado={value.regiones.includes(region)} onClick={() => toggleRegion(region)}>
@@ -110,42 +128,51 @@ export function SelectorCobertura({
 
       {value.modo === 'provincia' ? (
         <div className="grid gap-3">
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium">Región</legend>
-            <ul className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
-              {regiones.map((region) => (
-                <li key={region}>
-                  <Chip
-                    seleccionado={value.regiones[0] === region}
-                    onClick={() => elegirRegionProvincia(region)}
-                  >
-                    {region}
-                  </Chip>
-                </li>
-              ))}
-            </ul>
-          </fieldset>
-          {value.regiones[0] ? (
-            <fieldset>
-              <legend className="mb-2 text-sm font-medium">Provincias</legend>
-              <ul className="grid gap-2">
-                {provincias.map((provincia) => (
-                  <li key={provincia}>
-                    <Chip
-                      seleccionado={value.provincias.some(
-                        (item) => item.region === value.regiones[0] && item.provincia === provincia,
-                      )}
-                      onClick={() => toggleProvincia(value.regiones[0] ?? '', provincia)}
-                    >
-                      {provincia}
-                    </Chip>
-                  </li>
-                ))}
-              </ul>
-            </fieldset>
-          ) : (
-            <p className="text-sm text-(--color-tinta-suave)">Primero elige la región.</p>
-          )}
+          {regionProvincia ? (
+            <div className="flex flex-wrap gap-2">
+              <ChipMiga onQuitar={() => onChange({ ...value, regiones: [], provincias: [] })}>
+                {regionProvincia}
+              </ChipMiga>
+            </div>
+          ) : null}
+          <PasoAnimado id={`cobertura-provincia-${regionProvincia || 'region'}`}>
+            {mostrarRegionesProvincia ? (
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium">{preguntaNivelTerritorio('region')}</legend>
+                <ul className={CLASE_LISTA}>
+                  {regiones.map((region) => (
+                    <li key={region}>
+                      <Chip
+                        seleccionado={value.regiones[0] === region}
+                        onClick={() => elegirRegionProvincia(region)}
+                      >
+                        {region}
+                      </Chip>
+                    </li>
+                  ))}
+                </ul>
+              </fieldset>
+            ) : null}
+            {mostrarProvincias ? (
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium">{preguntaNivelTerritorio('provincia')}</legend>
+                <ul className={CLASE_LISTA}>
+                  {provincias.map((provincia) => (
+                    <li key={provincia}>
+                      <Chip
+                        seleccionado={value.provincias.some(
+                          (item) => item.region === regionProvincia && item.provincia === provincia,
+                        )}
+                        onClick={() => toggleProvincia(regionProvincia, provincia)}
+                      >
+                        {provincia}
+                      </Chip>
+                    </li>
+                  ))}
+                </ul>
+              </fieldset>
+            ) : null}
+          </PasoAnimado>
         </div>
       ) : null}
 

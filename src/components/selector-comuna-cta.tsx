@@ -47,12 +47,11 @@ export function SelectorComunaCta({
         idPrefijo="rubro-comuna"
       />
       {error ? <p className="mt-2 text-sm text-(--color-rojo)">{error}</p> : null}
-      <button
-        type="submit"
-        className={`mt-4 ${CLASE_BOTON}`}
-      >
-        {etiquetaCta}
-      </button>
+      {comunaSlug ? (
+        <button type="submit" className={`mt-4 ${CLASE_BOTON}`}>
+          {etiquetaCta}
+        </button>
+      ) : null}
     </form>
   )
 }

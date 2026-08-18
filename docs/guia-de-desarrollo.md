@@ -174,11 +174,11 @@ Sin dependencias nuevas salvo que sea inevitable. Migraciones solo aditivas.
 
 ## Arquitectura (archivos reales)
 
-Tres paneles:
+Tres entradas (el comprador no tiene panel):
 
 | Quién | Ruta | Archivo |
 | --- | --- | --- |
-| Comprador | `/mis-cotizaciones` | `src/app/(sitio)/mis-cotizaciones/page.tsx` |
+| Comprador | `/mis-cotizaciones` — tus cotizaciones, no un panel | `src/app/(sitio)/mis-cotizaciones/page.tsx` |
 | Proveedor | `/panel` | `src/app/(sitio)/panel/page.tsx` |
 | Admin | `/admin` | `src/app/admin/page.tsx` — 404 si no es ADMIN |
 
@@ -316,7 +316,7 @@ Carlos no carga créditos. El sistema sí.
 
 - Español de Chile.
 - Una columna. Un botón primario por pantalla.
-- Región → Provincia → Comuna. Sin typeahead.
+- Región → Provincia → Comuna. Un solo nivel visible a la vez. Sin typeahead.
 - “Saltar” solo en pasos opcionales. Continuar bloquea identidad.
 - Móvil primero. Targets grandes (`min-h-11`).
 - Home: una frase (“Cotiza servicios para tu empresa”), atajos a
