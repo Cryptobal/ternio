@@ -38,9 +38,10 @@ export function SelectorCotizacion({
   idPrefijo?: string
 }) {
   const router = useRouter()
-  const enVenta = rubrosEnVenta(rubros)
-  const enCaptura = rubros.filter((rubro) => rubro.modo === 'CAPTURA')
-  const servicios = [...enVenta, ...enCaptura]
+  const servicios = useMemo(
+    () => [...rubrosEnVenta(rubros), ...rubros.filter((item) => item.modo === 'CAPTURA')],
+    [rubros],
+  )
   const partida = servicios.find((item) => item.slug === rubroInicial)
 
   const [audiencia, setAudiencia] = useState<Audiencia | ''>(

@@ -265,7 +265,7 @@ const COPY_RUBRO: Record<string, CopyRubro> = {
 }
 
 const POR_QUE_COMBO: Record<string, (comuna: string, provincia: string) => string> = {
-  seguridad: (c, p) =>
+  seguridad: (c) =>
     `En ${c} el turno, los accesos y si hay OS-10 cambian el precio. Mientras más claro lo dejes, más útil es la cotización.`,
   aseo: (c, p) =>
     `En ${c} el metro cuadrado y la frecuencia mandan. Una oficina en ${p} no se cotiza igual que una planta.`,
