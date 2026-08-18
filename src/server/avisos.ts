@@ -1,4 +1,4 @@
-import { EstadoCompraLead, EstadoProveedor } from '@prisma/client'
+import { EstadoCompraLead, EstadoProveedor, TipoEventoAnalitica } from '@prisma/client'
 
 import {
   claveIdempotenciaAdminCompra,
@@ -79,7 +79,11 @@ export async function avisarProveedoresLeadVerificado(leadId: string): Promise<v
   try {
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
-      select: SELECT_FICHA_ANONIMA,
+      select: {
+        ...SELECT_FICHA_ANONIMA,
+        rubroId: true,
+        comunaId: true,
+      },
     })
     if (!lead) return
 
@@ -135,6 +139,27 @@ export async function avisarProveedoresLeadVerificado(leadId: string): Promise<v
         }),
       ),
     )
+
+    // Después del despacho, fail-soft: medir SLA sin retrasar ni tumbar el aviso.
+    // Import dinámico: evita arrastrar `server-only` al grafo de tests de avisos admin.
+    try {
+      const msDesdeVerificado = lead.verificadoAt
+        ? Math.max(0, Date.now() - lead.verificadoAt.getTime())
+        : 0
+      const { registrarEvento } = await import('@/lib/analitica')
+      await registrarEvento({
+        tipo: TipoEventoAnalitica.LEAD_AVISADO,
+        leadId,
+        rubroId: lead.rubroId,
+        comunaId: lead.comunaId,
+        metadata: {
+          proveedoresAvisados: destinos.length,
+          msDesdeVerificado,
+        },
+      })
+    } catch (error) {
+      console.error('[analitica] LEAD_AVISADO', error)
+    }
   } catch (error) {
     console.error('[email] aviso a proveedores', error)
   }

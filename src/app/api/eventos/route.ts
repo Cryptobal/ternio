@@ -10,9 +10,9 @@ import { consumirRateLimit } from '@/lib/rate-limit'
  * Eventos de embudo enviados desde el navegador.
  *
  * Solo acepta los dos pasos que ocurren antes de tocar el servidor
- * (VISITA_PAGINA y FORM_START). LEAD_CREADO y CUENTA_CREADA se registran en el
- * servidor cuando de verdad pasan: si se pudieran mandar desde el cliente, el
- * criterio go/no-go sería falsificable.
+ * (VISITA_PAGINA y FORM_START). LEAD_CREADO, CUENTA_CREADA y LEAD_AVISADO
+ * se registran en el servidor cuando de verdad pasan: si se pudieran mandar
+ * desde el cliente, el criterio go/no-go y el SLA serían falsificables.
  */
 const cuerpoSchema = z.object({
   tipo: z.enum(['VISITA_PAGINA', 'FORM_START']),

@@ -48,7 +48,13 @@ export function registrarEventoCliente(
   })
 }
 
-export function MedidorVisita({ rubro, comuna }: { rubro: string; comuna: string }) {
+export function MedidorVisita({
+  rubro,
+  comuna,
+}: {
+  rubro: string
+  comuna?: string
+}) {
   const yaEnviado = useRef(false)
 
   useEffect(() => {

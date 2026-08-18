@@ -5,6 +5,7 @@ import { ModoRubro } from '@prisma/client'
 
 import { FaqRubro } from '@/components/faq-rubro'
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
+import { MedidorVisita } from '@/components/medidor-embudo'
 import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorCotizacion } from '@/components/selector-cotizacion'
 import { parsearCampos } from '@/lib/campos'
@@ -124,6 +125,10 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
   return (
     <div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <MedidorVisita
+        rubro={rubro.slug}
+        comuna={comunaPreseleccionada ?? undefined}
+      />
 
       <section className="bg-(--color-tinta) text-white">
         <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
