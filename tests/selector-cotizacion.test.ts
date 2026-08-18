@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  audienciaPorDefecto,
-  filtrarServiciosPorAudiencia,
-  pasoCotizador,
-  rubroCalzaAudiencia,
-} from '@/lib/audiencia'
+import { audienciaPorDefecto, pasoCotizador } from '@/lib/audiencia'
 import { claveCombo, destinoSelector, rubrosEnVenta } from '@/lib/selector-cotizacion'
 
 describe('destinoSelector', () => {
@@ -13,11 +8,17 @@ describe('destinoSelector', () => {
     expect(destinoSelector({ slug: 'seguridad', modo: 'VENTA' }, 'las-condes', true)).toBe(
       '/seguridad/las-condes',
     )
+    expect(destinoSelector({ slug: 'gasfiteria', modo: 'VENTA' }, 'santiago', true, 'hogar')).toBe(
+      '/gasfiteria/santiago?audiencia=hogar',
+    )
   })
 
   it('comuna sin página SEO → /{rubro}?comuna=', () => {
     expect(destinoSelector({ slug: 'seguridad', modo: 'VENTA' }, 'valdivia', false)).toBe(
       '/seguridad?comuna=valdivia',
+    )
+    expect(destinoSelector({ slug: 'gasfiteria', modo: 'VENTA' }, 'valdivia', false, 'empresa')).toBe(
+      '/gasfiteria?comuna=valdivia&audiencia=empresa',
     )
   })
 
@@ -52,27 +53,8 @@ describe('destinoSelector', () => {
 describe('cascada del cotizador', () => {
   it('pide audiencia, después servicio, después territorio', () => {
     expect(pasoCotizador('', '')).toBe('audiencia')
-    expect(pasoCotizador('casa', '')).toBe('servicio')
-    expect(pasoCotizador('casa', 'gasfiteria')).toBe('territorio')
-  })
-
-  it('casa y empresa filtran sin inventar dos productos', () => {
-    expect(rubroCalzaAudiencia('aseo-hogar', 'casa')).toBe(true)
-    expect(rubroCalzaAudiencia('aseo-hogar', 'empresa')).toBe(false)
-    expect(rubroCalzaAudiencia('aseo', 'empresa')).toBe(true)
-    expect(rubroCalzaAudiencia('aseo', 'casa')).toBe(false)
-    expect(rubroCalzaAudiencia('gasfiteria', 'casa')).toBe(true)
-    expect(rubroCalzaAudiencia('gasfiteria', 'empresa')).toBe(true)
+    expect(pasoCotizador('hogar', '')).toBe('servicio')
+    expect(pasoCotizador('hogar', 'gasfiteria')).toBe('territorio')
     expect(audienciaPorDefecto('seguridad')).toBe('empresa')
-    const lista = [
-      { slug: 'aseo' },
-      { slug: 'aseo-hogar' },
-      { slug: 'gasfiteria' },
-      { slug: 'seguridad' },
-    ]
-    expect(filtrarServiciosPorAudiencia(lista, 'casa').map((r) => r.slug)).toEqual([
-      'aseo-hogar',
-      'gasfiteria',
-    ])
   })
 })

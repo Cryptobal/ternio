@@ -339,6 +339,9 @@ model Lead {
   /// no se vuelve vendible solo porque el rubro cambie de modo después.
   modoRubroAlCrear ModoRubro
 
+  /// Casa o empresa. Valores: hogar | empresa. Null en leads anteriores.
+  audiencia String?
+
   rutValido          Boolean @default(false)
   telefonoVerificado Boolean @default(false)
   whatsappOptIn      Boolean @default(false)

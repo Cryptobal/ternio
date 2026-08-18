@@ -22,3 +22,16 @@ describe('migración ola 2', () => {
     }
   })
 })
+
+describe('migración audiencia del lead', () => {
+  it('agrega la columna sin tocar filas viejas', () => {
+    const sql = readFileSync(
+      resolve(process.cwd(), 'prisma/migrations/20260818125000_lead_audiencia/migration.sql'),
+      'utf8',
+    )
+    expect(sql).toMatch(/ADD COLUMN "audiencia" TEXT/)
+    expect(sql).toMatch(/'hogar', 'empresa'/)
+    expect(sql).not.toMatch(/DELETE FROM/)
+    expect(sql).not.toMatch(/DROP COLUMN/)
+  })
+})

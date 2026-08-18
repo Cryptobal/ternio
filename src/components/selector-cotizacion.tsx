@@ -8,7 +8,7 @@ import { ComboServicio } from '@/components/combo-servicio'
 import { SelectorTerritorio } from '@/components/selector-territorio'
 import { PasoAnimado } from '@/components/ui/motion'
 import {
-  audienciaPorDefecto,
+  audienciaInicialParaPagina,
   ETIQUETA_AUDIENCIA,
   filtrarServiciosPorAudiencia,
   PREGUNTA_AUDIENCIA,
@@ -29,23 +29,22 @@ export function SelectorCotizacion({
   comunas,
   publicados = [],
   rubroInicial,
+  audienciaInicial,
   idPrefijo = 'selector-home',
 }: {
   rubros: RubroSelector[]
   comunas: ComunaTerritorio[]
   publicados?: string[]
   rubroInicial?: string
+  audienciaInicial?: string | null
   idPrefijo?: string
 }) {
   const router = useRouter()
-  const servicios = useMemo(
-    () => [...rubrosEnVenta(rubros), ...rubros.filter((item) => item.modo === 'CAPTURA')],
-    [rubros],
-  )
+  const servicios = useMemo(() => rubrosEnVenta(rubros), [rubros])
   const partida = servicios.find((item) => item.slug === rubroInicial)
 
-  const [audiencia, setAudiencia] = useState<Audiencia | ''>(
-    partida ? audienciaPorDefecto(partida.slug) : '',
+  const [audiencia, setAudiencia] = useState<Audiencia | ''>(() =>
+    partida ? audienciaInicialParaPagina(partida.slug, audienciaInicial) : '',
   )
   const [slug, setSlug] = useState(partida?.slug ?? '')
   const [comunaSlug, setComunaSlug] = useState('')
@@ -70,7 +69,7 @@ export function SelectorCotizacion({
     }
     setError(undefined)
     const publicado = publicadosSet.has(claveCombo(rubro.slug, comunaSlug))
-    router.push(destinoSelector(rubro, comunaSlug, publicado))
+    router.push(destinoSelector(rubro, comunaSlug, publicado, audiencia || undefined))
   }
 
   if (rubros.length === 0) return null
@@ -112,7 +111,7 @@ export function SelectorCotizacion({
           <fieldset>
             <legend className={CLASE_LEYENDA_NAVY}>{PREGUNTA_AUDIENCIA}</legend>
             <ul className="grid gap-2 sm:grid-cols-2">
-              {(['casa', 'empresa'] as const).map((opcion) => (
+              {(['hogar', 'empresa'] as const).map((opcion) => (
                 <li key={opcion}>
                   <button
                     type="button"

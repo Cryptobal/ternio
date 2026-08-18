@@ -4,6 +4,13 @@ import Link from 'next/link'
 import { useActionState, useMemo, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 
+import {
+  audienciaInicialParaPagina,
+  AUDIENCIAS,
+  ETIQUETA_AUDIENCIA,
+  PREGUNTA_AUDIENCIA,
+  type Audiencia,
+} from '@/lib/audiencia'
 import type { CampoFormulario } from '@/lib/campos'
 import {
   construirPasos,
@@ -70,12 +77,14 @@ export function FormularioCotizacion({
   comunaSlug,
   comunas = [],
   campos,
+  audienciaInicial,
   turnstileSiteKey,
 }: {
   rubroSlug: string
   comunaSlug?: string
   comunas?: ComunaTerritorio[]
   campos: CampoFormulario[]
+  audienciaInicial?: string | null
   turnstileSiteKey: string | undefined
 }) {
   const pasos = useMemo(
@@ -89,6 +98,9 @@ export function FormularioCotizacion({
   const [estado, accion] = useActionState(crearLeadAction, ESTADO_INICIAL)
   const [comenzado, setComenzado] = useState(false)
   const [errorPaso, setErrorPaso] = useState<string | undefined>()
+  const [audiencia, setAudiencia] = useState<Audiencia | ''>(() =>
+    audienciaInicialParaPagina(rubroSlug, audienciaInicial),
+  )
   const errores = estado.errores ?? {}
   const resumenRef = useRef<HTMLDivElement>(null)
   const paso = pasos[indice] as PasoCotizacion
@@ -130,6 +142,33 @@ export function FormularioCotizacion({
 
   return (
     <form action={accion} onFocusCapture={marcarInicio} className="space-y-5" noValidate>
+      <input type="hidden" name="rubro" value={rubroSlug} />
+      <input type="hidden" name="comuna" value={comunaActual} />
+      {audiencia ? <input type="hidden" name="audiencia" value={audiencia} /> : null}
+
+      {!audiencia ? (
+        <fieldset className={CLASE_SUPERFICIE}>
+          <legend className="text-lg font-medium">{PREGUNTA_AUDIENCIA}</legend>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {AUDIENCIAS.map((opcion) => (
+              <li key={opcion}>
+                <Chip
+                  seleccionado={false}
+                  onClick={() => {
+                    setAudiencia(opcion)
+                    setErrorPaso(undefined)
+                    marcarInicio()
+                  }}
+                >
+                  {ETIQUETA_AUDIENCIA[opcion]}
+                </Chip>
+              </li>
+            ))}
+          </ul>
+          <Error mensaje={errores.audiencia} />
+        </fieldset>
+      ) : (
+        <>
       <p className="font-eyebrow text-[0.65rem] text-(--color-tinta-suave)">
         Paso {indice + 1} de {total}
       </p>
@@ -139,9 +178,6 @@ export function FormularioCotizacion({
           style={{ width: `${((indice + 1) / total) * 100}%` }}
         />
       </div>
-
-      <input type="hidden" name="rubro" value={rubroSlug} />
-      <input type="hidden" name="comuna" value={comunaActual} />
       {TRONCO_IDENTIDAD.map((campo) => (
         <input
           key={campo.id}
@@ -261,6 +297,8 @@ export function FormularioCotizacion({
           </button>
         ) : null}
       </div>
+        </>
+      )}
 
       <p className="text-sm text-(--color-tinta-suave)">
         Cotizar es gratis. Este cotizador por pasos necesita JavaScript. Revisa cómo tratamos

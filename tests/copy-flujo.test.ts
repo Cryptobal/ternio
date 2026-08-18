@@ -79,6 +79,8 @@ describe('copy público sin mentiras de launch', () => {
     expect(home).toContain('ComboServicio')
     expect(home).toContain('SelectorTerritorio')
     expect(home).toContain('PREGUNTA_AUDIENCIA')
+    expect(home).toContain('audienciaInicialParaPagina')
+    expect(home).toContain('rubrosEnVenta')
     expect(home).not.toMatch(/CLASE_SUPERFICIE/)
     expect(home).not.toMatch(/enVenta\[0\]/)
     expect(inicio).toContain('SelectorCotizacion')

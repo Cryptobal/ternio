@@ -23,7 +23,7 @@ export const dynamicParams = true
 
 type Props = {
   params: Promise<{ rubro: string }>
-  searchParams: Promise<{ comuna?: string }>
+  searchParams: Promise<{ comuna?: string; audiencia?: string }>
 }
 
 function aSelector(rubro: Awaited<ReturnType<typeof rubrosConComunas>>[number]): RubroSelector {
@@ -80,7 +80,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PaginaRubro({ params, searchParams }: Props) {
   const { rubro: slug } = await params
-  const { comuna: comunaQuery } = await searchParams
+  const { comuna: comunaQuery, audiencia: audienciaQuery } = await searchParams
   const [rubro, comunas, combinaciones, filas] = await Promise.all([
     rubroPorParam(slug),
     comunasActivas(),
@@ -139,6 +139,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
               comunas={comunas}
               publicados={publicados}
               rubroInicial={rubro.slug}
+              audienciaInicial={audienciaQuery}
               idPrefijo="selector-rubro"
             />
           </div>
@@ -168,6 +169,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
               comunaSlug={comunaPreseleccionada}
               comunas={comunas}
               campos={parsearCampos(rubro.camposFormulario)}
+              audienciaInicial={audienciaQuery}
               turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
             />
           </section>

@@ -6,6 +6,7 @@ import { rutaAdmin } from '@/lib/admin-ruta'
 import { prisma } from '@/lib/prisma'
 import { formatearRut } from '@/lib/rut'
 import { formatearTelefono } from '@/lib/telefono'
+import { ETIQUETA_AUDIENCIA, parsearAudiencia } from '@/lib/audiencia'
 import { requerirAdmin } from '@/server/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -43,6 +44,7 @@ export default async function DetalleLead({ params }: Props) {
       telefonoVerificado: true,
       whatsappOptIn: true,
       modoRubroAlCrear: true,
+      audiencia: true,
       compradorUsuarioId: true,
       rubro: { select: { nombre: true, modo: true } },
       comuna: { select: { nombre: true } },
@@ -55,6 +57,7 @@ export default async function DetalleLead({ params }: Props) {
   if (!lead) notFound()
 
   const datos = (lead.datos ?? {}) as Record<string, string>
+  const audienciaLead = parsearAudiencia(lead.audiencia)
 
   return (
     <>
@@ -68,6 +71,7 @@ export default async function DetalleLead({ params }: Props) {
       <p className="mt-1 text-sm text-(--color-tinta-suave)">
         Recibida el {formatoFechaHora.format(lead.createdAt)} · Estado {lead.estado} · Score{' '}
         {lead.score} · Rubro en modo {lead.modoRubroAlCrear} al crearse
+        {audienciaLead ? ` · ${ETIQUETA_AUDIENCIA[audienciaLead]}` : ''}
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
