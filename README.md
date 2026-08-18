@@ -11,8 +11,7 @@ y medición del embudo. Todavía no hay venta de leads ni paneles de proveedor.
 ## Stack
 
 Next.js 15 (App Router) · TypeScript estricto · Prisma + PostgreSQL (Neon) ·
-Tailwind v4 · Auth.js v5 (Credentials para el admin; sesión del comprador por
-teléfono, en el PR de cotizador).
+Tailwind v4 · Auth.js v5 (OTP de teléfono para compradores, Credentials para el admin).
 
 ## Puesta en marcha
 
@@ -95,7 +94,8 @@ cliente. `CUENTA_CREADA` se cuenta una vez por cuenta, no por cotización.
 | Ruta | Qué hace |
 | --- | --- |
 | `src/app/(seo)/[rubro]/[comuna]` | Página programática con ISR y el formulario de cotización |
-| `src/app/cotizacion/enviada` | Pantalla post-envío y reclamo del lead |
+| `src/app/cotizacion/enviada` | Pantalla post-envío: código SMS y sesión |
+| `src/app/entrar` | Reingreso del comprador por OTP de teléfono |
 | `src/app/mis-cotizaciones` | Panel del comprador (solo lectura, `noindex`) |
 | `src/app/proveedores` | Propuesta de valor para empresas proveedoras |
 | `src/app/admin/*` | Panel del dueño en `/admin`; 404 si no hay rol ADMIN |

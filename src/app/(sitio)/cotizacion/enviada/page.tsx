@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { googleConfigurado } from '@/auth.config'
-import { entrarConGoogle } from '@/server/auth-acciones'
+import { FormularioOtpCodigo } from '@/components/formulario-otp'
 import { reclamarLeadsAction } from '@/server/leads'
+import { solicitarOtpDesdeReclamoAction } from '@/server/otp'
 import { sesionActual } from '@/server/sesion'
 
 /** Flujo privado: nunca se indexa. */
@@ -19,10 +19,8 @@ type Props = { searchParams: Promise<{ estado?: string }> }
 export default async function CotizacionEnviada({ searchParams }: Props) {
   const { estado } = await searchParams
   const sesion = await sesionActual()
-
-  // Si volvió del login de Google, sus cotizaciones quedan asignadas acá.
-  // Es idempotente: entrar de nuevo a esta página no cambia nada.
   const reclamo = sesion ? await reclamarLeadsAction() : { reclamados: 0 }
+  const otp = sesion ? null : await solicitarOtpDesdeReclamoAction()
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
@@ -40,47 +38,34 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
         <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
           <p className="font-medium">
             {reclamo.reclamados > 0
-              ? 'Listo: tu cotización quedó guardada en tu cuenta.'
-              : 'Tu cuenta ya está lista.'}
+              ? 'Listo: tu cotización quedó guardada en tu panel.'
+              : 'Tu sesión ya está lista.'}
           </p>
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
             Desde tu panel puedes seguir el estado y ver qué empresa la tomó.
           </p>
           <Link
             href="/mis-cotizaciones"
-            className="mt-4 inline-block rounded-lg bg-(--color-marca) px-5 py-3 text-white"
+            className="mt-4 inline-flex min-h-11 items-center rounded-2xl bg-(--color-marca) px-5 py-3 text-white"
           >
             Ver mis cotizaciones
           </Link>
         </div>
-      ) : googleConfigurado() ? (
-        <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
-          <h2 className="font-medium">Crea tu cuenta para seguir tu cotización</h2>
-          <p className="mt-1 text-sm text-(--color-tinta-suave)">
-            Con tu cuenta ves en qué va, verificas tu teléfono una sola vez y sabes qué empresa
-            tomó tu solicitud.
-          </p>
-
-          <form action={entrarConGoogle} className="mt-4">
-            <input type="hidden" name="destino" value="/cotizacion/enviada" />
-            <button
-              type="submit"
-              className="w-full rounded-lg border border-(--color-borde) bg-white px-5 py-3 font-medium transition hover:border-(--color-marca)"
-            >
-              Continuar con Google
-            </button>
-          </form>
-
-          <p className="mt-3 text-sm text-(--color-tinta-suave)">
-            Tu cotización ya quedó guardada. Crear la cuenta es para que puedas seguirla.
-          </p>
-        </div>
+      ) : otp?.telefonoEnmascarado || otp?.ok ? (
+        <FormularioOtpCodigo
+          origen="reclamo"
+          telefonoEnmascarado={otp.telefonoEnmascarado}
+          avisoInicial={otp.mensaje}
+        />
       ) : (
-        <div className="mt-8 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-5 text-sm text-(--color-tinta)">
-          <p className="font-medium">Por ahora no podemos crear tu cuenta.</p>
+        <div className="mt-8 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-5 text-sm">
+          <p className="font-medium">Tu cotización quedó guardada.</p>
           <p className="mt-1">
-            Tu cotización quedó guardada igual y nuestro equipo la va a revisar. Si necesitas
-            algo antes, respóndenos el correo de confirmación.
+            Para seguirla, entra con el teléfono que usaste.{' '}
+            <Link href="/entrar" className="font-medium underline underline-offset-4">
+              Ir a entrar
+            </Link>
+            .
           </p>
         </div>
       )}

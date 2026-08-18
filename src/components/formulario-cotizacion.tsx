@@ -1,10 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useActionState, useRef, useState } from 'react'
+import { useActionState, useMemo, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 
 import type { CampoFormulario } from '@/lib/campos'
+import {
+  avanzaSoloAlElegir,
+  construirPasos,
+  valorComoTexto,
+  type PasoCotizacion,
+  type ValoresFormulario,
+} from '@/lib/pasos-cotizacion'
+import { esRutValido } from '@/lib/rut'
 import { crearLeadAction, type EstadoFormulario } from '@/server/leads'
 import { registrarEventoCliente } from '@/components/medidor-embudo'
 import { Turnstile } from '@/components/turnstile'
@@ -12,17 +20,20 @@ import { Turnstile } from '@/components/turnstile'
 const ESTADO_INICIAL: EstadoFormulario = { ok: false }
 
 const claseCampo =
-  'w-full rounded-lg border border-(--color-borde) bg-white px-3 py-2.5 text-base ' +
-  'outline-none focus:border-(--color-marca) focus:ring-2 focus:ring-(--color-marca)/20'
+  'w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base ' +
+  'outline-none'
 
-function Boton() {
+const claseChip =
+  'min-h-11 rounded-2xl border border-(--color-borde) bg-white px-4 py-3 text-left text-base ' +
+  'transition hover:border-(--color-marca)'
+
+function BotonEnviar() {
   const { pending } = useFormStatus()
-
   return (
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-2xl bg-(--color-marca) px-5 py-3.5 text-base font-medium text-white transition hover:bg-(--color-tinta) disabled:opacity-60"
+      className="w-full min-h-11 rounded-2xl bg-(--color-marca) px-5 py-3.5 text-base font-medium text-white transition hover:bg-(--color-tinta) disabled:opacity-60"
     >
       {pending ? 'Enviando tu cotización…' : 'Pedir cotización gratis'}
     </button>
@@ -31,90 +42,96 @@ function Boton() {
 
 function Error({ mensaje }: { mensaje: string | undefined }) {
   if (!mensaje) return null
-  return <p className="mt-1 text-sm text-red-700">{mensaje}</p>
+  return <p className="mt-2 text-sm text-(--color-rojo)">{mensaje}</p>
 }
 
-function CampoDinamico({
-  campo,
-  error,
+function Chip({
+  seleccionado,
+  children,
+  onClick,
 }: {
-  campo: CampoFormulario
-  error: string | undefined
+  seleccionado?: boolean
+  children: React.ReactNode
+  onClick: () => void
 }) {
-  const id = `campo-${campo.nombre}`
-
   return (
-    <div>
-      <label htmlFor={id} className="mb-1 block text-sm font-medium">
-        {campo.etiqueta}
-        {campo.requerido ? <span className="text-red-700"> *</span> : null}
-      </label>
-
-      {campo.tipo === 'textarea' ? (
-        <textarea
-          id={id}
-          name={campo.nombre}
-          rows={4}
-          placeholder={campo.placeholder}
-          className={claseCampo}
-        />
-      ) : campo.tipo === 'select' || campo.tipo === 'radio' ? (
-        <select id={id} name={campo.nombre} className={claseCampo} defaultValue="">
-          <option value="">Elige una opción</option>
-          {campo.opciones?.map((opcion) => (
-            <option key={opcion.valor} value={opcion.valor}>
-              {opcion.etiqueta}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          id={id}
-          name={campo.nombre}
-          type={campo.tipo === 'numero' ? 'number' : 'text'}
-          inputMode={campo.tipo === 'numero' ? 'numeric' : undefined}
-          placeholder={campo.placeholder}
-          className={claseCampo}
-        />
-      )}
-
-      {campo.ayuda ? (
-        <p className="mt-1 text-sm text-(--color-tinta-suave)">{campo.ayuda}</p>
-      ) : null}
-      <Error mensaje={error} />
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${claseChip} ${seleccionado ? 'border-(--color-marca) bg-(--color-ambar-suave)' : ''}`}
+    >
+      {children}
+    </button>
   )
 }
 
 export function FormularioCotizacion({
   rubroSlug,
   comunaSlug,
+  comunas = [],
   campos,
   turnstileSiteKey,
 }: {
   rubroSlug: string
-  comunaSlug: string
+  comunaSlug?: string
+  comunas?: { slug: string; nombre: string }[]
   campos: CampoFormulario[]
   turnstileSiteKey: string | undefined
 }) {
+  const pasos = useMemo(
+    () => construirPasos(campos, { pideComuna: !comunaSlug }),
+    [campos, comunaSlug],
+  )
+  const [indice, setIndice] = useState(0)
+  const [valores, setValores] = useState<ValoresFormulario>(
+    comunaSlug ? { comuna: comunaSlug } : {},
+  )
   const [estado, accion] = useActionState(crearLeadAction, ESTADO_INICIAL)
   const [comenzado, setComenzado] = useState(false)
   const errores = estado.errores ?? {}
   const resumenRef = useRef<HTMLDivElement>(null)
+  const paso = pasos[indice] as PasoCotizacion
+  const total = pasos.length
 
-  // FORM_START: el primer contacto real con el formulario, una sola vez.
   function marcarInicio() {
     if (comenzado) return
     setComenzado(true)
-    registrarEventoCliente('FORM_START', { rubro: rubroSlug, comuna: comunaSlug })
+    registrarEventoCliente('FORM_START', { rubro: rubroSlug, comuna: comunaSlug ?? '' })
   }
+
+  function guardar(id: string, valor: string | string[], avanzar: boolean) {
+    setValores((prev) => ({ ...prev, [id]: valor }))
+    if (avanzar && indice < total - 1) setIndice((actual) => actual + 1)
+  }
+
+  function continuar() {
+    if (indice < total - 1) setIndice((actual) => actual + 1)
+  }
+
+  const comunaActual = valorComoTexto(valores.comuna) || comunaSlug || ''
 
   return (
     <form action={accion} onFocusCapture={marcarInicio} className="space-y-5" noValidate>
-      <input type="hidden" name="rubro" value={rubroSlug} />
-      <input type="hidden" name="comuna" value={comunaSlug} />
+      <p className="font-eyebrow text-[0.65rem] text-(--color-tinta-suave)">
+        Paso {indice + 1} de {total}
+      </p>
+      <div className="h-1.5 overflow-hidden rounded-full bg-(--color-linea)" aria-hidden="true">
+        <div
+          className="h-full rounded-full bg-(--color-ambar)"
+          style={{ width: `${((indice + 1) / total) * 100}%` }}
+        />
+      </div>
 
-      {/* Honeypot: invisible para personas, irresistible para bots. */}
+      <input type="hidden" name="rubro" value={rubroSlug} />
+      <input type="hidden" name="comuna" value={comunaActual} />
+      {Object.entries(valores).map(([clave, valor]) =>
+        clave === 'comuna' ? null : Array.isArray(valor) ? (
+          valor.map((item) => <input key={`${clave}-${item}`} type="hidden" name={clave} value={item} />)
+        ) : (
+          <input key={clave} type="hidden" name={clave} value={valor} />
+        ),
+      )}
+
       <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
         <label htmlFor="sitio_web">No completar</label>
         <input id="sitio_web" name="sitio_web" type="text" tabIndex={-1} autoComplete="off" />
@@ -124,105 +141,300 @@ export function FormularioCotizacion({
         <div
           ref={resumenRef}
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="rounded-2xl border border-(--color-rojo) bg-(--color-rojo-suave) px-4 py-3 text-sm text-(--color-rojo)"
         >
           {estado.mensaje}
         </div>
       ) : null}
 
-      {campos.map((campo) => (
-        <CampoDinamico key={campo.nombre} campo={campo} error={errores[campo.nombre]} />
-      ))}
+      {paso.tipo === 'comuna' ? (
+        <fieldset>
+          <legend className="text-lg font-medium">{paso.etiqueta}</legend>
+          <div className="mt-3 grid gap-2">
+            {comunas.map((comuna) => (
+              <Chip
+                key={comuna.slug}
+                seleccionado={comunaActual === comuna.slug}
+                onClick={() => guardar('comuna', comuna.slug, true)}
+              >
+                {comuna.nombre}
+              </Chip>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
 
-      <fieldset className="space-y-5 border-t border-(--color-borde) pt-5">
-        <legend className="text-sm font-medium text-(--color-tinta-suave)">
-          Tus datos de contacto
-        </legend>
+      {paso.tipo === 'modulo' ? (
+        <PasoModulo
+          campo={paso.campo}
+          valor={valores[paso.campo.nombre]}
+          error={errores[paso.campo.nombre]}
+          onElegir={(valor, avanzar) => guardar(paso.campo.nombre, valor, avanzar)}
+          onContinuar={continuar}
+        />
+      ) : null}
 
-        <div>
-          <label htmlFor="nombreContacto" className="mb-1 block text-sm font-medium">
-            Tu nombre <span className="text-red-700">*</span>
-          </label>
-          <input
-            id="nombreContacto"
-            name="nombreContacto"
-            autoComplete="name"
-            className={claseCampo}
-          />
-          <Error mensaje={errores.nombreContacto} />
-        </div>
+      {paso.tipo === 'tronco' ? (
+        <PasoTronco
+          id={paso.id}
+          etiqueta={paso.etiqueta}
+          requerido={paso.requerido}
+          valor={valorComoTexto(valores[paso.id])}
+          error={errores[paso.id]}
+          onChange={(valor) => guardar(paso.id, valor, false)}
+          onContinuar={continuar}
+        />
+      ) : null}
 
-        <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">
-            Correo <span className="text-red-700">*</span>
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            className={claseCampo}
-          />
-          <Error mensaje={errores.email} />
-        </div>
-
-        <div>
-          <label htmlFor="telefono" className="mb-1 block text-sm font-medium">
-            Teléfono <span className="text-red-700">*</span>
-          </label>
-          <input
-            id="telefono"
-            name="telefono"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+56 9 1234 5678"
-            className={claseCampo}
-          />
-          <Error mensaje={errores.telefono} />
-        </div>
-
-        <div>
-          <label htmlFor="rut" className="mb-1 block text-sm font-medium">
-            RUT de la empresa <span className="text-red-700">*</span>
-          </label>
-          <input id="rut" name="rut" placeholder="76.543.210-K" className={claseCampo} />
-          <p className="mt-1 text-sm text-(--color-tinta-suave)">
-            Lo pedimos para que los proveedores sepan que la solicitud es real.
+      {paso.tipo === 'envio' ? (
+        <div className="space-y-4">
+          <h2 className="text-lg font-medium">Listo para enviar</h2>
+          <p className="text-sm text-(--color-tinta-suave)">
+            Revisamos el RUT y te vamos a pedir confirmar el teléfono con un código. Tus datos
+            no se muestran a nadie hasta que una empresa tome tu solicitud.
           </p>
-          <Error mensaje={errores.rut} />
-        </div>
-
-        <div>
-          <label htmlFor="razonSocial" className="mb-1 block text-sm font-medium">
-            Razón social
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              name="whatsappOptIn"
+              className="mt-1 size-4 rounded border-(--color-borde)"
+            />
+            <span>Quiero que me escriban por WhatsApp para coordinar más rápido.</span>
           </label>
-          <input id="razonSocial" name="razonSocial" className={claseCampo} />
-          <Error mensaje={errores.razonSocial} />
+          <Turnstile siteKey={turnstileSiteKey} />
+          <BotonEnviar />
         </div>
+      ) : null}
 
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            name="whatsappOptIn"
-            className="mt-1 size-4 rounded border-(--color-borde)"
-          />
-          <span>Quiero que me escriban por WhatsApp para coordinar más rápido.</span>
-        </label>
-      </fieldset>
-
-      <Turnstile siteKey={turnstileSiteKey} />
-
-      <Boton />
+      <div className="flex items-center justify-between gap-3">
+        {indice > 0 ? (
+          <button
+            type="button"
+            onClick={() => setIndice((actual) => actual - 1)}
+            className="min-h-11 text-sm font-medium text-(--color-marca) underline-offset-4 hover:underline"
+          >
+            Volver
+          </button>
+        ) : (
+          <span />
+        )}
+        {paso.tipo !== 'envio' && !avanzaSoloAlElegir(paso) ? (
+          <button
+            type="button"
+            onClick={continuar}
+            className="min-h-11 rounded-2xl bg-(--color-marca) px-5 py-2.5 text-sm font-semibold text-white"
+          >
+            Continuar
+          </button>
+        ) : null}
+      </div>
 
       <p className="text-sm text-(--color-tinta-suave)">
-        Cotizar es gratis. Tus datos de contacto no se muestran a nadie hasta que una empresa
-        toma tu solicitud. Revisa cómo los tratamos en la{' '}
+        Cotizar es gratis. Este cotizador por pasos necesita JavaScript. Revisa cómo tratamos
+        tus datos en la{' '}
         <Link href="/privacidad" className="underline underline-offset-4">
           política de privacidad
         </Link>
         .
       </p>
     </form>
+  )
+}
+
+function PasoModulo({
+  campo,
+  valor,
+  error,
+  onElegir,
+  onContinuar,
+}: {
+  campo: CampoFormulario
+  valor: string | string[] | undefined
+  error: string | undefined
+  onElegir: (valor: string | string[], avanzar: boolean) => void
+  onContinuar: () => void
+}) {
+  const texto = valorComoTexto(valor)
+  const multiples = Array.isArray(valor) ? valor : texto ? texto.split(',').filter(Boolean) : []
+
+  if (campo.tipo === 'si_no') {
+    return (
+      <fieldset>
+        <legend className="text-lg font-medium">
+          {campo.etiqueta}
+          {campo.requerido ? <span className="text-(--color-rojo)"> *</span> : null}
+        </legend>
+        <div className="mt-3 grid gap-2">
+          {[
+            { valor: 'si', etiqueta: 'Sí' },
+            { valor: 'no', etiqueta: 'No' },
+          ].map((opcion) => (
+            <Chip
+              key={opcion.valor}
+              seleccionado={texto === opcion.valor}
+              onClick={() => onElegir(opcion.valor, true)}
+            >
+              {opcion.etiqueta}
+            </Chip>
+          ))}
+        </div>
+        {campo.ayuda ? <p className="mt-2 text-sm text-(--color-tinta-suave)">{campo.ayuda}</p> : null}
+        <Error mensaje={error} />
+      </fieldset>
+    )
+  }
+
+  if (campo.tipo === 'select' || campo.tipo === 'radio') {
+    return (
+      <fieldset>
+        <legend className="text-lg font-medium">
+          {campo.etiqueta}
+          {campo.requerido ? <span className="text-(--color-rojo)"> *</span> : null}
+        </legend>
+        <div className="mt-3 grid gap-2">
+          {campo.opciones?.map((opcion) => (
+            <Chip
+              key={opcion.valor}
+              seleccionado={texto === opcion.valor}
+              onClick={() => onElegir(opcion.valor, true)}
+            >
+              {opcion.etiqueta}
+            </Chip>
+          ))}
+        </div>
+        {campo.ayuda ? <p className="mt-2 text-sm text-(--color-tinta-suave)">{campo.ayuda}</p> : null}
+        <Error mensaje={error} />
+      </fieldset>
+    )
+  }
+
+  if (campo.tipo === 'opcion_multiple') {
+    return (
+      <fieldset>
+        <legend className="text-lg font-medium">
+          {campo.etiqueta}
+          {campo.requerido ? <span className="text-(--color-rojo)"> *</span> : null}
+        </legend>
+        <div className="mt-3 grid gap-2">
+          {campo.opciones?.map((opcion) => {
+            const activo = multiples.includes(opcion.valor)
+            return (
+              <Chip
+                key={opcion.valor}
+                seleccionado={activo}
+                onClick={() => {
+                  const siguiente = activo
+                    ? multiples.filter((item) => item !== opcion.valor)
+                    : [...multiples, opcion.valor]
+                  onElegir(siguiente, false)
+                }}
+              >
+                {opcion.etiqueta}
+              </Chip>
+            )
+          })}
+        </div>
+        {campo.ayuda ? <p className="mt-2 text-sm text-(--color-tinta-suave)">{campo.ayuda}</p> : null}
+        <Error mensaje={error} />
+        <button
+          type="button"
+          onClick={onContinuar}
+          className="mt-4 min-h-11 w-full rounded-2xl bg-(--color-marca) px-5 py-2.5 font-semibold text-white"
+        >
+          Continuar
+        </button>
+      </fieldset>
+    )
+  }
+
+  return (
+    <div>
+      <label htmlFor={`campo-${campo.nombre}`} className="mb-2 block text-lg font-medium">
+        {campo.etiqueta}
+        {campo.requerido ? <span className="text-(--color-rojo)"> *</span> : null}
+      </label>
+      {campo.tipo === 'textarea' ? (
+        <textarea
+          id={`campo-${campo.nombre}`}
+          rows={4}
+          placeholder={campo.placeholder}
+          className={claseCampo}
+          value={texto}
+          onChange={(event) => onElegir(event.target.value, false)}
+        />
+      ) : (
+        <input
+          id={`campo-${campo.nombre}`}
+          type={campo.tipo === 'numero' ? 'text' : 'text'}
+          inputMode={campo.tipo === 'numero' ? 'numeric' : undefined}
+          placeholder={campo.placeholder}
+          className={claseCampo}
+          value={texto}
+          onChange={(event) => onElegir(event.target.value, false)}
+        />
+      )}
+      {campo.ayuda ? <p className="mt-2 text-sm text-(--color-tinta-suave)">{campo.ayuda}</p> : null}
+      <Error mensaje={error} />
+    </div>
+  )
+}
+
+function PasoTronco({
+  id,
+  etiqueta,
+  requerido,
+  valor,
+  error,
+  onChange,
+  onContinuar,
+}: {
+  id: string
+  etiqueta: string
+  requerido: boolean
+  valor: string
+  error: string | undefined
+  onChange: (valor: string) => void
+  onContinuar: () => void
+}) {
+  const rutOk = id === 'rut' && valor.length > 0 && esRutValido(valor)
+
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 block text-lg font-medium">
+        {etiqueta}
+        {requerido ? <span className="text-(--color-rojo)"> *</span> : null}
+      </label>
+      <input
+        id={id}
+        type={id === 'email' ? 'email' : id === 'telefono' ? 'tel' : 'text'}
+        inputMode={id === 'telefono' ? 'tel' : id === 'email' ? 'email' : undefined}
+        autoComplete={
+          id === 'email' ? 'email' : id === 'telefono' ? 'tel' : id === 'nombreContacto' ? 'name' : 'organization'
+        }
+        placeholder={
+          id === 'rut' ? '76.482.113-5' : id === 'telefono' ? '+56 9 8123 4567' : undefined
+        }
+        className={claseCampo}
+        value={valor}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            onContinuar()
+          }
+        }}
+      />
+      {id === 'rut' && valor ? (
+        <p className={`mt-2 text-sm ${rutOk ? 'text-(--color-verde)' : 'text-(--color-tinta-suave)'}`}>
+          {rutOk ? 'RUT válido' : 'Revisa el dígito verificador.'}
+        </p>
+      ) : null}
+      {id === 'rut' && !valor ? (
+        <p className="mt-2 text-sm text-(--color-tinta-suave)">
+          Lo pedimos para que las empresas sepan que la solicitud es real.
+        </p>
+      ) : null}
+      <Error mensaje={error} />
+    </div>
   )
 }

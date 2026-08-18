@@ -1,5 +1,4 @@
 import type { NextAuthConfig } from 'next-auth'
-import Google from 'next-auth/providers/google'
 
 import { ROLES, type Rol } from '@/lib/roles'
 
@@ -8,24 +7,16 @@ import { ROLES, type Rol } from '@/lib/roles'
  *
  * No puede importar Prisma ni node:crypto: el middleware corre en edge y
  * solo necesita decodificar el JWT para saber si hay sesión y con qué rol.
- * El adapter y el provider Credentials viven en src/auth.ts.
+ * El adapter y los providers Credentials (admin + otp) viven en src/auth.ts.
  *
  * Tampoco puede importar valores desde `@prisma/client` (ni enums): Vercel
  * falla al desplegar la Edge Function si el bundle referencia `.prisma`.
  */
 
-/**
- * Sin credenciales de Google no hay login de comprador. El formulario sigue
- * funcionando igual: el lead se guarda y queda para revisión del admin.
- */
-export function googleConfigurado(): boolean {
-  return Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)
-}
-
 export const authConfig = {
   trustHost: true,
   session: { strategy: 'jwt' },
-  providers: googleConfigurado() ? [Google] : [],
+  providers: [],
   callbacks: {
     session({ session, token }) {
       if (session.user) {

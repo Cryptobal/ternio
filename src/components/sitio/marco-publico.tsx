@@ -36,6 +36,10 @@ export function PiePublico() {
             <Link href="/privacidad" className="underline-offset-4 hover:underline">
               Privacidad
             </Link>
+            <span aria-hidden="true"> · </span>
+            <Link href="/entrar" className="underline-offset-4 hover:underline">
+              Entrar
+            </Link>
           </p>
         </div>
         <p className="text-xs text-(--color-tinta-suave)">

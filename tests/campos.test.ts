@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { parsearCampos, validarValoresCampos, type CampoFormulario } from '@/lib/campos'
 
@@ -26,6 +26,33 @@ describe('parsearCampos', () => {
 
   it('acepta una definición válida', () => {
     expect(parsearCampos(CAMPOS)).toHaveLength(3)
+  })
+
+  it('acepta opcion_multiple y si_no', () => {
+    const campos = parsearCampos([
+      {
+        nombre: 'servicios',
+        etiqueta: 'Servicios',
+        tipo: 'opcion_multiple',
+        requerido: true,
+        opciones: [{ valor: 'a', etiqueta: 'A' }],
+      },
+      { nombre: 'urgente', etiqueta: '¿Es urgente?', tipo: 'si_no', requerido: true },
+    ])
+    expect(campos).toHaveLength(2)
+  })
+
+  it('si hay más de 6 preguntas, degrada al tronco y lo reporta', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const muchos = Array.from({ length: 7 }, (_, i) => ({
+      nombre: `campo_${i}`,
+      etiqueta: `Campo ${i}`,
+      tipo: 'texto' as const,
+      requerido: false,
+    }))
+    expect(parsearCampos(muchos)).toEqual([])
+    expect(warn).toHaveBeenCalled()
+    warn.mockRestore()
   })
 })
 
@@ -79,5 +106,33 @@ describe('validarValoresCampos', () => {
       detalle: 'a'.repeat(2001),
     })
     expect(resultado.ok).toBe(false)
+  })
+
+  it('acepta varias opciones en opcion_multiple', () => {
+    const campos: CampoFormulario[] = [
+      {
+        nombre: 'servicios',
+        etiqueta: 'Servicios',
+        tipo: 'opcion_multiple',
+        requerido: true,
+        opciones: [
+          { valor: 'a', etiqueta: 'A' },
+          { valor: 'b', etiqueta: 'B' },
+        ],
+      },
+    ]
+    expect(validarValoresCampos(campos, { servicios: ['a', 'b'] })).toEqual({
+      ok: true,
+      valores: { servicios: 'a,b' },
+    })
+    expect(validarValoresCampos(campos, { servicios: 'c' }).ok).toBe(false)
+  })
+
+  it('acepta sí/no', () => {
+    const campos: CampoFormulario[] = [
+      { nombre: 'urgente', etiqueta: '¿Urgente?', tipo: 'si_no', requerido: true },
+    ]
+    expect(validarValoresCampos(campos, { urgente: 'si' }).ok).toBe(true)
+    expect(validarValoresCampos(campos, { urgente: 'tal_vez' }).ok).toBe(false)
   })
 })
