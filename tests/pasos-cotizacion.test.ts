@@ -5,6 +5,8 @@ import {
   avanzaSoloAlElegir,
   construirPasos,
   errorDePaso,
+  etiquetaAvancePaso,
+  mostrarBotonAvance,
   payloadDesdeValores,
 } from '@/lib/pasos-cotizacion'
 
@@ -85,6 +87,24 @@ describe('payloadDesdeValores', () => {
     expect(telefono && errorDePaso(telefono, { telefono: '+56 9 1234 5678' })).toBeUndefined()
     expect(email && errorDePaso(email, { email: 'no-es-correo' })).toMatch(/correo/i)
     expect(email && errorDePaso(email, { email: 'ana@gmail.com' })).toBeUndefined()
+  })
+
+  it('en un paso opcional vacío el botón dice Saltar; la identidad nunca se salta', () => {
+    const pasos = construirPasos(CAMPOS, { pideComuna: false })
+    const cantidad = pasos.find((paso) => paso.id === 'cantidad')
+    const razon = pasos.find((paso) => paso.id === 'razonSocial')
+    const tipo = pasos.find((paso) => paso.id === 'tipo_servicio')
+
+    expect(cantidad && etiquetaAvancePaso(cantidad, {})).toBe('Saltar')
+    expect(cantidad && mostrarBotonAvance(cantidad, {})).toBe(true)
+    expect(cantidad && errorDePaso(cantidad, {})).toBeUndefined()
+
+    expect(razon && etiquetaAvancePaso(razon, { razonSocial: '' })).toBe('Continuar')
+    expect(razon && errorDePaso(razon, { razonSocial: '' })).toMatch(/razón social/i)
+    expect(razon && errorDePaso(razon, {})).toMatch(/razón social/i)
+
+    expect(tipo && avanzaSoloAlElegir(tipo)).toBe(true)
+    expect(tipo && mostrarBotonAvance(tipo, {})).toBe(false)
   })
 
   it('conserva las respuestas al reconstruir el payload después de navegar', () => {

@@ -31,6 +31,7 @@ import { consumirRateLimit } from '@/lib/rate-limit'
 import { reclamarLeadsPorHash, reclamarLeadsPorTelefono } from '@/lib/reclamo'
 import { enviarSms } from '@/lib/sms'
 import { esMovil, normalizarTelefonoE164 } from '@/lib/telefono'
+import { destinoTrasLogin } from '@/lib/roles'
 import { usuarioActualId } from '@/server/sesion'
 
 export type EstadoOtp = {
@@ -240,8 +241,13 @@ export async function solicitarOtpEntrarAction(
   _previo: EstadoOtp,
   formData: FormData,
 ): Promise<EstadoOtp> {
-  if (await usuarioActualId()) {
-    redirect('/mis-cotizaciones')
+  const sesionId = await usuarioActualId()
+  if (sesionId) {
+    const sesion = await prisma.user.findUnique({
+      where: { id: sesionId },
+      select: { rol: true },
+    })
+    redirect(destinoTrasLogin(sesion?.rol))
   }
 
   const telefonoE164 = normalizarTelefonoE164(String(formData.get('telefono') ?? ''))
@@ -257,7 +263,25 @@ export async function solicitarOtpEntrarAction(
   })
 }
 
+export async function enviarOtpAUsuario(args: {
+  usuarioId: string
+  telefonoE164: string
+  forzar?: boolean
+}): Promise<EstadoOtp> {
+  return emitirYEnviarCodigo({
+    usuarioId: args.usuarioId,
+    telefonoE164: args.telefonoE164,
+    forzar: args.forzar,
+  })
+}
+
 async function abrirSesionOtp(usuarioId: string): Promise<never> {
+  const usuario = await prisma.user.findUnique({
+    where: { id: usuarioId },
+    select: { rol: true },
+  })
+  const destino = destinoTrasLogin(usuario?.rol)
+
   const { token, hash } = emitirTokenSesionOtp()
   await prisma.verificationToken.deleteMany({
     where: { identifier: `otp-sesion:${usuarioId}` },
@@ -271,7 +295,7 @@ async function abrirSesionOtp(usuarioId: string): Promise<never> {
   })
 
   try {
-    await signIn('otp', { token, redirectTo: '/mis-cotizaciones' })
+    await signIn('otp', { token, redirectTo: destino })
   } catch (error) {
     if (error instanceof AuthError) {
       throw new Error('No pudimos abrir tu sesión. Reintenta.')
@@ -279,7 +303,7 @@ async function abrirSesionOtp(usuarioId: string): Promise<never> {
     throw error
   }
 
-  redirect('/mis-cotizaciones')
+  redirect(destino)
 }
 
 async function aplicarTelefonoVerificado(usuarioId: string, telefonoE164: string): Promise<void> {
@@ -412,11 +436,23 @@ export async function confirmarOtpAction(
     data: { consumidoAt: new Date() },
   })
 
-  const cookie = (await cookies()).get(NOMBRE_COOKIE_CLAIM)?.value
-  const hash = verificarClaimToken(cookie)
-  if (hash) await reclamarLeadsPorHash(prisma, hash, otp.usuarioId)
-  await reclamarLeadsPorTelefono(prisma, telefonoE164, otp.usuarioId)
-  await aplicarTelefonoVerificado(otp.usuarioId, telefonoE164)
+  const duenio = await prisma.user.findUnique({
+    where: { id: otp.usuarioId },
+    select: { rol: true },
+  })
+
+  if (duenio?.rol !== RolUsuario.PROVEEDOR) {
+    const cookie = (await cookies()).get(NOMBRE_COOKIE_CLAIM)?.value
+    const hash = verificarClaimToken(cookie)
+    if (hash) await reclamarLeadsPorHash(prisma, hash, otp.usuarioId)
+    await reclamarLeadsPorTelefono(prisma, telefonoE164, otp.usuarioId)
+    await aplicarTelefonoVerificado(otp.usuarioId, telefonoE164)
+  } else {
+    await prisma.user.update({
+      where: { id: otp.usuarioId },
+      data: { telefonoE164Verificado: telefonoE164, telefonoVerificadoAt: new Date() },
+    })
+  }
 
   const yaRegistrado = await prisma.eventoAnalitica.findFirst({
     where: { tipo: TipoEventoAnalitica.CUENTA_CREADA, usuarioId: otp.usuarioId },

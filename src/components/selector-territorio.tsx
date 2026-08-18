@@ -5,7 +5,6 @@ import { useMemo, useState } from 'react'
 import {
   comunaPorSlug,
   comunasDe,
-  filtrarComunas,
   provinciasDe,
   regionesDe,
   type ComunaTerritorio,
@@ -34,7 +33,6 @@ export function SelectorTerritorio({
   const elegida = value ? comunaPorSlug(comunas, value) : undefined
   const [region, setRegion] = useState(elegida?.region ?? '')
   const [provincia, setProvincia] = useState(elegida?.provincia ?? '')
-  const [busqueda, setBusqueda] = useState('')
 
   const regiones = useMemo(() => regionesDe(comunas), [comunas])
   const provincias = useMemo(
@@ -45,17 +43,12 @@ export function SelectorTerritorio({
     () => (region && provincia ? comunasDe(comunas, region, provincia) : []),
     [comunas, region, provincia],
   )
-  const sugeridas = useMemo(
-    () => (busqueda.trim().length >= 2 ? filtrarComunas(comunas, busqueda) : []),
-    [comunas, busqueda],
-  )
 
   const seleccionadas = new Set(multiple ? values : value ? [value] : [])
 
   function elegir(comuna: ComunaTerritorio) {
     setRegion(comuna.region)
     setProvincia(comuna.provincia)
-    setBusqueda('')
     if (multiple) {
       const siguiente = seleccionadas.has(comuna.slug)
         ? values.filter((slug) => slug !== comuna.slug)
@@ -68,39 +61,6 @@ export function SelectorTerritorio({
 
   return (
     <div className="grid gap-3">
-      <div>
-        <label htmlFor={`${idPrefijo}-buscar`} className="mb-1 block text-sm font-medium">
-          Buscar comuna
-        </label>
-        <input
-          id={`${idPrefijo}-buscar`}
-          type="search"
-          value={busqueda}
-          onChange={(event) => setBusqueda(event.target.value)}
-          placeholder="Ej: Valdivia, Punta Arenas…"
-          className={claseCampo}
-          autoComplete="off"
-        />
-        {sugeridas.length > 0 ? (
-          <ul className="mt-2 max-h-48 overflow-auto rounded-2xl border border-(--color-borde) bg-white">
-            {sugeridas.map((comuna) => (
-              <li key={comuna.slug}>
-                <button
-                  type="button"
-                  onClick={() => elegir(comuna)}
-                  className="w-full px-3 py-2.5 text-left text-sm hover:bg-(--color-ambar-suave)"
-                >
-                  <span className="font-medium">{comuna.nombre}</span>
-                  <span className="mt-0.5 block text-(--color-tinta-suave)">
-                    {comuna.provincia} · {comuna.region}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-
       <div>
         <label htmlFor={`${idPrefijo}-region`} className="mb-1 block text-sm font-medium">
           Región
@@ -149,7 +109,7 @@ export function SelectorTerritorio({
 
       {multiple ? (
         <fieldset>
-          <legend className="mb-1 text-sm font-medium">Comunas de cobertura</legend>
+          <legend className="mb-1 text-sm font-medium">Comunas</legend>
           {listaComunas.length === 0 ? (
             <p className="text-sm text-(--color-tinta-suave)">
               Elige región y provincia para ver las comunas.

@@ -1,14 +1,24 @@
 'use server'
 
 import { headers } from 'next/headers'
-import { EstadoProveedor } from '@prisma/client'
+import { EstadoProveedor, RolUsuario } from '@prisma/client'
 
+import { expandirCobertura, type SnapshotCoberturaProveedor } from '@/lib/cobertura'
+import { validarCuentaProveedor } from '@/lib/cuenta-proveedor'
 import { prisma } from '@/lib/prisma'
 import { consumirRateLimit } from '@/lib/rate-limit'
-import { type SolicitudEsperaProveedor, validarListaEspera } from '@/lib/lista-espera'
 import { normalizarRut } from '@/lib/rut'
 import { normalizarTelefonoE164 } from '@/lib/telefono'
-import type { EstadoFormulario } from '@/server/leads'
+import { enviarOtpAUsuario } from '@/server/otp'
+
+export type EstadoCuentaProveedor = {
+  ok: boolean
+  mensaje?: string
+  errores?: Record<string, string>
+  requiereOtp?: boolean
+  telefono?: string
+  telefonoEnmascarado?: string
+}
 
 async function ipDelCliente(): Promise<string> {
   const cabeceras = await headers()
@@ -16,35 +26,37 @@ async function ipDelCliente(): Promise<string> {
   return reenviada?.split(',')[0]?.trim() || cabeceras.get('x-real-ip') || 'desconocida'
 }
 
+function slugProveedor(rutNormalizado: string): string {
+  return `prov-${rutNormalizado.slice(0, -2)}`
+}
+
 /**
- * Inscribe a un proveedor en la lista de espera.
- * Crea o actualiza un Proveedor en PENDIENTE. No abre el marketplace.
+ * Crea User (PROVEEDOR) + Proveedor, persiste cobertura y envía OTP.
+ * No abre el marketplace.
  */
-export async function inscribirListaEsperaAction(
-  _estadoPrevio: EstadoFormulario,
+export async function crearCuentaProveedorAction(
+  _estadoPrevio: EstadoCuentaProveedor,
   formData: FormData,
-): Promise<EstadoFormulario> {
+): Promise<EstadoCuentaProveedor> {
   if (String(formData.get('sitio_web') ?? '').trim() !== '') {
-    return {
-      ok: true,
-      mensaje: 'Te avisamos cuando se abra el onboarding.',
-    }
+    return { ok: true, mensaje: 'Te enviamos un código.' }
   }
 
   const ip = await ipDelCliente()
-  const limite = consumirRateLimit(`lista-espera:${ip}`, 5, 10 * 60_000)
+  const limite = consumirRateLimit(`cuenta-proveedor:${ip}`, 5, 10 * 60_000)
   if (!limite.permitido) {
-    return { ok: false, mensaje: 'Ya recibimos tu solicitud. Gracias.' }
+    return { ok: false, mensaje: 'Ya recibimos tu solicitud. Espera un rato y reintenta.' }
   }
 
-  const validacion = validarListaEspera({
+  const validacion = validarCuentaProveedor({
     nombreEmpresa: formData.get('nombreEmpresa'),
     rut: formData.get('rut'),
     telefono: formData.get('telefono'),
     email: formData.get('email'),
     rubros: formData.getAll('rubros'),
-    region: formData.get('region'),
-    provincia: formData.get('provincia'),
+    modoCobertura: formData.get('modoCobertura'),
+    regiones: formData.getAll('regiones'),
+    provincias: formData.getAll('provincias'),
     comunas: formData.getAll('comunas'),
   })
 
@@ -52,58 +64,109 @@ export async function inscribirListaEsperaAction(
     return { ok: false, mensaje: 'Revisa los datos marcados.', errores: validacion.errores }
   }
 
-  const { nombreEmpresa, rubros, region, provincia, comunas, email } = validacion.datos
+  const { nombreEmpresa, rubros, cobertura, email } = validacion.datos
   const rutNormalizado = normalizarRut(validacion.datos.rut)
   const telefonoE164 = normalizarTelefonoE164(validacion.datos.telefono)
   if (!rutNormalizado || !telefonoE164) {
     return { ok: false, mensaje: 'Revisa el RUT y el celular.' }
   }
 
+  const telefonoDeComprador = await prisma.user.findFirst({
+    where: { telefonoE164Verificado: telefonoE164, rol: RolUsuario.COMPRADOR },
+    select: { id: true },
+  })
+  if (telefonoDeComprador) {
+    return {
+      ok: false,
+      mensaje: 'Este celular ya tiene una cuenta de cotizaciones. Usa otro o entra como comprador.',
+    }
+  }
+
   const rubrosActivos = await prisma.rubro.findMany({
     where: { slug: { in: rubros }, activo: true },
-    select: { slug: true },
+    select: { id: true, slug: true },
   })
-  const slugsRubro = rubrosActivos.map((fila) => fila.slug)
-  if (slugsRubro.length === 0) {
+  if (rubrosActivos.length === 0) {
     return { ok: false, errores: { rubros: 'Elige al menos un rubro vigente.' } }
   }
 
-  const comunasDb = await prisma.comuna.findMany({
-    where: { slug: { in: comunas }, activa: true },
-    select: { id: true, slug: true },
+  const comunasCatalogo = await prisma.comuna.findMany({
+    where: { activa: true },
+    select: { id: true, slug: true, nombre: true, region: true, provincia: true },
   })
-  if (comunasDb.length === 0) {
-    return { ok: false, errores: { comunas: 'Elige al menos una comuna vigente.' } }
+  const expansion = expandirCobertura(comunasCatalogo, cobertura)
+  const comunasExpandidas = expansion.nacional
+    ? []
+    : comunasCatalogo.filter((fila) => expansion.slugs.includes(fila.slug))
+
+  if (!expansion.nacional && comunasExpandidas.length === 0) {
+    return { ok: false, errores: { cobertura: 'No encontramos comunas vigentes para esa cobertura.' } }
   }
 
-  const solicitudEspera: SolicitudEsperaProveedor = {
-    rubros: slugsRubro,
-    region,
-    provincia,
-    comunas: comunasDb.map((fila) => fila.slug),
+  const snapshot: SnapshotCoberturaProveedor = {
+    ...cobertura,
+    rubros: rubrosActivos.map((fila) => fila.slug),
   }
 
   const existente = await prisma.proveedor.findUnique({
     where: { rutNormalizado },
-    select: { id: true, estado: true, slug: true },
+    select: {
+      id: true,
+      slug: true,
+      estado: true,
+      usuarioId: true,
+      usuario: { select: { id: true, rol: true, telefonoE164Verificado: true } },
+    },
   })
 
   if (
-    existente &&
-    (existente.estado === EstadoProveedor.APROBADO ||
-      existente.estado === EstadoProveedor.NO_RECLAMADO ||
-      existente.estado === EstadoProveedor.SUSPENDIDO)
+    existente?.usuario &&
+    existente.usuario.rol === RolUsuario.PROVEEDOR &&
+    existente.usuario.telefonoE164Verificado &&
+    existente.usuario.telefonoE164Verificado !== telefonoE164
   ) {
     return {
-      ok: true,
-      mensaje: 'Ya tenemos tu empresa registrada. Te avisamos cuando se abra el onboarding.',
+      ok: false,
+      mensaje: 'Ya hay una cuenta con ese RUT. Entra con el celular que usaste al registrarte.',
     }
   }
 
-  const cuerpoRut = rutNormalizado.slice(0, -2)
-  const slug = existente?.slug ?? `espera-${cuerpoRut}`
+  const usuarioExistentePorTelefono = await prisma.user.findFirst({
+    where: { telefonoE164Verificado: telefonoE164, rol: RolUsuario.PROVEEDOR },
+  })
 
-  await prisma.proveedor.upsert({
+  const emailOcupado = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, rol: true },
+  })
+
+  let usuarioId = existente?.usuarioId ?? usuarioExistentePorTelefono?.id ?? null
+
+  if (!usuarioId) {
+    const emailLibre = !emailOcupado || emailOcupado.rol === RolUsuario.PROVEEDOR
+    const creado = await prisma.user.create({
+      data: {
+        name: nombreEmpresa,
+        email: emailLibre && !emailOcupado ? email : undefined,
+        rol: RolUsuario.PROVEEDOR,
+      },
+    })
+    usuarioId = creado.id
+  } else {
+    await prisma.user.update({
+      where: { id: usuarioId },
+      data: {
+        name: nombreEmpresa,
+        rol: RolUsuario.PROVEEDOR,
+        email: !emailOcupado || emailOcupado.id === usuarioId ? email : undefined,
+      },
+    })
+  }
+
+  const slug = existente?.slug ?? slugProveedor(rutNormalizado)
+  const comunaBaseId = expansion.nacional ? null : (comunasExpandidas[0]?.id ?? null)
+
+  const proveedor = await prisma.proveedor.upsert({
     where: { rutNormalizado },
     create: {
       slug,
@@ -113,8 +176,10 @@ export async function inscribirListaEsperaAction(
       email,
       telefonoE164,
       estado: EstadoProveedor.PENDIENTE,
-      comunaBaseId: comunasDb[0]?.id ?? null,
-      solicitudEspera,
+      usuarioId,
+      coberturaNacional: expansion.nacional,
+      comunaBaseId,
+      solicitudEspera: snapshot,
       vistoAt: null,
     },
     update: {
@@ -122,15 +187,53 @@ export async function inscribirListaEsperaAction(
       razonSocial: nombreEmpresa,
       email,
       telefonoE164,
-      estado: EstadoProveedor.PENDIENTE,
-      comunaBaseId: comunasDb[0]?.id ?? null,
-      solicitudEspera,
-      vistoAt: null,
+      estado:
+        existente?.estado === EstadoProveedor.APROBADO
+          ? EstadoProveedor.APROBADO
+          : EstadoProveedor.PENDIENTE,
+      usuarioId,
+      coberturaNacional: expansion.nacional,
+      comunaBaseId,
+      solicitudEspera: snapshot,
     },
   })
 
+  await prisma.cobertura.deleteMany({ where: { proveedorId: proveedor.id } })
+
+  if (!expansion.nacional && comunasExpandidas.length > 0) {
+    await prisma.cobertura.createMany({
+      data: rubrosActivos.flatMap((rubro) =>
+        comunasExpandidas.map((comuna) => ({
+          proveedorId: proveedor.id,
+          rubroId: rubro.id,
+          comunaId: comuna.id,
+          activa: true,
+        })),
+      ),
+      skipDuplicates: true,
+    })
+  }
+
+  const otp = await enviarOtpAUsuario({
+    usuarioId,
+    telefonoE164,
+    forzar: true,
+  })
+
+  if (!otp.ok) {
+    return {
+      ok: false,
+      mensaje: otp.mensaje ?? 'No pudimos enviarte el código. Reintenta.',
+      telefono: telefonoE164,
+      telefonoEnmascarado: otp.telefonoEnmascarado,
+    }
+  }
+
   return {
     ok: true,
-    mensaje: 'Te avisamos cuando se abra el onboarding.',
+    requiereOtp: true,
+    telefono: telefonoE164,
+    telefonoEnmascarado: otp.telefonoEnmascarado,
+    mensaje: otp.mensaje ?? 'Te enviamos un código de 6 dígitos.',
   }
 }

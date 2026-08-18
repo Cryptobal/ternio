@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
+import { resumenCotizacionComprador } from '@/lib/estado-comprador'
 import { prisma } from '@/lib/prisma'
-import { textoEstadoComprador } from '@/lib/rubros'
-import { hitosTimelineLead } from '@/lib/timeline-lead'
+import { ROLES } from '@/lib/roles'
 import { salir } from '@/server/auth-acciones'
 import { reclamarLeadsAction } from '@/server/leads'
 import { sesionActual } from '@/server/sesion'
@@ -21,34 +22,6 @@ const formatoFecha = new Intl.DateTimeFormat('es-CL', {
   month: 'long',
   year: 'numeric',
 })
-
-function Timeline({ lead }: { lead: Parameters<typeof hitosTimelineLead>[0] }) {
-  const hitos = hitosTimelineLead(lead)
-  return (
-    <ol className="mt-4 space-y-3">
-      {hitos.map((hito) => (
-        <li key={hito.id} className="flex gap-3">
-          <span
-            className={`mt-1 size-2.5 shrink-0 rounded-full ${
-              hito.estado === 'hecho'
-                ? 'bg-(--color-verde)'
-                : hito.estado === 'actual'
-                  ? 'bg-(--color-ambar)'
-                  : 'bg-(--color-linea)'
-            }`}
-            aria-hidden="true"
-          />
-          <div>
-            <p className="text-sm font-medium">{hito.titulo}</p>
-            {hito.detalle ? (
-              <p className="text-sm text-(--color-tinta-suave)">{hito.detalle}</p>
-            ) : null}
-          </div>
-        </li>
-      ))}
-    </ol>
-  )
-}
 
 export default async function MisCotizaciones() {
   const sesion = await sesionActual()
@@ -69,6 +42,8 @@ export default async function MisCotizaciones() {
       </div>
     )
   }
+
+  if (sesion.user.rol === ROLES.PROVEEDOR) redirect('/panel')
 
   await reclamarLeadsAction()
 
@@ -115,25 +90,30 @@ export default async function MisCotizaciones() {
         </div>
       ) : (
         <ul className="mt-8 space-y-4">
-          {cotizaciones.map((cotizacion) => (
-            <li
-              key={cotizacion.id}
-              className="rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="font-medium">
-                  {cotizacion.rubro.nombre} en {cotizacion.comuna.nombre}
-                </h2>
-                <span className="font-mono text-sm text-(--color-tinta-suave)">
-                  {formatoFecha.format(cotizacion.createdAt)}
-                </span>
-              </div>
-              <p className="mt-2 inline-block rounded-full bg-(--color-papel) px-3 py-1 text-sm">
-                {textoEstadoComprador(cotizacion.estado)}
-              </p>
-              <Timeline lead={cotizacion} />
-            </li>
-          ))}
+          {cotizaciones.map((cotizacion) => {
+            const resumen = resumenCotizacionComprador(cotizacion)
+            return (
+              <li
+                key={cotizacion.id}
+                className="rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="font-medium">
+                    {cotizacion.rubro.nombre} en {cotizacion.comuna.nombre}
+                  </h2>
+                  <span className="font-mono text-sm text-(--color-tinta-suave)">
+                    {formatoFecha.format(cotizacion.createdAt)}
+                  </span>
+                </div>
+                <p className="mt-2 inline-block rounded-full bg-(--color-papel) px-3 py-1 text-sm">
+                  {resumen.estado}
+                </p>
+                {resumen.siguiente ? (
+                  <p className="mt-3 text-sm text-(--color-tinta-suave)">{resumen.siguiente}</p>
+                ) : null}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

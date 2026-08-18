@@ -1,14 +1,16 @@
 'use client'
 
-import { useActionState, useMemo, useState } from 'react'
+import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 
-import { SelectorTerritorio } from '@/components/selector-territorio'
-import { comunaPorSlug, type ComunaTerritorio } from '@/lib/territorio'
-import { inscribirListaEsperaAction } from '@/server/proveedores'
-import type { EstadoFormulario } from '@/server/leads'
+import { FormularioOtpCodigo } from '@/components/formulario-otp'
+import { SelectorCobertura } from '@/components/selector-cobertura'
+import { claveProvincia, seleccionVacia, type SeleccionCobertura } from '@/lib/cobertura'
+import { esRutValido } from '@/lib/rut'
+import type { ComunaTerritorio } from '@/lib/territorio'
+import { crearCuentaProveedorAction, type EstadoCuentaProveedor } from '@/server/proveedores'
 
-const ESTADO_INICIAL: EstadoFormulario = { ok: false }
+const ESTADO_INICIAL: EstadoCuentaProveedor = { ok: false }
 
 const claseCampo =
   'w-full min-h-11 rounded-2xl border border-(--color-borde) bg-white px-3 py-2.5 text-base outline-none'
@@ -21,46 +23,40 @@ function BotonEnviar() {
       disabled={pending}
       className="w-full min-h-11 rounded-2xl bg-(--color-marca) px-5 py-3.5 text-base font-medium text-white disabled:opacity-60"
     >
-      {pending ? 'Enviando…' : 'Quiero que me avisen'}
+      {pending ? 'Creando tu cuenta…' : 'Crear cuenta'}
     </button>
   )
 }
 
-export function FormularioListaEspera({
+export function FormularioCuentaProveedor({
   rubros,
   comunas,
 }: {
   rubros: { slug: string; nombre: string }[]
   comunas: ComunaTerritorio[]
 }) {
-  const [estado, accion] = useActionState(inscribirListaEsperaAction, ESTADO_INICIAL)
-  const [comunasElegidas, setComunasElegidas] = useState<string[]>([])
+  const [estado, accion] = useActionState(crearCuentaProveedorAction, ESTADO_INICIAL)
+  const [cobertura, setCobertura] = useState<SeleccionCobertura>(seleccionVacia('nacional'))
+  const [rut, setRut] = useState('')
   const errores = estado.errores ?? {}
+  const rutOk = rut.length > 0 && esRutValido(rut)
 
-  const ancla = useMemo(() => {
-    const primera = comunasElegidas[0]
-    return primera ? comunaPorSlug(comunas, primera) : undefined
-  }, [comunas, comunasElegidas])
-
-  if (estado.ok) {
+  if (estado.ok && estado.requiereOtp) {
     return (
-      <div
-        role="status"
-        className="rounded-2xl border border-(--color-borde) bg-white p-6 shadow-sm"
-      >
-        <h2 className="font-display text-2xl">Listo, quedó anotado</h2>
-        <p className="mt-2 text-(--color-tinta-suave)">
-          {estado.mensaje ?? 'Te avisamos cuando se abra el onboarding.'}
-        </p>
-      </div>
+      <FormularioOtpCodigo
+        origen="proveedor"
+        telefono={estado.telefono}
+        telefonoEnmascarado={estado.telefonoEnmascarado}
+        avisoInicial={estado.mensaje}
+      />
     )
   }
 
   return (
     <form action={accion} className="space-y-4 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="font-display text-2xl">Súmate a la lista de espera</h2>
+      <h2 className="font-display text-2xl">Crea tu cuenta</h2>
       <p className="text-sm text-(--color-tinta-suave)">
-        Todavía no hay onboarding ni venta de leads. Te avisamos cuando se abra.
+        Confirmas el celular con un código. Aún no hay marketplace ni venta de leads.
       </p>
 
       {estado.mensaje && !estado.ok ? (
@@ -83,15 +79,28 @@ export function FormularioListaEspera({
       </div>
 
       <div>
-        <label htmlFor="rut-espera" className="mb-1 block text-sm font-medium">
+        <label htmlFor="rut-proveedor" className="mb-1 block text-sm font-medium">
           RUT
         </label>
-        <input id="rut-espera" name="rut" className={claseCampo} placeholder="76.482.113-5" required />
+        <input
+          id="rut-proveedor"
+          name="rut"
+          className={claseCampo}
+          placeholder="76.482.113-5"
+          value={rut}
+          onChange={(event) => setRut(event.target.value)}
+          required
+        />
+        {rut ? (
+          <p className={`mt-1 text-sm ${rutOk ? 'text-(--color-verde)' : 'text-(--color-tinta-suave)'}`}>
+            {rutOk ? 'RUT válido' : 'Revisa el dígito verificador.'}
+          </p>
+        ) : null}
         {errores.rut ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.rut}</p> : null}
       </div>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Rubros de interés</legend>
+        <legend className="mb-2 text-sm font-medium">Rubros</legend>
         <ul className="grid gap-2">
           {rubros.map((rubro) => (
             <li key={rubro.slug}>
@@ -106,32 +115,26 @@ export function FormularioListaEspera({
       </fieldset>
 
       <div>
-        <p className="mb-2 text-sm font-medium">Cobertura</p>
-        <SelectorTerritorio
-          comunas={comunas}
-          multiple
-          values={comunasElegidas}
-          onChangeMultiple={setComunasElegidas}
-          idPrefijo="espera"
-        />
-        {comunasElegidas.map((slug) => (
+        <SelectorCobertura comunas={comunas} value={cobertura} onChange={setCobertura} />
+        <input type="hidden" name="modoCobertura" value={cobertura.modo} />
+        {cobertura.regiones.map((region) => (
+          <input key={region} type="hidden" name="regiones" value={region} />
+        ))}
+        {cobertura.provincias.map((item) => (
+          <input key={claveProvincia(item)} type="hidden" name="provincias" value={claveProvincia(item)} />
+        ))}
+        {cobertura.comunas.map((slug) => (
           <input key={slug} type="hidden" name="comunas" value={slug} />
         ))}
-        <input type="hidden" name="region" value={ancla?.region ?? ''} />
-        <input type="hidden" name="provincia" value={ancla?.provincia ?? ''} />
-        {errores.comunas || errores.region || errores.provincia ? (
-          <p className="mt-1 text-sm text-(--color-rojo)">
-            {errores.comunas ?? errores.region ?? errores.provincia}
-          </p>
-        ) : null}
+        {errores.cobertura ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.cobertura}</p> : null}
       </div>
 
       <div>
-        <label htmlFor="telefono-espera" className="mb-1 block text-sm font-medium">
+        <label htmlFor="telefono-proveedor" className="mb-1 block text-sm font-medium">
           Celular
         </label>
         <input
-          id="telefono-espera"
+          id="telefono-proveedor"
           name="telefono"
           type="tel"
           inputMode="tel"
@@ -143,10 +146,10 @@ export function FormularioListaEspera({
       </div>
 
       <div>
-        <label htmlFor="email-espera" className="mb-1 block text-sm font-medium">
+        <label htmlFor="email-proveedor" className="mb-1 block text-sm font-medium">
           Correo
         </label>
-        <input id="email-espera" name="email" type="email" className={claseCampo} required />
+        <input id="email-proveedor" name="email" type="email" className={claseCampo} required />
         {errores.email ? <p className="mt-1 text-sm text-(--color-rojo)">{errores.email}</p> : null}
       </div>
 

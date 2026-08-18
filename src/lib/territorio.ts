@@ -48,6 +48,12 @@ export function comunasDe(
     .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es-CL'))
 }
 
+export function comunasDeRegion(comunas: ComunaTerritorio[], region: string): ComunaTerritorio[] {
+  return comunas
+    .filter((comuna) => comuna.region === region)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es-CL'))
+}
+
 export function comunaPorSlug(
   comunas: ComunaTerritorio[],
   slug: string,

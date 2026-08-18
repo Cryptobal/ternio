@@ -5,8 +5,9 @@ Marketplace de leads B2B en Chile. El comprador cotiza gratis en una página
 prepagados. El contexto completo del producto está en [`CLAUDE.md`](./CLAUDE.md).
 
 Este repositorio está en **Fase 0 (validación)**: landing real con formulario,
-cuenta del comprador, panel mínimo de seguimiento, panel de admin en ruta oculta
-y medición del embudo. Todavía no hay venta de leads ni paneles de proveedor.
+cuenta del comprador, panel mínimo de seguimiento, cuenta mínima de proveedor
+(`/panel`), panel de admin en ruta oculta y medición del embudo. Todavía no hay
+venta de leads ni marketplace.
 
 ## Stack
 
@@ -116,9 +117,10 @@ cliente. `CUENTA_CREADA` se cuenta una vez por cuenta, no por cotización.
 | --- | --- |
 | `src/app/(seo)/[rubro]/[comuna]` | Página programática con ISR y el formulario de cotización |
 | `src/app/cotizacion/enviada` | Pantalla post-envío: código SMS y sesión |
-| `src/app/entrar` | Reingreso del comprador por OTP de teléfono |
-| `src/app/mis-cotizaciones` | Panel del comprador (solo lectura, `noindex`) |
-| `src/app/proveedores` | Propuesta de valor para empresas proveedoras |
+| `src/app/entrar` | Reingreso por OTP de teléfono (comprador o proveedor) |
+| `src/app/mis-cotizaciones` | Panel del comprador: estado honesto + próximo paso |
+| `src/app/proveedores` | Alta de cuenta de proveedor (RUT + cobertura + OTP) |
+| `src/app/panel` | Cuenta mínima del proveedor; sin marketplace |
 | `src/app/admin/*` | Panel del dueño en `/admin`; 404 si no hay rol ADMIN |
 | `src/server/*` | Server actions y helpers de sesión |
 | `src/lib/*` | Lógica pura y reutilizable (RUT, teléfono, score, rubros, tokens) |

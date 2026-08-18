@@ -9,6 +9,7 @@ export const RUTAS_EXCLUIDAS_SITEMAP = [
   '/mis-cotizaciones',
   '/cotizacion',
   '/entrar',
+  '/panel',
 ] as const
 
 export function urlsSitemapFijas(base: string): string[] {

@@ -163,7 +163,7 @@ function esAccionEspera(valor: string): valor is AccionEspera {
 }
 
 /**
- * Revisa la lista de espera de /proveedores.
+ * Revisa cuentas de proveedor creadas en /proveedores.
  * Aprobar o rechazar no crea créditos ni matching.
  */
 export async function marcarListaEsperaProveedor(
@@ -180,10 +180,10 @@ export async function marcarListaEsperaProveedor(
 
   const proveedor = await prisma.proveedor.findUnique({
     where: { id: proveedorId },
-    select: { id: true, solicitudEspera: true },
+    select: { id: true },
   })
-  if (!proveedor || proveedor.solicitudEspera == null) {
-    return { ok: false, mensaje: 'No encontramos esa inscripción.' }
+  if (!proveedor) {
+    return { ok: false, mensaje: 'No encontramos esa cuenta.' }
   }
 
   if (accionBruta === 'visto') {
@@ -204,5 +204,5 @@ export async function marcarListaEsperaProveedor(
   }
 
   revalidatePath(rutaAdmin('proveedores'))
-  return { ok: true, mensaje: 'Lista de espera actualizada.' }
+  return { ok: true, mensaje: 'Proveedor actualizado.' }
 }

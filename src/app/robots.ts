@@ -16,7 +16,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         // Solo paneles del comprador y flujos privados; nada de admin.
-        disallow: ['/mis-cotizaciones', '/cotizacion/', '/entrar', '/api/'],
+        disallow: ['/mis-cotizaciones', '/cotizacion/', '/entrar', '/panel', '/api/'],
       },
     ],
     sitemap: `${base}/sitemap.xml`,

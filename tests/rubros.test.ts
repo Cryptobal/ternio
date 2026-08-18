@@ -74,9 +74,8 @@ describe('textoEstadoComprador', () => {
   })
 
   it('le dice al comprador de un rubro en captura qué está pasando', () => {
-    expect(textoEstadoComprador(EstadoLead.LISTA_ESPERA)).toBe(
-      'Estamos buscando proveedores en tu zona',
-    )
-    expect(textoEstadoComprador(EstadoLead.RECIBIDO)).toBe('Verificando tus datos')
+    expect(textoEstadoComprador(EstadoLead.LISTA_ESPERA)).toBe('Quedó en lista de espera')
+    expect(textoEstadoComprador(EstadoLead.RECIBIDO)).toBe('Estamos revisando tus datos')
+    expect(textoEstadoComprador(EstadoLead.VERIFICADO)).toBe('Solicitud verificada')
   })
 })
