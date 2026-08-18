@@ -52,16 +52,22 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
           </Link>
         </div>
       ) : otp?.telefonoEnmascarado || otp?.ok ? (
-        <FormularioOtpCodigo
-          origen="reclamo"
-          telefonoEnmascarado={otp.telefonoEnmascarado}
-          avisoInicial={otp.mensaje}
-        />
+        <div className="mt-8">
+          <p className="text-(--color-tinta-suave)">
+            Crea tu acceso o entra con este celular para seguir la solicitud. El código es de un
+            solo uso.
+          </p>
+          <FormularioOtpCodigo
+            origen="reclamo"
+            telefonoEnmascarado={otp.telefonoEnmascarado}
+            avisoInicial={otp.mensaje}
+          />
+        </div>
       ) : (
         <div className="mt-8 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-5 text-sm">
           <p className="font-medium">Tu cotización quedó guardada.</p>
           <p className="mt-1">
-            Para seguirla, entra con el teléfono que usaste.{' '}
+            Crea tu acceso o entra con este celular para seguir la solicitud.{' '}
             <Link href="/entrar" className="font-medium underline underline-offset-4">
               Ir a entrar
             </Link>
