@@ -1,11 +1,18 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useMemo, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { ModoRubro } from '@prisma/client'
 
-import { serializarCamposAdmin } from '@/lib/admin-rubros'
+import { ConstructorCampos } from '@/components/admin/constructor-campos'
 import { preciosLanzamiento } from '@/lib/activar-venta'
+import {
+  diagnosticoCamposAlmacenados,
+  parsearJsonConstructor,
+  serializarCamposConstructor,
+  validarCamposConstructor,
+} from '@/lib/constructor-campos'
+import type { CampoFormulario } from '@/lib/campos'
 import { CLASE_BOTON, CLASE_CAMPO, CLASE_SUPERFICIE } from '@/lib/ui'
 import {
   crearRubroAction,
@@ -16,10 +23,10 @@ import {
 
 const INICIAL: ResultadoRubroAdmin = { ok: false, mensaje: '' }
 
-function Boton({ children }: { children: React.ReactNode }) {
+function Boton({ children, disabled }: { children: React.ReactNode; disabled?: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <button type="submit" disabled={pending} className={CLASE_BOTON}>
+    <button type="submit" disabled={pending || disabled} className={CLASE_BOTON}>
       {pending ? 'Guardando…' : children}
     </button>
   )
@@ -39,18 +46,72 @@ type RubroForm = {
   camposFormulario?: unknown
 }
 
-export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
+export function FormularioRubro({
+  rubro,
+  leadCount = 0,
+}: {
+  rubro?: RubroForm
+  leadCount?: number
+}) {
   const esEdicion = Boolean(rubro?.id)
   const [estado, accion] = useActionState(esEdicion ? editarRubroAction : crearRubroAction, INICIAL)
   const [baja, desactivar] = useActionState(desactivarRubroAction, INICIAL)
-  const [camposJson, setCamposJson] = useState(serializarCamposAdmin(rubro?.camposFormulario))
+
+  const diagnostico = useMemo(
+    () => diagnosticoCamposAlmacenados(rubro?.camposFormulario),
+    [rubro?.camposFormulario],
+  )
+  const [campos, setCampos] = useState<CampoFormulario[]>(diagnostico.campos)
+  const [jsonAvanzado, setJsonAvanzado] = useState(diagnostico.json)
+  const [jsonError, setJsonError] = useState<string | null>(null)
+  const [configInvalida, setConfigInvalida] = useState(diagnostico.estado === 'invalido')
+  const nombresOriginales = useMemo(
+    () => diagnostico.campos.map((c) => c.nombre),
+    [diagnostico.campos],
+  )
+
   const errores = estado.errores ?? {}
   const preciosSeed = rubro?.slug ? preciosLanzamiento(rubro.slug) : undefined
+  const validacion = validarCamposConstructor(campos)
+  const jsonSubmit = serializarCamposConstructor(campos)
+
+  function aplicarCampos(siguientes: CampoFormulario[]) {
+    setCampos(siguientes)
+    setJsonAvanzado(serializarCamposConstructor(siguientes))
+    setJsonError(null)
+    const v = validarCamposConstructor(siguientes)
+    if (v.ok) setConfigInvalida(false)
+  }
+
+  function onJsonChange(texto: string) {
+    setJsonAvanzado(texto)
+    const parseo = parsearJsonConstructor(texto)
+    if (!parseo.ok) {
+      setJsonError(parseo.motivo)
+      return
+    }
+    setJsonError(null)
+    setCampos(parseo.campos)
+  }
 
   return (
     <div className="grid gap-6">
+      {configInvalida ? (
+        <div
+          className="rounded-2xl border border-(--color-rojo)/40 bg-(--color-rojo)/5 p-4 text-sm text-(--color-rojo)"
+          role="alert"
+        >
+          Este rubro tiene una configuración inválida: el cotizador está mostrando solo el tronco
+          común.
+          {diagnostico.estado === 'invalido' && diagnostico.motivo === 'exceso'
+            ? ' Hay más de 6 preguntas guardadas; baja a 6 o menos para poder guardar.'
+            : ' Revisa el JSON avanzado o empieza de cero.'}
+        </div>
+      ) : null}
+
       <form action={accion} className={`${CLASE_SUPERFICIE} grid gap-4`}>
         {esEdicion ? <input type="hidden" name="id" value={rubro?.id} /> : null}
+        <input type="hidden" name="camposFormulario" value={jsonSubmit} />
 
         <div>
           <label htmlFor="nombre" className="mb-1 block text-sm font-medium">
@@ -171,27 +232,47 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
           />
         </div>
 
-        <div>
-          <label htmlFor="camposFormulario" className="mb-1 block text-sm font-medium">
-            Campos del cotizador (JSON)
-          </label>
+        <ConstructorCampos
+          campos={campos}
+          onChange={aplicarCampos}
+          leadCount={leadCount}
+          nombresOriginales={nombresOriginales}
+          mostrarEmpezarDeCero={configInvalida}
+          onEmpezarDeCero={() => {
+            aplicarCampos([])
+            setConfigInvalida(false)
+          }}
+        />
+
+        {errores.camposFormulario ? (
+          <p className="text-sm text-(--color-rojo)">{errores.camposFormulario}</p>
+        ) : null}
+
+        {!validacion.ok ? (
+          <p className="text-sm text-(--color-rojo)">
+            {validacion.exceso
+              ? 'Baja a 6 preguntas o menos antes de guardar.'
+              : 'Revisa las preguntas marcadas en rojo antes de guardar.'}
+          </p>
+        ) : null}
+
+        <details className="rounded-2xl border border-(--color-borde) bg-(--color-papel) p-3">
+          <summary className="min-h-11 cursor-pointer text-sm font-medium">
+            Editar como JSON (avanzado)
+          </summary>
           <textarea
-            id="camposFormulario"
-            name="camposFormulario"
+            id="camposFormularioJson"
             rows={10}
             spellCheck={false}
-            className={`${CLASE_CAMPO} font-mono text-sm`}
-            value={camposJson}
-            onChange={(event) => setCamposJson(event.target.value)}
+            className={`${CLASE_CAMPO} mt-3 font-mono text-sm`}
+            value={jsonAvanzado}
+            onChange={(event) => onJsonChange(event.target.value)}
           />
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
-            Vacío o <code>[]</code> deja solo el tronco (razón social, RUT, nombre, teléfono,
-            correo). Máximo 6 preguntas. JSON inválido no se guarda.
+            Se sincroniza con el constructor. Sirve para copiar la config entre rubros.
           </p>
-          {errores.camposFormulario ? (
-            <p className="mt-1 text-sm text-(--color-rojo)">{errores.camposFormulario}</p>
-          ) : null}
-        </div>
+          {jsonError ? <p className="mt-1 text-sm text-(--color-rojo)">{jsonError}</p> : null}
+        </details>
 
         {esEdicion ? (
           <label className="flex min-h-11 items-center gap-3 text-sm">
@@ -206,7 +287,9 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
           </p>
         ) : null}
 
-        <Boton>{esEdicion ? 'Guardar cambios' : 'Crear rubro'}</Boton>
+        <Boton disabled={!validacion.ok || Boolean(jsonError)}>
+          {esEdicion ? 'Guardar cambios' : 'Crear rubro'}
+        </Boton>
       </form>
 
       {esEdicion && rubro?.activo ? (

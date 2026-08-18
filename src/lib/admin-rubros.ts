@@ -1,6 +1,7 @@
 import { ModoRubro } from '@prisma/client'
 
 import {
+  MAX_CAMPOS_MODULO,
   camposFormularioSchema,
   parsearCampos,
   type CampoFormulario,
@@ -137,8 +138,6 @@ export function parsearDatosRubro(entrada: {
 export type ResultadoCamposEscritos =
   | { ok: true; campos: CampoFormulario[] }
   | { ok: false; motivo: string }
-
-const MAX_CAMPOS_MODULO = 6
 
 /**
  * Parseo de `camposFormulario` para el admin. Vacío = `[]` (solo tronco).
