@@ -33,10 +33,13 @@ async function confirmar(request: NextRequest) {
   if ('pendiente' in result && result.pendiente) {
     return NextResponse.json({ ok: true, pendiente: true })
   }
-  if ('reintentar' in result && result.reintentar) {
+  if ('error' in result && result.reintentar) {
     return NextResponse.json({ error: result.error }, { status: 502 })
   }
-  return NextResponse.json({ error: result.error }, { status: 400 })
+  if ('error' in result) {
+    return NextResponse.json({ error: result.error }, { status: 400 })
+  }
+  return NextResponse.json({ error: 'pago no confirmado' }, { status: 400 })
 }
 
 export async function POST(request: NextRequest) {
