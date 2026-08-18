@@ -5,7 +5,9 @@ import {
   audienciaInicialParaPagina,
   audienciaParaLead,
   audienciasDe,
+  audienciasSemilla,
   filtrarServiciosPorAudiencia,
+  normalizarAudiencias,
   parsearAudiencia,
   rubroCalzaAudiencia,
 } from '@/lib/audiencia'
@@ -39,40 +41,45 @@ const AMBOS = [
 ]
 
 describe('audiencia hogar / empresa', () => {
-  it('etiqueta todos los rubros VENTA y deja overlap donde Carlos lo pidió', () => {
+  it('la semilla etiqueta todos los rubros VENTA; el runtime opera sobre datos', () => {
     for (const rubro of RUBROS) {
-      expect(audienciasDe(rubro.slug).length, rubro.slug).toBeGreaterThan(0)
+      expect(audienciasSemilla(rubro.slug).length, rubro.slug).toBeGreaterThan(0)
     }
     for (const slug of SOLO_HOGAR) {
-      expect(audienciasDe(slug)).toEqual(['hogar'])
+      expect(audienciasSemilla(slug)).toEqual(['hogar'])
     }
     for (const slug of SOLO_EMPRESA) {
-      expect(audienciasDe(slug)).toEqual(['empresa'])
+      expect(audienciasSemilla(slug)).toEqual(['empresa'])
     }
     for (const slug of AMBOS) {
-      expect(audienciasDe(slug)).toEqual(['hogar', 'empresa'])
+      expect(audienciasSemilla(slug)).toEqual(['hogar', 'empresa'])
     }
-    expect(rubroCalzaAudiencia('control-de-plagas', 'hogar')).toBe(true)
-    expect(rubroCalzaAudiencia('abogados', 'hogar')).toBe(false)
-    expect(rubroCalzaAudiencia('cerrajeria', 'empresa')).toBe(true)
+    expect(rubroCalzaAudiencia(['hogar', 'empresa'], 'hogar')).toBe(true)
+    expect(rubroCalzaAudiencia(['empresa'], 'hogar')).toBe(false)
+    expect(normalizarAudiencias([])).toEqual(['empresa'])
+    expect(audienciasDe(['hogar'])).toEqual(['hogar'])
   })
 
   it('en la landing precarga si es único y pregunta si es BOTH', () => {
-    expect(audienciaInicialParaPagina('aseo-hogar')).toBe('hogar')
-    expect(audienciaInicialParaPagina('seguridad')).toBe('empresa')
-    expect(audienciaInicialParaPagina('gasfiteria')).toBe('')
-    expect(audienciaInicialParaPagina('gasfiteria', 'empresa')).toBe('empresa')
-    expect(audienciaInicialParaPagina('gasfiteria', 'casa')).toBe('hogar')
+    expect(audienciaInicialParaPagina(['hogar'])).toBe('hogar')
+    expect(audienciaInicialParaPagina(['empresa'])).toBe('empresa')
+    expect(audienciaInicialParaPagina(['hogar', 'empresa'])).toBe('')
+    expect(audienciaInicialParaPagina(['hogar', 'empresa'], 'empresa')).toBe('empresa')
+    expect(audienciaInicialParaPagina(['hogar', 'empresa'], 'casa')).toBe('hogar')
     expect(parsearAudiencia('casa')).toBe('hogar')
   })
 
   it('el lead guarda hogar|empresa; si es BOTH y no vino, no inventa', () => {
-    expect(audienciaParaLead('hogar', 'gasfiteria')).toBe('hogar')
-    expect(audienciaParaLead(undefined, 'seguridad')).toBe('empresa')
-    expect(audienciaParaLead(undefined, 'gasfiteria')).toBeNull()
+    expect(audienciaParaLead('hogar', ['hogar', 'empresa'])).toBe('hogar')
+    expect(audienciaParaLead(undefined, ['empresa'])).toBe('empresa')
+    expect(audienciaParaLead(undefined, ['hogar', 'empresa'])).toBeNull()
     expect(
       filtrarServiciosPorAudiencia(
-        [{ slug: 'aseo' }, { slug: 'aseo-hogar' }, { slug: 'control-de-plagas' }],
+        [
+          { slug: 'aseo', audiencias: ['empresa'] },
+          { slug: 'aseo-hogar', audiencias: ['hogar'] },
+          { slug: 'control-de-plagas', audiencias: ['hogar', 'empresa'] },
+        ],
         'hogar',
       ).map((r) => r.slug),
     ).toEqual(['aseo-hogar', 'control-de-plagas'])

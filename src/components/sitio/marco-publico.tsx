@@ -38,7 +38,7 @@ export async function PiePublico() {
   ])
 
   const servicios = enlacesCatalogo(
-    filas.map((r) => ({ slug: r.slug, nombre: r.nombre })),
+    filas.map((r) => ({ slug: r.slug, nombre: r.nombre, audiencias: r.audiencias })),
     combinaciones,
   )
     .flatMap((g) => g.items)

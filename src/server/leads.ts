@@ -78,7 +78,7 @@ export async function crearLeadAction(
   const [rubro, comuna] = await Promise.all([
     prisma.rubro.findFirst({
       where: { slug: rubroSlug, activo: true },
-      select: { id: true, modo: true, camposFormulario: true },
+      select: { id: true, modo: true, camposFormulario: true, audiencias: true },
     }),
     prisma.comuna.findFirst({
       where: { slug: comunaSlug, activa: true },
@@ -103,7 +103,7 @@ export async function crearLeadAction(
   }
 
   const errores: Record<string, string> = {}
-  const audiencia = audienciaParaLead(formData.get('audiencia'), rubroSlug)
+  const audiencia = audienciaParaLead(formData.get('audiencia'), rubro.audiencias)
   if (!audiencia) {
     errores.audiencia = 'Elige si es para la casa o para la empresa.'
   }

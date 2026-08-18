@@ -1,6 +1,7 @@
 import { ModoRubro, PrismaClient, RolUsuario } from '@prisma/client'
 
 import { cambioActivacionVenta } from '../src/lib/activar-venta'
+import { audienciasSemilla } from '../src/lib/audiencia'
 import { ensureGardSecurity } from '../src/lib/gard'
 import { COMUNAS, COMUNAS_SEO, RUBROS } from './catalogo-inicial'
 import { validarModoRubro } from '../src/lib/rubros'
@@ -22,6 +23,7 @@ const prisma = new PrismaClient()
 
 async function main(): Promise<void> {
   await sembrarRubros()
+  await sembrarAudienciasYPreciosHogar()
   await sembrarComunas()
   await sembrarPaginasSeo()
   await sembrarAdmin()
@@ -42,7 +44,20 @@ async function main(): Promise<void> {
 
 async function sembrarRubros(): Promise<void> {
   for (const rubro of RUBROS) {
-    const validacion = validarModoRubro({ ...rubro, activo: true })
+    const audiencias = audienciasSemilla(rubro.slug)
+    const preciosHogar = audiencias.includes('hogar')
+      ? {
+          precioExclusivoHogarClp: rubro.precioExclusivoClp,
+          precioCompartidoHogarClp: rubro.precioCompartidoClp,
+        }
+      : { precioExclusivoHogarClp: null, precioCompartidoHogarClp: null }
+
+    const validacion = validarModoRubro({
+      ...rubro,
+      activo: true,
+      audiencias,
+      ...preciosHogar,
+    })
     if (!validacion.ok) {
       throw new Error(`Rubro "${rubro.slug}" inválido: ${validacion.motivo}`)
     }
@@ -86,11 +101,70 @@ async function sembrarRubros(): Promise<void> {
         modo: rubro.modo,
         activo: true,
         orden: rubro.orden,
+        audiencias,
         precioExclusivoClp: rubro.precioExclusivoClp,
         precioCompartidoClp: rubro.precioCompartidoClp,
+        precioExclusivoHogarClp: preciosHogar.precioExclusivoHogarClp,
+        precioCompartidoHogarClp: preciosHogar.precioCompartidoHogarClp,
         camposFormulario: rubro.campos,
         contenidoSeo: rubro.contenidoSeo,
       },
+    })
+  }
+}
+
+/**
+ * Idempotente: escribe audiencias desde la semilla y, si el rubro atiende
+ * hogar y aún no tiene precios de hogar, copia los de empresa (mismo monto
+ * que hoy) para no cortar la venta el día del deploy. El admin puede bajar
+ * el ticket de hogar después.
+ */
+async function sembrarAudienciasYPreciosHogar(): Promise<void> {
+  const rubros = await prisma.rubro.findMany({
+    select: {
+      id: true,
+      slug: true,
+      audiencias: true,
+      precioExclusivoClp: true,
+      precioCompartidoClp: true,
+      precioExclusivoHogarClp: true,
+      precioCompartidoHogarClp: true,
+    },
+  })
+
+  for (const rubro of rubros) {
+    const audiencias = audienciasSemilla(rubro.slug)
+    const data: {
+      audiencias: string[]
+      precioExclusivoHogarClp?: number | null
+      precioCompartidoHogarClp?: number | null
+    } = { audiencias }
+
+    if (audiencias.includes('hogar')) {
+      if (rubro.precioExclusivoHogarClp == null && (rubro.precioExclusivoClp ?? 0) > 0) {
+        data.precioExclusivoHogarClp = rubro.precioExclusivoClp
+      }
+      if (rubro.precioCompartidoHogarClp == null && (rubro.precioCompartidoClp ?? 0) > 0) {
+        data.precioCompartidoHogarClp = rubro.precioCompartidoClp
+      }
+    }
+
+    await prisma.rubro.update({ where: { id: rubro.id }, data })
+  }
+
+  // Cobertura: audiencias del rubro (nadie pierde avisos).
+  const coberturas = await prisma.cobertura.findMany({
+    select: { id: true, audiencias: true, rubro: { select: { audiencias: true } } },
+  })
+  for (const fila of coberturas) {
+    const deseadas = fila.rubro.audiencias
+    const actuales = fila.audiencias
+    const igual =
+      deseadas.length === actuales.length && deseadas.every((a, i) => a === actuales[i])
+    if (igual) continue
+    await prisma.cobertura.update({
+      where: { id: fila.id },
+      data: { audiencias: deseadas },
     })
   }
 }

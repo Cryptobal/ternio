@@ -193,9 +193,16 @@ model Rubro {
   orden        Int       @default(0)
 
   /// Nulos mientras el rubro esté en CAPTURA. Pasar a VENTA exige ambos > 0
-  /// (validado en servidor: src/lib/rubros.ts).
+  /// (validado en servidor: src/lib/rubros.ts). Precios de **empresa**.
   precioExclusivoClp  Int?
   precioCompartidoClp Int?
+
+  /// Precios de lead **hogar**. Null = esa modalidad no se vende (fail-closed).
+  precioExclusivoHogarClp  Int?
+  precioCompartidoHogarClp Int?
+
+  /// Audiencias que el rubro atiende: "hogar" | "empresa". Editable en admin.
+  audiencias String[] @default(["empresa"])
 
   /// Definición de los campos del formulario de cotización.
   camposFormulario Json @default("[]")
@@ -305,6 +312,10 @@ model Cobertura {
   rubroId     String
   comunaId    String
   activa      Boolean @default(true)
+
+  /// Audiencias que este proveedor atiende en este rubro: "hogar" | "empresa".
+  /// Se declara por rubro (misma lista en todas las comunas del rubro).
+  audiencias String[] @default(["empresa"])
 
   /// Preferencias de matching sobre los campos dinámicos del lead.
   /// Reservado: sin lógica hasta F3.

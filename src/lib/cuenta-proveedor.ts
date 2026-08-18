@@ -1,4 +1,5 @@
 import { leerSeleccionCobertura, type SeleccionCobertura } from '@/lib/cobertura'
+import { parsearAudienciasEntrada, type Audiencia } from '@/lib/audiencia'
 import { errorCampoIdentidad } from '@/lib/validar-identidad'
 
 export const LARGO_MIN_PASSWORD_PROVEEDOR = 10
@@ -10,6 +11,7 @@ export type DatosCuentaProveedor = {
   email: string
   password: string
   rubros: string[]
+  audienciasPorRubro: Record<string, Audiencia[]>
   cobertura: SeleccionCobertura
 }
 
@@ -27,6 +29,25 @@ export function errorPasswordProveedor(password: unknown): string | null {
   return null
 }
 
+/** Lee `audiencia:{slug}` repetidos del FormData. */
+export function leerAudienciasPorRubro(
+  rubros: string[],
+  getAll: (name: string) => unknown[],
+): { ok: true; mapa: Record<string, Audiencia[]> } | { ok: false; errores: Record<string, string> } {
+  const mapa: Record<string, Audiencia[]> = {}
+  const errores: Record<string, string> = {}
+  for (const slug of rubros) {
+    const parseo = parsearAudienciasEntrada(getAll(`audiencia:${slug}`))
+    if (!parseo.ok) {
+      errores[`audiencia:${slug}`] = parseo.motivo
+      continue
+    }
+    mapa[slug] = parseo.audiencias
+  }
+  if (Object.keys(errores).length > 0) return { ok: false, errores }
+  return { ok: true, mapa }
+}
+
 export function validarCuentaProveedor(entrada: {
   nombreEmpresa?: unknown
   rut?: unknown
@@ -39,6 +60,7 @@ export function validarCuentaProveedor(entrada: {
   regiones?: unknown
   provincias?: unknown
   comunas?: unknown
+  getAll?: (name: string) => unknown[]
 }): { ok: true; datos: DatosCuentaProveedor } | { ok: false; errores: Record<string, string> } {
   const nombreEmpresa = typeof entrada.nombreEmpresa === 'string' ? entrada.nombreEmpresa.trim() : ''
   const rut = typeof entrada.rut === 'string' ? entrada.rut : ''
@@ -77,6 +99,14 @@ export function validarCuentaProveedor(entrada: {
   })
   if (!cobertura.ok) errores.cobertura = cobertura.error
 
+  let audienciasPorRubro: Record<string, Audiencia[]> = {}
+  if (rubros.length > 0) {
+    const getAll = entrada.getAll ?? (() => ['hogar', 'empresa'])
+    const audiencias = leerAudienciasPorRubro(rubros, getAll)
+    if (!audiencias.ok) Object.assign(errores, audiencias.errores)
+    else audienciasPorRubro = audiencias.mapa
+  }
+
   if (Object.keys(errores).length > 0 || !cobertura.ok) return { ok: false, errores }
 
   return {
@@ -88,6 +118,7 @@ export function validarCuentaProveedor(entrada: {
       email: email.trim().toLowerCase(),
       password,
       rubros,
+      audienciasPorRubro,
       cobertura: cobertura.datos,
     },
   }

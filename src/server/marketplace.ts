@@ -12,12 +12,14 @@ import {
 } from '@prisma/client'
 
 import { SELECT_FICHA_ANONIMA } from '@/lib/ficha-anonima'
+import { parsearAudiencia } from '@/lib/audiencia'
 import {
   esSlugGard,
   faseVentanaGard,
   leadSePuedeVender,
   minutosRestantes,
   puedeTomarLead,
+  precioBasePorAudiencia,
   precioVigente,
   proveedorCubreLead,
   proveedorEsDuenioDelLead,
@@ -99,6 +101,7 @@ function aLeadMatch(lead: {
   rutValido: boolean
   telefonoVerificado: boolean
   verificadoAt: Date | null
+  audiencia?: string | null
   rubro: { slug: string }
   comuna: { slug: string; region: string; provincia: string }
 }): LeadMatch {
@@ -112,6 +115,7 @@ function aLeadMatch(lead: {
     rutValido: lead.rutValido,
     telefonoVerificado: lead.telefonoVerificado,
     verificadoAt: lead.verificadoAt,
+    audiencia: parsearAudiencia(lead.audiencia) ?? null,
   }
 }
 
@@ -120,7 +124,12 @@ function aProveedorMatch(proveedor: {
   coberturaNacional: boolean
   slug: string
   solicitudEspera: unknown
-  coberturas: Array<{ activa: boolean; rubro: { slug: string }; comuna: { slug: string } }>
+  coberturas: Array<{
+    activa: boolean
+    audiencias?: string[]
+    rubro: { slug: string }
+    comuna: { slug: string }
+  }>
 }): ProveedorMatch {
   return {
     estado: proveedor.estado,
@@ -131,7 +140,32 @@ function aProveedorMatch(proveedor: {
       activa: fila.activa,
       rubroSlug: fila.rubro.slug,
       comunaSlug: fila.comuna.slug,
+      audiencias: fila.audiencias,
     })),
+  }
+}
+
+function preciosVigentesLead(
+  lead: {
+    audiencia?: string | null
+    verificadoAt: Date | null
+    rubro: {
+      precioExclusivoClp: number | null
+      precioCompartidoClp: number | null
+      precioExclusivoHogarClp?: number | null
+      precioCompartidoHogarClp?: number | null
+    }
+  },
+  ahora: Date,
+) {
+  const audiencia = parsearAudiencia(lead.audiencia) ?? null
+  const baseEx = precioBasePorAudiencia({ audiencia, tipo: 'EXCLUSIVO', rubro: lead.rubro })
+  const baseCo = precioBasePorAudiencia({ audiencia, tipo: 'COMPARTIDO', rubro: lead.rubro })
+  return {
+    precioExclusivo: precioVigente(baseEx, lead.verificadoAt, ahora),
+    precioCompartido: precioVigente(baseCo, lead.verificadoAt, ahora),
+    precioBaseExclusivo: baseEx,
+    precioBaseCompartido: baseCo,
   }
 }
 
@@ -142,7 +176,12 @@ const SELECT_GARD = {
   solicitudEspera: true,
   coberturas: {
     where: { activa: true },
-    select: { activa: true, rubro: { select: { slug: true } }, comuna: { select: { slug: true } } },
+    select: {
+      activa: true,
+      audiencias: true,
+      rubro: { select: { slug: true } },
+      comuna: { select: { slug: true } },
+    },
   },
 } as const
 
@@ -175,7 +214,12 @@ export async function cargarPanelProveedor(usuarioId: string) {
       coberturaNacional: true,
       solicitudEspera: true,
       coberturas: {
-        select: { activa: true, rubro: { select: { slug: true } }, comuna: { select: { slug: true } } },
+        select: {
+          activa: true,
+          audiencias: true,
+          rubro: { select: { slug: true } },
+          comuna: { select: { slug: true } },
+        },
       },
     },
   })
@@ -311,6 +355,7 @@ export async function cargarPanelProveedor(usuarioId: string) {
       slugProveedor: proveedor.slug,
       ahora,
     })
+    const precios = preciosVigentesLead(lead, ahora)
     disponibles.push({
       id: lead.id,
       rubro: lead.rubro.nombre,
@@ -320,14 +365,13 @@ export async function cargarPanelProveedor(usuarioId: string) {
       verificadoAt: lead.verificadoAt ?? lead.createdAt,
       rutValido: lead.rutValido,
       telefonoVerificado: lead.telefonoVerificado,
-      precioExclusivo: precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahora),
-      precioCompartido: precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahora),
-      precioBaseExclusivo: lead.rubro.precioExclusivoClp,
-      precioBaseCompartido: lead.rubro.precioCompartidoClp,
+      precioExclusivo: precios.precioExclusivo,
+      precioCompartido: precios.precioCompartido,
+      precioBaseExclusivo: precios.precioBaseExclusivo,
+      precioBaseCompartido: precios.precioBaseCompartido,
       cuposRestantes: cupos.cuposCompartidoRestantes,
-      puedeExclusivo: cupos.puedeExclusivo && Boolean(precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahora)),
-      puedeCompartido:
-        cupos.puedeCompartido && Boolean(precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahora)),
+      puedeExclusivo: cupos.puedeExclusivo && Boolean(precios.precioExclusivo),
+      puedeCompartido: cupos.puedeCompartido && Boolean(precios.precioCompartido),
       reservadoGard: gard.fase === 'reservado',
       disponibleEnMin: gard.fase === 'reservado' ? minutosRestantes(gard.restanteMs) : 0,
     })
@@ -339,6 +383,7 @@ export async function cargarPanelProveedor(usuarioId: string) {
     const ahoraLocal = new Date()
     const compras: CompraResumen[] = lead.compras
     const cupos = resumenCupos(compras)
+    const precios = preciosVigentesLead(lead, ahoraLocal)
     return [
       {
         id: lead.id,
@@ -350,10 +395,10 @@ export async function cargarPanelProveedor(usuarioId: string) {
         verificadoAt: lead.verificadoAt ?? lead.createdAt,
         rutValido: lead.rutValido,
         telefonoVerificado: lead.telefonoVerificado,
-        precioExclusivo: precioVigente(lead.rubro.precioExclusivoClp, lead.verificadoAt, ahoraLocal),
-        precioCompartido: precioVigente(lead.rubro.precioCompartidoClp, lead.verificadoAt, ahoraLocal),
-        precioBaseExclusivo: lead.rubro.precioExclusivoClp,
-        precioBaseCompartido: lead.rubro.precioCompartidoClp,
+        precioExclusivo: precios.precioExclusivo,
+        precioCompartido: precios.precioCompartido,
+        precioBaseExclusivo: precios.precioBaseExclusivo,
+        precioBaseCompartido: precios.precioBaseCompartido,
         cuposRestantes: cupos.cuposCompartidoRestantes,
         puedeExclusivo: false,
         puedeCompartido: false,
@@ -437,7 +482,12 @@ export async function tomarLeadAction(
             coberturaNacional: true,
             solicitudEspera: true,
             coberturas: {
-              select: { activa: true, rubro: { select: { slug: true } }, comuna: { select: { slug: true } } },
+              select: {
+                activa: true,
+                audiencias: true,
+                rubro: { select: { slug: true } },
+                comuna: { select: { slug: true } },
+              },
             },
           },
         })
@@ -465,8 +515,11 @@ export async function tomarLeadAction(
         const matchLead = aLeadMatch(lead)
         const matchProv = aProveedorMatch(proveedor)
         const hayGard = hayGardQueCalza(await gardsAprobados(tx), matchLead)
-        const precioBase =
-          tipo === 'EXCLUSIVO' ? lead.rubro.precioExclusivoClp : lead.rubro.precioCompartidoClp
+        const precioBase = precioBasePorAudiencia({
+          audiencia: matchLead.audiencia,
+          tipo,
+          rubro: lead.rubro,
+        })
         const precio = precioVigente(precioBase, lead.verificadoAt, ahora)
         const saldo = await saldoProveedor(proveedor.id, tx)
 

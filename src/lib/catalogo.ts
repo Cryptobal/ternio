@@ -65,6 +65,7 @@ export async function rubrosActivos() {
           nombrePlural: true,
           descripcion: true,
           modo: true,
+          audiencias: true,
           precioExclusivoClp: true,
           precioCompartidoClp: true,
         },
@@ -86,6 +87,7 @@ export async function rubrosConComunas() {
           nombrePlural: true,
           descripcion: true,
           modo: true,
+          audiencias: true,
           comunas: {
             where: { activa: true, comuna: { activa: true } },
             orderBy: { comuna: { orden: 'asc' } },
@@ -133,6 +135,7 @@ export async function combinacionPorSlugs(rubroSlug: string, comunaSlug: string)
           descripcion: true,
           modo: true,
           activo: true,
+          audiencias: true,
           precioExclusivoClp: true,
           precioCompartidoClp: true,
           camposFormulario: true,

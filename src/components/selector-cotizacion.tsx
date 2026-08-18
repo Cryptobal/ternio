@@ -45,7 +45,7 @@ export function SelectorCotizacion({
   const partida = servicios.find((item) => item.slug === rubroInicial)
 
   const [audiencia, setAudiencia] = useState<Audiencia | ''>(() =>
-    partida ? audienciaInicialParaPagina(partida.slug, audienciaInicial) : '',
+    partida ? audienciaInicialParaPagina(partida.audiencias, audienciaInicial) : '',
   )
   const [slug, setSlug] = useState(partida?.slug ?? '')
   const [comunaSlug, setComunaSlug] = useState('')

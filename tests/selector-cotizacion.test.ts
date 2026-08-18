@@ -55,6 +55,7 @@ describe('cascada del cotizador', () => {
     expect(pasoCotizador('', '')).toBe('audiencia')
     expect(pasoCotizador('hogar', '')).toBe('servicio')
     expect(pasoCotizador('hogar', 'gasfiteria')).toBe('territorio')
-    expect(audienciaPorDefecto('seguridad')).toBe('empresa')
+    expect(audienciaPorDefecto(['empresa'])).toBe('empresa')
+    expect(audienciaPorDefecto(['hogar', 'empresa'])).toBe('hogar')
   })
 })

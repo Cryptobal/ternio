@@ -20,6 +20,8 @@ export type SeleccionCobertura = {
 
 export type SnapshotCoberturaProveedor = SeleccionCobertura & {
   rubros: string[]
+  /** Audiencias por slug de rubro. Ausente en snapshots viejos. */
+  audienciasPorRubro?: Record<string, string[]>
 }
 
 const ETIQUETA_MODO: Record<ModoCobertura, string> = {
@@ -149,9 +151,23 @@ export function textoCobertura(seleccion: SeleccionCobertura): string {
 
 export function leerSnapshotCobertura(valor: unknown): SnapshotCoberturaProveedor | null {
   if (!valor || typeof valor !== 'object') return null
-  const objeto = valor as Partial<SnapshotCoberturaProveedor>
+  const objeto = valor as Partial<SnapshotCoberturaProveedor> & {
+    audienciasPorRubro?: unknown
+  }
   const modo = typeof objeto.modo === 'string' && esModoCobertura(objeto.modo) ? objeto.modo : null
   if (!modo) return null
+
+  let audienciasPorRubro: Record<string, string[]> | undefined
+  if (objeto.audienciasPorRubro && typeof objeto.audienciasPorRubro === 'object') {
+    audienciasPorRubro = {}
+    for (const [slug, lista] of Object.entries(objeto.audienciasPorRubro)) {
+      if (!Array.isArray(lista)) continue
+      const limpia = lista.filter((item): item is string => typeof item === 'string')
+      if (limpia.length > 0) audienciasPorRubro[slug] = limpia
+    }
+    if (Object.keys(audienciasPorRubro).length === 0) audienciasPorRubro = undefined
+  }
+
   return {
     modo,
     rubros: Array.isArray(objeto.rubros)
@@ -173,5 +189,6 @@ export function leerSnapshotCobertura(valor: unknown): SnapshotCoberturaProveedo
     comunas: Array.isArray(objeto.comunas)
       ? objeto.comunas.filter((item): item is string => typeof item === 'string')
       : [],
+    ...(audienciasPorRubro ? { audienciasPorRubro } : {}),
   }
 }

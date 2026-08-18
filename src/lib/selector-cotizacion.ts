@@ -16,6 +16,7 @@ export type RubroSelector = {
   nombrePlural: string | null
   descripcion: string | null
   modo: ModoSelector
+  audiencias: string[]
   comunas: { slug: string; nombre: string }[]
 }
 

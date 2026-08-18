@@ -22,6 +22,7 @@ function aSelector(rubro: Awaited<ReturnType<typeof rubrosConComunas>>[number]):
     nombrePlural: rubro.nombrePlural,
     descripcion: rubro.descripcion,
     modo: rubro.modo,
+    audiencias: rubro.audiencias,
     comunas: rubro.comunas.map(({ comuna }) => comuna),
   }
 }
@@ -57,7 +58,7 @@ export default async function Inicio() {
   const rubros = filas.map(aSelector)
   const publicados = combinaciones.map((fila) => claveCombo(fila.rubro, fila.comuna))
   const catalogo = enlacesCatalogo(
-    filas.map((r) => ({ slug: r.slug, nombre: r.nombre })),
+    filas.map((r) => ({ slug: r.slug, nombre: r.nombre, audiencias: r.audiencias })),
     combinaciones,
   )
   const combos = combosDestacados(enriquecerCombos(combinaciones, filas, comunas), 10)

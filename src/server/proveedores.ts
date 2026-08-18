@@ -67,13 +67,14 @@ export async function crearCuentaProveedorAction(
     regiones: formData.getAll('regiones'),
     provincias: formData.getAll('provincias'),
     comunas: formData.getAll('comunas'),
+    getAll: (name: string) => formData.getAll(name),
   })
 
   if (!validacion.ok) {
     return { ok: false, mensaje: 'Revisa los datos marcados.', errores: validacion.errores }
   }
 
-  const { nombreEmpresa, rubros, cobertura, email, password } = validacion.datos
+  const { nombreEmpresa, rubros, cobertura, email, password, audienciasPorRubro } = validacion.datos
   const rutNormalizado = normalizarRut(validacion.datos.rut)
   const telefonoE164 = normalizarTelefonoE164(validacion.datos.telefono)
   if (!rutNormalizado || !telefonoE164) {
@@ -84,7 +85,7 @@ export async function crearCuentaProveedorAction(
 
   const rubrosActivos = await prisma.rubro.findMany({
     where: { slug: { in: rubros }, activo: true },
-    select: { id: true, slug: true },
+    select: { id: true, slug: true, audiencias: true },
   })
   if (rubrosActivos.length === 0) {
     return { ok: false, errores: { rubros: 'Elige al menos un rubro vigente.' } }
@@ -103,9 +104,17 @@ export async function crearCuentaProveedorAction(
     return { ok: false, errores: { cobertura: 'No encontramos comunas vigentes para esa cobertura.' } }
   }
 
+  const audienciasSnapshot: Record<string, string[]> = {}
+  for (const fila of rubrosActivos) {
+    const declaradas = audienciasPorRubro[fila.slug]
+    audienciasSnapshot[fila.slug] =
+      declaradas && declaradas.length > 0 ? declaradas : fila.audiencias
+  }
+
   const snapshot: SnapshotCoberturaProveedor = {
     ...cobertura,
     rubros: rubrosActivos.map((fila) => fila.slug),
+    audienciasPorRubro: audienciasSnapshot,
   }
 
   const variantesRut = variantesRutPersistido(rutNormalizado)
@@ -236,6 +245,7 @@ export async function crearCuentaProveedorAction(
           rubroId: rubro.id,
           comunaId: comuna.id,
           activa: true,
+          audiencias: audienciasSnapshot[rubro.slug] ?? rubro.audiencias,
         })),
       ),
       skipDuplicates: true,

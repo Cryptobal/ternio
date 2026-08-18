@@ -45,8 +45,10 @@ nada del lanzamiento depende de él.
   después el tronco común de identidad (razón social → RUT → nombre →
   teléfono → correo). Un solo submit al final. Preguntas mal configuradas
   (0 o >6) degradan al tronco y se reportan en logs sin PII.
-- Posicionamiento: "Cotiza servicios para tu empresa". Hogar permitido por
-  diseño, apagado al lanzamiento: no aparece en el copy.
+- Posicionamiento: "Cotiza servicios para tu empresa". Hogar está activo:
+  el comprador elige casa o empresa; el proveedor declara cobertura por
+  audiencia; el precio de lead hogar es distinto (ticket menor) y se
+  configura por rubro en admin.
 - Sin subasta: cero posiciones, rankings, contraofertas o countdowns.
 - Social proof real o ninguno. Módulos ilustrativos siempre etiquetados
   "Ejemplo". Canon futuro (requiere marketplace, Fase 3): si nadie toma un

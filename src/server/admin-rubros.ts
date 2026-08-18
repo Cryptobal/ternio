@@ -31,8 +31,11 @@ export async function crearRubroAction(
     modo: formData.get('modo'),
     activo: 'true',
     orden: formData.get('orden'),
+    audiencias: formData.getAll('audiencias'),
     precioExclusivoClp: formData.get('precioExclusivoClp'),
     precioCompartidoClp: formData.get('precioCompartidoClp'),
+    precioExclusivoHogarClp: formData.get('precioExclusivoHogarClp'),
+    precioCompartidoHogarClp: formData.get('precioCompartidoHogarClp'),
   })
   if (!parseo.ok) {
     return { ok: false, mensaje: parseo.motivo, errores: parseo.errores }
@@ -60,8 +63,11 @@ export async function crearRubroAction(
       modo: parseo.datos.modo,
       activo: true,
       orden: parseo.datos.orden,
+      audiencias: parseo.datos.audiencias,
       precioExclusivoClp: parseo.datos.precioExclusivoClp,
       precioCompartidoClp: parseo.datos.precioCompartidoClp,
+      precioExclusivoHogarClp: parseo.datos.precioExclusivoHogarClp,
+      precioCompartidoHogarClp: parseo.datos.precioCompartidoHogarClp,
       camposFormulario: campos.campos as Prisma.InputJsonValue,
     },
     select: { id: true, slug: true },
@@ -96,8 +102,11 @@ export async function editarRubroAction(
     modo: formData.get('modo'),
     activo: formData.get('activo') ?? 'false',
     orden: formData.get('orden'),
+    audiencias: formData.getAll('audiencias'),
     precioExclusivoClp: formData.get('precioExclusivoClp'),
     precioCompartidoClp: formData.get('precioCompartidoClp'),
+    precioExclusivoHogarClp: formData.get('precioExclusivoHogarClp'),
+    precioCompartidoHogarClp: formData.get('precioCompartidoHogarClp'),
   })
   if (!parseo.ok) {
     return { ok: false, mensaje: parseo.motivo, errores: parseo.errores }
@@ -117,8 +126,11 @@ export async function editarRubroAction(
       modo: parseo.datos.modo,
       activo: parseo.datos.activo,
       orden: parseo.datos.orden,
+      audiencias: parseo.datos.audiencias,
       precioExclusivoClp: parseo.datos.precioExclusivoClp,
       precioCompartidoClp: parseo.datos.precioCompartidoClp,
+      precioExclusivoHogarClp: parseo.datos.precioExclusivoHogarClp,
+      precioCompartidoHogarClp: parseo.datos.precioCompartidoHogarClp,
       camposFormulario: campos.campos as Prisma.InputJsonValue,
     },
   })

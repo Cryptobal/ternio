@@ -14,6 +14,7 @@ describe('admin crea / edita rubro', () => {
       nombre: 'Arriendo de grúas',
       modo: 'CAPTURA',
       activo: 'true',
+      audiencias: ['empresa'],
     })
     expect(r.ok).toBe(true)
     if (!r.ok) return
@@ -22,6 +23,7 @@ describe('admin crea / edita rubro', () => {
     expect(r.datos.precioCompartidoClp).toBeNull()
     expect(r.datos.slug).toBe('arriendo-de-gruas')
     expect(r.datos.activo).toBe(true)
+    expect(r.datos.audiencias).toEqual(['empresa'])
   })
 
   it('VENTA exige ambos precios > 0', () => {
@@ -29,6 +31,7 @@ describe('admin crea / edita rubro', () => {
       nombre: 'Climatización de salas',
       modo: 'VENTA',
       activo: 'true',
+      audiencias: ['empresa'],
     })
     expect(sinPrecios.ok).toBe(false)
     if (sinPrecios.ok) return
@@ -39,6 +42,7 @@ describe('admin crea / edita rubro', () => {
       modo: 'VENTA',
       precioExclusivoClp: '25000',
       activo: 'true',
+      audiencias: ['empresa'],
     })
     expect(unPrecio.ok).toBe(false)
 
@@ -48,6 +52,7 @@ describe('admin crea / edita rubro', () => {
       precioExclusivoClp: '25.000',
       precioCompartidoClp: '10000',
       activo: 'true',
+      audiencias: ['empresa'],
     })
     expect(ok.ok).toBe(true)
     if (!ok.ok) return
@@ -56,11 +61,57 @@ describe('admin crea / edita rubro', () => {
     expect(ok.datos.precioCompartidoClp).toBe(10_000)
   })
 
+  it('VENTA con hogar exige precios de hogar', () => {
+    const sinHogar = parsearDatosRubro({
+      nombre: 'Control de plagas',
+      modo: 'VENTA',
+      audiencias: ['hogar', 'empresa'],
+      precioExclusivoClp: '15000',
+      precioCompartidoClp: '6000',
+    })
+    expect(sinHogar.ok).toBe(false)
+    if (!sinHogar.ok) expect(sinHogar.motivo).toMatch(/hogar/i)
+
+    const ok = parsearDatosRubro({
+      nombre: 'Control de plagas',
+      modo: 'VENTA',
+      audiencias: ['hogar', 'empresa'],
+      precioExclusivoClp: '15000',
+      precioCompartidoClp: '6000',
+      precioExclusivoHogarClp: '8000',
+      precioCompartidoHogarClp: '3000',
+    })
+    expect(ok.ok).toBe(true)
+  })
+
   it('rechaza slugs reservados', () => {
-    const r = parsearDatosRubro({ nombre: 'Admin', slug: 'admin', modo: 'CAPTURA' })
+    const r = parsearDatosRubro({
+      nombre: 'Admin',
+      slug: 'admin',
+      modo: 'CAPTURA',
+      audiencias: ['empresa'],
+    })
     expect(r.ok).toBe(false)
-    expect(parsearDatosRubro({ nombre: 'Créditos', slug: 'creditos', modo: 'VENTA' }).ok).toBe(false)
-    expect(parsearDatosRubro({ nombre: 'Gasfiter', slug: 'gasfiter', modo: 'VENTA' }).ok).toBe(false)
+    expect(
+      parsearDatosRubro({
+        nombre: 'Créditos',
+        slug: 'creditos',
+        modo: 'VENTA',
+        audiencias: ['empresa'],
+        precioExclusivoClp: '1',
+        precioCompartidoClp: '1',
+      }).ok,
+    ).toBe(false)
+    expect(
+      parsearDatosRubro({
+        nombre: 'Gasfiter',
+        slug: 'gasfiter',
+        modo: 'VENTA',
+        audiencias: ['empresa'],
+        precioExclusivoClp: '1',
+        precioCompartidoClp: '1',
+      }).ok,
+    ).toBe(false)
   })
 })
 
