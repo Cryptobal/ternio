@@ -27,6 +27,7 @@ import { calcularScore } from '@/lib/score'
 import { esMovil } from '@/lib/telefono'
 import { verificarTurnstile } from '@/lib/turnstile'
 import { validarIdentidadTronco } from '@/lib/validar-identidad'
+import { avisarProveedoresLeadVerificado } from '@/server/avisos'
 import { usuarioActualId } from '@/server/sesion'
 
 /** Ventana de deduplicación por RUT o teléfono dentro del mismo rubro. */
@@ -305,6 +306,10 @@ export async function crearLeadAction(
     path: `/${rubroSlug}/${comunaSlug}`,
     metadata: { modo, estado },
   })
+
+  if (pasaAVenta) {
+    await avisarProveedoresLeadVerificado(lead.id)
+  }
 
   redirect('/cotizacion/enviada')
 }

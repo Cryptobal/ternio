@@ -44,12 +44,12 @@ export function FormularioOtpCodigo({
   const aviso = confirmacion.mensaje || reenvio.mensaje || avisoInicial
 
   return (
-    <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
+    <div className="mt-4 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
       <h2 className="font-medium">Confirma tu teléfono</h2>
       <p className="mt-1 text-sm text-(--color-tinta-suave)">
-        Te enviamos un código de 6 dígitos
-        {telefonoEnmascarado ? ` a ${telefonoEnmascarado}` : ''}. Es tu entrada al panel: no hay
-        contraseña.
+        {origen === 'reclamo'
+          ? `Crea tu acceso o entra con este celular para seguir la solicitud. Te mandamos un código de 6 dígitos${telefonoEnmascarado ? ` a ${telefonoEnmascarado}` : ''}. Sin contraseña.`
+          : `Te enviamos un código de 6 dígitos${telefonoEnmascarado ? ` a ${telefonoEnmascarado}` : ''}. Sin contraseña.`}
       </p>
 
       <form action={confirmar} className="mt-4 space-y-3">

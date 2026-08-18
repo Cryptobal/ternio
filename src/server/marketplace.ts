@@ -27,6 +27,7 @@ import {
   type TipoToma,
 } from '@/lib/matching'
 import { prisma } from '@/lib/prisma'
+import { avisarCompradorCompraPagada } from '@/server/avisos'
 import { saldoProveedor } from '@/server/creditos'
 import { ensureGardSecurity } from '@/server/gard'
 import { requerirProveedor } from '@/server/sesion'
@@ -288,7 +289,7 @@ export async function tomarLeadAction(
   if (!leadId || !tipo) return { ok: false, mensaje: 'Falta el tipo de toma.' }
 
   try {
-    const mensaje = await prisma.$transaction(
+    const resultado = await prisma.$transaction(
       async (tx) => {
         const proveedor = await tx.proveedor.findUnique({
           where: { usuarioId: sesion.user.id },
@@ -320,7 +321,7 @@ export async function tomarLeadAction(
         if (!lead) throw new Error('No encontramos ese comprador.')
 
         const yaMio = lead.compras.some((compra) => compra.proveedorId === proveedor.id)
-        if (yaMio) return 'Este contacto ya es tuyo.'
+        if (yaMio) return { mensaje: 'Este contacto ya es tuyo.' }
 
         const ahora = new Date()
         const matchLead = aLeadMatch(lead)
@@ -368,13 +369,24 @@ export async function tomarLeadAction(
           },
         })
 
-        return 'Ya es tuyo. Ahí está el contacto.'
+        return {
+          mensaje: 'Ya es tuyo. Ahí está el contacto.',
+          compraId: compra.id,
+          leadId: lead.id,
+        }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
 
+    if (resultado.compraId && resultado.leadId) {
+      await avisarCompradorCompraPagada({
+        leadId: resultado.leadId,
+        compraId: resultado.compraId,
+      })
+    }
+
     revalidatePath('/panel')
-    return { ok: true, mensaje }
+    return { ok: true, mensaje: resultado.mensaje }
   } catch (error) {
     const texto = error instanceof Error ? error.message : 'No se pudo tomar.'
     return { ok: false, mensaje: texto }

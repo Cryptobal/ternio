@@ -222,3 +222,6 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
   `prefers-reduced-motion`.
 - El comprador no tiene panel. `/mis-cotizaciones` es “tus cotizaciones”.
   El selector de territorio muestra un solo nivel a la vez.
+- Avisos Resend (`RESEND_API_KEY`, fail-soft): lead VERIFICADO →
+  proveedores que calzan; CompraLead PAGADA → comprador. Sin PII del
+  otro lado. Header: “Ya cotizé” → `/entrar`.

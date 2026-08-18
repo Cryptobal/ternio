@@ -32,6 +32,7 @@ import { reclamarLeadsPorHash, reclamarLeadsPorTelefono } from '@/lib/reclamo'
 import { enviarSms } from '@/lib/sms'
 import { esMovil, normalizarTelefonoE164 } from '@/lib/telefono'
 import { destinoTrasLogin } from '@/lib/roles'
+import { avisarProveedoresLeadVerificado } from '@/server/avisos'
 import { activarProveedorTrasOtp } from '@/server/creditos'
 import { usuarioActualId } from '@/server/sesion'
 
@@ -369,6 +370,10 @@ async function aplicarTelefonoVerificado(usuarioId: string, telefonoE164: string
           ]
         : []),
     ])
+
+    if (pasaAVenta) {
+      await avisarProveedoresLeadVerificado(lead.id)
+    }
   }
 }
 
