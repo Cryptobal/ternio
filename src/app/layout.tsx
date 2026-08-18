@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Archivo, Spline_Sans_Mono } from 'next/font/google'
 
+import { NoscriptGtm } from '@/components/gtm'
+import { idContenedorGtm, snippetGtm } from '@/lib/gtm'
+
 import './globals.css'
 
 const archivo = Archivo({
@@ -42,9 +45,22 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const gtmId = idContenedorGtm()
+
   return (
     <html lang="es-CL">
-      <body className={`${archivo.variable} ${spline.variable} antialiased`}>{children}</body>
+      <head>
+        {gtmId ? (
+          // Script inline oficial: next/script lo envuelve en un loader y
+          // lo deja fuera de <head>, así que el HTML de origen no coincidiría
+          // con el snippet que pide Google.
+          <script dangerouslySetInnerHTML={{ __html: snippetGtm(gtmId) }} />
+        ) : null}
+      </head>
+      <body className={`${archivo.variable} ${spline.variable} antialiased`}>
+        <NoscriptGtm />
+        {children}
+      </body>
     </html>
   )
 }
