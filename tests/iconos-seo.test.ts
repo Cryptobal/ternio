@@ -34,6 +34,7 @@ describe('metadata pública www + PNG', () => {
     expect(layout).toContain('URL_OG_PNG')
     expect(layout).toContain('/favicon.ico')
     expect(layout).toContain('/icon.png')
+    expect(layout).toContain('/apple-icon')
     expect(layout).not.toContain('https://ternio.cl')
     expect(rubro).toContain('images: [OG_IMAGE]')
     expect(combo).toContain('images: [OG_IMAGE]')
@@ -42,11 +43,17 @@ describe('metadata pública www + PNG', () => {
   it('ya no hay opengraph-image generado sin extensión', () => {
     expect(existsSync(resolve(raiz, 'src/app/opengraph-image.tsx'))).toBe(false)
   })
+
+  it('el middleware no intercepta favicon.ico ni og.png', () => {
+    const mw = readFileSync(resolve(raiz, 'src/middleware.ts'), 'utf8')
+    expect(mw).toContain('favicon.ico')
+    expect(mw).toContain('og.png')
+  })
 })
 
 describe('archivos de icono y OG', () => {
-  it('favicon.ico tiene 16, 32 y 48 embebidos como PNG', () => {
-    const ico = readFileSync(resolve(raiz, 'src/app/favicon.ico'))
+  it('public/favicon.ico tiene 16, 32 y 48 embebidos como PNG', () => {
+    const ico = readFileSync(resolve(raiz, 'public/favicon.ico'))
     expect(ico.readUInt16LE(0)).toBe(0)
     expect(ico.readUInt16LE(2)).toBe(1)
     expect(ico.readUInt16LE(4)).toBe(3)
@@ -62,8 +69,7 @@ describe('archivos de icono y OG', () => {
       dir += 16
     }
     expect(tamanos).toEqual(new Set([16, 32, 48]))
-    const publico = readFileSync(resolve(raiz, 'public/favicon.ico'))
-    expect(publico.equals(ico)).toBe(true)
+    expect(existsSync(resolve(raiz, 'src/app/favicon.ico'))).toBe(false)
   })
 
   it('icon.png es PNG 32×32', () => {

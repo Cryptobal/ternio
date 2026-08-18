@@ -36,6 +36,7 @@ export const metadata: Metadata = {
       { url: '/favicon.ico', sizes: 'any', type: 'image/x-icon' },
       { url: '/icon.png', sizes: '32x32', type: 'image/png' },
     ],
+    apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
   },
   openGraph: {
     type: 'website',

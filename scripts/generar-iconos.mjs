@@ -115,9 +115,10 @@ async function main() {
   const og = await raster(svgOg(), 1200, 630)
 
   await mkdir(path.join(raiz, 'public'), { recursive: true })
-  await writeFile(path.join(raiz, 'src/app/favicon.ico'), ico)
-  await writeFile(path.join(raiz, 'src/app/icon.png'), png32)
+  // El ICO vive en public/: app/favicon.ico lo intercepta Next y en 15.1
+  // responde 500. public/favicon.ico es GET /favicon.ico = 200 image/x-icon.
   await writeFile(path.join(raiz, 'public/favicon.ico'), ico)
+  await writeFile(path.join(raiz, 'src/app/icon.png'), png32)
   await writeFile(path.join(raiz, 'public/og.png'), og)
 
   const metaOg = await sharp(og).metadata()
@@ -125,7 +126,7 @@ async function main() {
     throw new Error(`og.png inválido: ${JSON.stringify(metaOg)}`)
   }
 
-  console.log('OK favicon.ico (16/32/48), icon.png 32×32, public/og.png 1200×630')
+  console.log('OK public/favicon.ico (16/32/48), icon.png 32×32, public/og.png 1200×630')
 }
 
 main().catch((error) => {
