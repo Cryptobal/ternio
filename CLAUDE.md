@@ -224,4 +224,6 @@ archivo choca con esa guía, gana la guía. Deltas conscientes:
   El selector de territorio muestra un solo nivel a la vez.
 - Avisos Resend (`RESEND_API_KEY`, fail-soft): lead VERIFICADO →
   proveedores que calzan; CompraLead PAGADA → comprador. Sin PII del
-  otro lado. Header: “Ya cotizé” → `/entrar`.
+  otro lado. El admin (`ADMIN_AVISO_EMAIL` o
+  `carlos.irigoyen@gmail.com`) recibe nueva cotización, alta de
+  proveedor y toma de lead. Header: “Ya cotizé” → `/entrar`.

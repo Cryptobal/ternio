@@ -13,7 +13,7 @@ import {
 
 import { rutaAdmin } from '@/lib/admin-ruta'
 import { prisma } from '@/lib/prisma'
-import { avisarProveedoresLeadVerificado } from '@/server/avisos'
+import { avisarAdminLeadVerificado, avisarProveedoresLeadVerificado } from '@/server/avisos'
 import { ajusteEmergenciaAdmin, saldoProveedor } from '@/server/creditos'
 import { requerirAdmin } from '@/server/sesion'
 
@@ -123,6 +123,7 @@ export async function moverEstadoLead(
 
   if (destino === EstadoLead.VERIFICADO && lead.estado !== EstadoLead.VERIFICADO) {
     await avisarProveedoresLeadVerificado(lead.id)
+    await avisarAdminLeadVerificado(lead.id)
   }
 
   return { ok: true, mensaje: 'Estado actualizado.' }
@@ -201,6 +202,7 @@ export async function marcarTelefonoVerificado(
 
   if (pasaAVenta) {
     await avisarProveedoresLeadVerificado(lead.id)
+    await avisarAdminLeadVerificado(lead.id)
   }
 
   return { ok: true, mensaje: 'Teléfono marcado como verificado.' }

@@ -191,6 +191,8 @@ describe('destinatarios del aviso de lead', () => {
       .join('\n')
     expect(juntos).toContain('avisarProveedoresLeadVerificado')
     expect(juntos).toContain('avisarCompradorCompraPagada')
+    expect(juntos).toContain('avisarAdminLeadCreado')
+    expect(juntos).toContain('avisarAdminCompraPagada')
     expect(readFileSync(resolve(process.cwd(), 'src/server/avisos.ts'), 'utf8')).toContain(
       'SELECT_FICHA_ANONIMA',
     )

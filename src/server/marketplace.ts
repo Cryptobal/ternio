@@ -27,7 +27,7 @@ import {
   type TipoToma,
 } from '@/lib/matching'
 import { prisma } from '@/lib/prisma'
-import { avisarCompradorCompraPagada } from '@/server/avisos'
+import { avisarAdminCompraPagada, avisarCompradorCompraPagada } from '@/server/avisos'
 import { saldoProveedor } from '@/server/creditos'
 import { ensureGardSecurity } from '@/server/gard'
 import { requerirProveedor } from '@/server/sesion'
@@ -380,6 +380,10 @@ export async function tomarLeadAction(
 
     if (resultado.compraId && resultado.leadId) {
       await avisarCompradorCompraPagada({
+        leadId: resultado.leadId,
+        compraId: resultado.compraId,
+      })
+      await avisarAdminCompraPagada({
         leadId: resultado.leadId,
         compraId: resultado.compraId,
       })
