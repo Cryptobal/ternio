@@ -213,6 +213,19 @@ Datos y venta:
 | Acciones admin | `src/server/admin.ts` |
 | Rubros admin | `src/lib/admin-rubros.ts` + `src/server/admin-rubros.ts` + `/admin/rubros` |
 
+Precios de lead de lanzamiento (1 crédito = 1 CLP; editables en admin):
+
+| Rubro | Exclusivo | Compartido |
+| --- | ---: | ---: |
+| seguridad | 50.000 | 20.000 |
+| aseo | 25.000 | 10.000 |
+| control-de-plagas | 15.000 | 6.000 |
+| baños químicos | 12.000 | 5.000 |
+| generadores | 20.000 | 8.000 |
+| transporte de personal | 20.000 | 8.000 |
+| transporte de carga | 20.000 | 8.000 |
+| climatización industrial | 25.000 | 10.000 |
+
 Catálogo: `Rubro.modo` es `VENTA` o `CAPTURA`. Un lead nacido en `CAPTURA`
 (`modoRubroAlCrear`) **nunca** se ofrece a la venta aunque el rubro cambie
 después. Las páginas `{rubro}/{comuna}` solo existen si `RubroComuna.activa`.

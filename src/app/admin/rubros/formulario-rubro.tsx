@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { ModoRubro } from '@prisma/client'
 
 import { serializarCamposAdmin } from '@/lib/admin-rubros'
+import { preciosLanzamiento } from '@/lib/activar-venta'
 import { CLASE_BOTON, CLASE_CAMPO, CLASE_SUPERFICIE } from '@/lib/ui'
 import {
   crearRubroAction,
@@ -44,6 +45,7 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
   const [baja, desactivar] = useActionState(desactivarRubroAction, INICIAL)
   const [camposJson, setCamposJson] = useState(serializarCamposAdmin(rubro?.camposFormulario))
   const errores = estado.errores ?? {}
+  const preciosSeed = rubro?.slug ? preciosLanzamiento(rubro.slug) : undefined
 
   return (
     <div className="grid gap-6">
@@ -126,6 +128,7 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
               className={CLASE_CAMPO}
               inputMode="numeric"
               defaultValue={rubro?.precioExclusivoClp ?? ''}
+              placeholder={preciosSeed ? String(preciosSeed.precioExclusivoClp) : ''}
             />
             {errores.precioExclusivoClp ? (
               <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioExclusivoClp}</p>
@@ -141,6 +144,7 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
               className={CLASE_CAMPO}
               inputMode="numeric"
               defaultValue={rubro?.precioCompartidoClp ?? ''}
+              placeholder={preciosSeed ? String(preciosSeed.precioCompartidoClp) : ''}
             />
             {errores.precioCompartidoClp ? (
               <p className="mt-1 text-sm text-(--color-rojo)">{errores.precioCompartidoClp}</p>
@@ -148,7 +152,10 @@ export function FormularioRubro({ rubro }: { rubro?: RubroForm }) {
           </div>
         </div>
         <p className="text-sm text-(--color-tinta-suave)">
-          VENTA exige ambos precios mayores a $0. CAPTURA no.
+          VENTA exige ambos precios mayores a $0. CAPTURA no. 1 crédito = $1.
+          {preciosSeed
+            ? ` Seed de este rubro: exclusivo ${preciosSeed.precioExclusivoClp} / compartido ${preciosSeed.precioCompartidoClp}.`
+            : ''}
         </p>
 
         <div>

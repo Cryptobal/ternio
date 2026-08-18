@@ -25,6 +25,21 @@ export const PRECIOS_ACTIVAR_VENTA: Record<
   'climatizacion-industrial': { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
 }
 
+/** Defaults de lanzamiento (1 crédito = 1 CLP). Admin / seed / copy. */
+export const PRECIOS_LANZAMIENTO: Record<
+  string,
+  { precioExclusivoClp: number; precioCompartidoClp: number }
+> = {
+  seguridad: { precioExclusivoClp: 50_000, precioCompartidoClp: 20_000 },
+  aseo: { precioExclusivoClp: 25_000, precioCompartidoClp: 10_000 },
+  'control-de-plagas': { precioExclusivoClp: 15_000, precioCompartidoClp: 6_000 },
+  ...PRECIOS_ACTIVAR_VENTA,
+}
+
+export function preciosLanzamiento(slug: string) {
+  return PRECIOS_LANZAMIENTO[slug]
+}
+
 export function esSlugActivarVenta(slug: string): slug is SlugActivarVenta {
   return (SLUGS_ACTIVAR_VENTA as readonly string[]).includes(slug)
 }

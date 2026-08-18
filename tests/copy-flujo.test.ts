@@ -83,6 +83,15 @@ describe('copy público sin mentiras de launch', () => {
     expect(inicio).not.toMatch(/>Servicios</)
   })
 
+  it('el admin muestra los precios de lanzamiento del seed', () => {
+    const form = readFileSync(
+      resolve(process.cwd(), 'src/app/admin/rubros/formulario-rubro.tsx'),
+      'utf8',
+    )
+    expect(form).toContain('preciosLanzamiento')
+    expect(form).toContain('1 crédito = $1')
+  })
+
   it('robots y sitemap no publican /admin', () => {
     const robots = readFileSync(resolve(process.cwd(), 'src/app/robots.ts'), 'utf8')
     expect(robots).not.toMatch(/['"`]\/admin/)

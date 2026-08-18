@@ -9,6 +9,7 @@ import {
   esSlugActivarVenta,
   precioVentaSinPisar,
   PRECIOS_ACTIVAR_VENTA,
+  PRECIOS_LANZAMIENTO,
   SLUGS_ACTIVAR_VENTA,
 } from '@/lib/activar-venta'
 
@@ -29,6 +30,18 @@ describe('activar rubros de lista de espera a VENTA', () => {
     expect(esSlugActivarVenta('generadores')).toBe(true)
     expect(esSlugActivarVenta('seguridad')).toBe(false)
     expect(esSlugActivarVenta('prueba-e2e')).toBe(false)
+    expect(PRECIOS_LANZAMIENTO.seguridad).toEqual({
+      precioExclusivoClp: 50_000,
+      precioCompartidoClp: 20_000,
+    })
+    expect(PRECIOS_LANZAMIENTO['banos-quimicos']).toEqual({
+      precioExclusivoClp: 12_000,
+      precioCompartidoClp: 5_000,
+    })
+    expect(PRECIOS_LANZAMIENTO.generadores).toEqual({
+      precioExclusivoClp: 20_000,
+      precioCompartidoClp: 8_000,
+    })
   })
 
   it('no toca Prueba E2E aunque esté activo y en CAPTURA', () => {

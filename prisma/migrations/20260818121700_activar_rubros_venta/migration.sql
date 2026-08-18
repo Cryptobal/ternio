@@ -6,11 +6,11 @@ UPDATE "Rubro"
 SET
   modo = 'VENTA',
   "precioExclusivoClp" = CASE
-    WHEN "precioExclusivoClp" IS NULL OR "precioExclusivoClp" <= 0 THEN 15000
+    WHEN "precioExclusivoClp" IS NULL OR "precioExclusivoClp" <= 0 THEN 12000
     ELSE "precioExclusivoClp"
   END,
   "precioCompartidoClp" = CASE
-    WHEN "precioCompartidoClp" IS NULL OR "precioCompartidoClp" <= 0 THEN 6000
+    WHEN "precioCompartidoClp" IS NULL OR "precioCompartidoClp" <= 0 THEN 5000
     ELSE "precioCompartidoClp"
   END,
   "contenidoSeo" = CASE
@@ -29,11 +29,11 @@ UPDATE "Rubro"
 SET
   modo = 'VENTA',
   "precioExclusivoClp" = CASE
-    WHEN "precioExclusivoClp" IS NULL OR "precioExclusivoClp" <= 0 THEN 25000
+    WHEN "precioExclusivoClp" IS NULL OR "precioExclusivoClp" <= 0 THEN 20000
     ELSE "precioExclusivoClp"
   END,
   "precioCompartidoClp" = CASE
-    WHEN "precioCompartidoClp" IS NULL OR "precioCompartidoClp" <= 0 THEN 10000
+    WHEN "precioCompartidoClp" IS NULL OR "precioCompartidoClp" <= 0 THEN 8000
     ELSE "precioCompartidoClp"
   END,
   "contenidoSeo" = CASE
