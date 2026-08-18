@@ -81,6 +81,6 @@ Si tu giro pide auditorías (alimentos, farma, electrónica), dilo al principio.
 
 En [empresas de aseo](/aseo) eliges la comuna y cuentas metros, frecuencia y si es oficina, planta o edificio. Una solicitud. Te contactan quienes cubren esa comuna. Sin cuenta para empezar. Tú no pagas el contacto.
 
-No te vamos a decir que tenemos “+1000 empresas” ni un ranking. El que calza te escribe. Si ya enviaste una solicitud, entras con el celular.
+No te vamos a inventar un volumen de empresas ni un ranking. El que calza te escribe. Si ya enviaste una solicitud, entras con el celular.
 
 Si lo que necesitas es aseo de casa, no uses esta landing: usa aseo a domicilio. Mezclar los dos hace que te cotice alguien que no hace plantas, o al revés.

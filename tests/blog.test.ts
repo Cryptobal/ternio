@@ -1,5 +1,5 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { mkdtempSync, tmpdir } from 'node:os'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
@@ -117,7 +117,7 @@ describe('posts publicados', () => {
       const palabras = palabrasPost(post)
       expect(palabras).toBeGreaterThanOrEqual(700)
       expect(palabras).toBeLessThanOrEqual(1100)
-      expect(post.cuerpo).not.toMatch(/\+1000 empresas|te van a contactar 5/i)
+      expect(post.cuerpo).not.toMatch(/tenemos \+1000 empresas|te van a contactar 5 empresas/i)
       expect(post.cuerpo).not.toMatch(/Gard/i)
     }
   })

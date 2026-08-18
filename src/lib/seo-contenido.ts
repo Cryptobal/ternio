@@ -406,7 +406,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay que pagar por pedir precio?',
-      respuesta: 'No. Tú no pagas por cotizar.',
+      respuesta: 'No. La solicitud es gratis: tú no pagas por cotizar.',
     },
   ],
   generadores: [
@@ -427,7 +427,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿La cotización se cobra?',
-      respuesta: 'No. Una solicitud. Tú no pagas.',
+      respuesta: 'No. Una solicitud. Tú no pagas por pedir precio.',
     },
   ],
   'transporte-de-personal': [
@@ -448,7 +448,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Paga la empresa que cotiza?',
-      respuesta: 'No. Tú no pagas por la solicitud.',
+      respuesta: 'No. Tú no pagas por dejar la solicitud.',
     },
   ],
   'transporte-de-carga': [
@@ -469,7 +469,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay costo por cotizar?',
-      respuesta: 'No. El comprador no paga.',
+      respuesta: 'No. El comprador no paga la solicitud.',
     },
   ],
   'climatizacion-industrial': [
@@ -490,7 +490,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Paga quien pide la visita?',
-      respuesta: 'No. Cotizar es gratis.',
+      respuesta: 'No. Cotizar es gratis para quien pide el servicio.',
     },
   ],
   gasfiteria: [
@@ -511,7 +511,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay que pagar por pedir el gasfiter?',
-      respuesta: 'No. Tú no pagas la solicitud.',
+      respuesta: 'No. Tú no pagas por dejar la solicitud.',
     },
   ],
   electricista: [
@@ -531,7 +531,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿La cotización tiene costo?',
-      respuesta: 'No. El que cotiza no paga.',
+      respuesta: 'No. Quien pide la cotización no paga.',
     },
   ],
   destape: [
@@ -552,7 +552,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Paga el cliente por solicitar?',
-      respuesta: 'No. Tú no pagas.',
+      respuesta: 'No. Quien pide el servicio no paga la solicitud.',
     },
   ],
   pintura: [
@@ -572,7 +572,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay que pagar por cotizar pintura?',
-      respuesta: 'No. Una solicitud. Gratis.',
+      respuesta: 'No. Una solicitud. Cotizar es gratis.',
     },
   ],
   remodelaciones: [
@@ -592,7 +592,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿La solicitud se cobra?',
-      respuesta: 'No. Tú no pagas por cotizar.',
+      respuesta: 'No. La solicitud es gratis: tú no pagas por cotizar.',
     },
   ],
   cerrajeria: [
@@ -613,7 +613,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Paga quien pide el cerrajero?',
-      respuesta: 'No. Cotizar no se cobra.',
+      respuesta: 'No. Pedir el cerrajero por acá no se cobra.',
     },
   ],
   'tecnico-electrodomesticos': [
@@ -634,7 +634,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay que pagar por solicitar técnico?',
-      respuesta: 'No. Tú no pagas la solicitud.',
+      respuesta: 'No. Tú no pagas por dejar la solicitud.',
     },
   ],
   mudanzas: [
@@ -655,7 +655,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Cotizar mudanza cuesta?',
-      respuesta: 'No. Una solicitud. Tú no pagas.',
+      respuesta: 'No. Una solicitud. Tú no pagas por pedir precio.',
     },
   ],
   jardineria: [
@@ -676,7 +676,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Paga el que pide jardinería?',
-      respuesta: 'No. Cotizar es gratis.',
+      respuesta: 'No. Cotizar es gratis para quien pide el servicio.',
     },
   ],
   'aseo-hogar': [
@@ -696,7 +696,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay que pagar por pedir aseo a domicilio?',
-      respuesta: 'No. Tú no pagas.',
+      respuesta: 'No. Quien pide el servicio no paga la solicitud.',
     },
   ],
   'cuidado-adulto-mayor': [
@@ -717,7 +717,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿La solicitud tiene costo?',
-      respuesta: 'No. Quien cotiza no paga.',
+      respuesta: 'No. Quien deja la solicitud no paga.',
     },
   ],
   contabilidad: [
@@ -738,7 +738,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Paga la pyme por cotizar?',
-      respuesta: 'No. Tú no pagas por la solicitud.',
+      respuesta: 'No. Tú no pagas por dejar la solicitud.',
     },
   ],
   'marketing-digital': [
@@ -759,7 +759,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay que pagar por pedir agencias?',
-      respuesta: 'No. El comprador no paga.',
+      respuesta: 'No. El comprador no paga la solicitud.',
     },
   ],
   abogados: [
@@ -844,7 +844,7 @@ const FAQ_RUBRO: Record<string, PreguntaFaq[]> = {
     },
     {
       pregunta: '¿Hay que pagar por pedir corredores?',
-      respuesta: 'No. Tú no pagas por cotizar.',
+      respuesta: 'No. La solicitud es gratis: tú no pagas por cotizar.',
     },
   ],
 }
