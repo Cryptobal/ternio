@@ -6,10 +6,11 @@ import { camposFormularioSchema } from '@/lib/campos'
 import { rubroPuedeVender, validarModoRubro } from '@/lib/rubros'
 
 describe('catálogo de lanzamiento', () => {
-  it('trae 8 rubros: 3 en VENTA y 5 en CAPTURA', () => {
-    expect(RUBROS).toHaveLength(8)
-    expect(RUBROS.filter((rubro) => rubro.modo === ModoRubro.VENTA)).toHaveLength(3)
-    expect(RUBROS.filter((rubro) => rubro.modo === ModoRubro.CAPTURA)).toHaveLength(5)
+  it('trae 25 rubros, todos en VENTA', () => {
+    expect(RUBROS).toHaveLength(25)
+    expect(RUBROS.filter((rubro) => rubro.modo === ModoRubro.VENTA)).toHaveLength(25)
+    expect(RUBROS.filter((rubro) => rubro.modo === ModoRubro.CAPTURA)).toHaveLength(0)
+    expect(RUBROS.some((rubro) => rubro.slug === 'prueba-e2e')).toBe(false)
   })
 
   it('los rubros en VENTA llevan los precios acordados', () => {
@@ -21,13 +22,31 @@ describe('catálogo de lanzamiento', () => {
     expect(porSlug.get('aseo')?.precioCompartidoClp).toBe(10_000)
     expect(porSlug.get('control-de-plagas')?.precioExclusivoClp).toBe(15_000)
     expect(porSlug.get('control-de-plagas')?.precioCompartidoClp).toBe(6_000)
+    expect(porSlug.get('banos-quimicos')?.precioExclusivoClp).toBe(12_000)
+    expect(porSlug.get('banos-quimicos')?.precioCompartidoClp).toBe(5_000)
+    expect(porSlug.get('generadores')?.precioExclusivoClp).toBe(20_000)
+    expect(porSlug.get('generadores')?.precioCompartidoClp).toBe(8_000)
+    expect(porSlug.get('transporte-de-personal')?.precioExclusivoClp).toBe(20_000)
+    expect(porSlug.get('transporte-de-personal')?.precioCompartidoClp).toBe(8_000)
+    expect(porSlug.get('transporte-de-carga')?.precioExclusivoClp).toBe(20_000)
+    expect(porSlug.get('transporte-de-carga')?.precioCompartidoClp).toBe(8_000)
+    expect(porSlug.get('climatizacion-industrial')?.precioExclusivoClp).toBe(25_000)
+    expect(porSlug.get('climatizacion-industrial')?.precioCompartidoClp).toBe(10_000)
+    expect(porSlug.get('gasfiteria')?.precioExclusivoClp).toBe(12_000)
+    expect(porSlug.get('gasfiteria')?.precioCompartidoClp).toBe(5_000)
+    expect(porSlug.get('destape')?.precioExclusivoClp).toBe(10_000)
+    expect(porSlug.get('cerrajeria')?.precioExclusivoClp).toBe(8_000)
+    expect(porSlug.get('aseo-hogar')?.precioExclusivoClp).toBe(8_000)
+    expect(porSlug.get('aseo-hogar')?.slug).not.toBe(porSlug.get('aseo')?.slug)
+    expect(porSlug.get('asesoria-financiera')?.precioExclusivoClp).toBe(25_000)
+    expect(porSlug.get('seguros')?.precioExclusivoClp).toBe(15_000)
+    expect(porSlug.get('asesoria-financiera')?.descripcion).toMatch(/no es un banco/i)
+    expect(porSlug.get('seguros')?.descripcion).toMatch(/no vende pólizas/i)
   })
 
-  it('los rubros en CAPTURA van sin precios y no pueden vender', () => {
-    for (const rubro of RUBROS.filter((r) => r.modo === ModoRubro.CAPTURA)) {
-      expect(rubro.precioExclusivoClp).toBeNull()
-      expect(rubro.precioCompartidoClp).toBeNull()
-      expect(rubroPuedeVender({ ...rubro, activo: true })).toBe(false)
+  it('todos los rubros del catálogo pueden vender', () => {
+    for (const rubro of RUBROS) {
+      expect(rubroPuedeVender({ ...rubro, activo: true })).toBe(true)
     }
   })
 

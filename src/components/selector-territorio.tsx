@@ -15,26 +15,38 @@ import {
   type ComunaTerritorio,
   type NivelListaTerritorio,
 } from '@/lib/territorio'
-import { CLASE_CHIP, CLASE_CHIP_ACTIVO } from '@/lib/ui'
+import {
+  CLASE_CHIP,
+  CLASE_CHIP_ACTIVO,
+  CLASE_CHIP_NAVY,
+  CLASE_CHIP_NAVY_ACTIVO,
+  CLASE_LEYENDA_NAVY,
+} from '@/lib/ui'
 
 const CLASE_LISTA = 'grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2'
+
+export type VarianteTerritorio = 'claro' | 'navy'
 
 function ChipOpcion({
   seleccionado,
   onClick,
   children,
+  variante,
 }: {
   seleccionado: boolean
   onClick: () => void
   children: React.ReactNode
+  variante: VarianteTerritorio
 }) {
+  const base = variante === 'navy' ? CLASE_CHIP_NAVY : CLASE_CHIP
+  const activo = variante === 'navy' ? CLASE_CHIP_NAVY_ACTIVO : CLASE_CHIP_ACTIVO
   return (
     <li>
       <button
         type="button"
         aria-pressed={seleccionado}
         onClick={onClick}
-        className={`${CLASE_CHIP} w-full ${seleccionado ? CLASE_CHIP_ACTIVO : ''}`}
+        className={`${base} w-full ${seleccionado ? activo : ''}`}
       >
         {children}
       </button>
@@ -50,6 +62,7 @@ export function SelectorTerritorio({
   multiple = false,
   values = [],
   onChangeMultiple,
+  variante = 'claro',
 }: {
   comunas: ComunaTerritorio[]
   value?: string
@@ -58,6 +71,7 @@ export function SelectorTerritorio({
   multiple?: boolean
   values?: string[]
   onChangeMultiple?: (slugs: string[]) => void
+  variante?: VarianteTerritorio
 }) {
   const elegida = value ? comunaPorSlug(comunas, value) : undefined
   const [region, setRegion] = useState(elegida?.region ?? '')
@@ -133,13 +147,19 @@ export function SelectorTerritorio({
       {region || provincia || comunaElegida ? (
         <div className="flex flex-wrap gap-2">
           {region ? (
-            <ChipMiga onQuitar={quitarRegion}>{region}</ChipMiga>
+            <ChipMiga variante={variante} onQuitar={quitarRegion}>
+              {region}
+            </ChipMiga>
           ) : null}
           {provincia ? (
-            <ChipMiga onQuitar={quitarProvincia}>{provincia}</ChipMiga>
+            <ChipMiga variante={variante} onQuitar={quitarProvincia}>
+              {provincia}
+            </ChipMiga>
           ) : null}
           {comunaElegida ? (
-            <ChipMiga onQuitar={() => onChange?.('')}>{comunaElegida.nombre}</ChipMiga>
+            <ChipMiga variante={variante} onQuitar={() => onChange?.('')}>
+              {comunaElegida.nombre}
+            </ChipMiga>
           ) : null}
         </div>
       ) : null}
@@ -149,6 +169,7 @@ export function SelectorTerritorio({
           <ListaNivel
             id={`${idPrefijo}-region`}
             nivel="region"
+            variante={variante}
             items={regiones.map((nombre) => ({
               clave: nombre,
               etiqueta: nombre,
@@ -162,6 +183,7 @@ export function SelectorTerritorio({
           <ListaNivel
             id={`${idPrefijo}-provincia`}
             nivel="provincia"
+            variante={variante}
             items={provincias.map((nombre) => ({
               clave: nombre,
               etiqueta: nombre,
@@ -174,17 +196,28 @@ export function SelectorTerritorio({
         {mostrarComuna ? (
           multiple ? (
             <fieldset>
-              <legend id={`${idPrefijo}-comuna`} className="mb-2 text-sm font-medium">
+              <legend
+                id={`${idPrefijo}-comuna`}
+                className={variante === 'navy' ? CLASE_LEYENDA_NAVY : 'mb-2 text-sm font-medium'}
+              >
                 {preguntaNivelTerritorio('comuna')}
               </legend>
               {listaComunas.length === 0 ? (
-                <p className="text-sm text-(--color-tinta-suave)">No hay comunas en esta provincia.</p>
+                <p
+                  className={
+                    variante === 'navy'
+                      ? 'text-sm text-white/65'
+                      : 'text-sm text-(--color-tinta-suave)'
+                  }
+                >
+                  No hay comunas en esta provincia.
+                </p>
               ) : (
                 <ul className={CLASE_LISTA}>
                   {listaComunas.map((comuna) => (
                     <li key={comuna.slug}>
                       <label
-                        className={`${CLASE_CHIP} flex items-center gap-3 ${seleccionadas.has(comuna.slug) ? CLASE_CHIP_ACTIVO : ''}`}
+                        className={`${variante === 'navy' ? CLASE_CHIP_NAVY : CLASE_CHIP} flex items-center gap-3 ${seleccionadas.has(comuna.slug) ? (variante === 'navy' ? CLASE_CHIP_NAVY_ACTIVO : CLASE_CHIP_ACTIVO) : ''}`}
                       >
                         <input
                           type="checkbox"
@@ -198,7 +231,13 @@ export function SelectorTerritorio({
                 </ul>
               )}
               {values.length > 0 ? (
-                <p className="mt-2 text-sm text-(--color-tinta-suave)">
+                <p
+                  className={
+                    variante === 'navy'
+                      ? 'mt-2 text-sm text-white/65'
+                      : 'mt-2 text-sm text-(--color-tinta-suave)'
+                  }
+                >
                   {values.length} {values.length === 1 ? 'comuna elegida' : 'comunas elegidas'}.
                 </p>
               ) : null}
@@ -207,6 +246,7 @@ export function SelectorTerritorio({
             <ListaNivel
               id={`${idPrefijo}-comuna`}
               nivel="comuna"
+              variante={variante}
               items={listaComunas.map((comuna) => ({
                 clave: comuna.slug,
                 etiqueta: comuna.nombre,
@@ -225,19 +265,26 @@ function ListaNivel({
   id,
   nivel,
   items,
+  variante,
 }: {
   id: string
   nivel: NivelListaTerritorio
   items: { clave: string; etiqueta: string; seleccionado: boolean; onClick: () => void }[]
+  variante: VarianteTerritorio
 }) {
   return (
     <fieldset>
-      <legend id={id} className="mb-2 text-sm font-medium">
+      <legend id={id} className={variante === 'navy' ? CLASE_LEYENDA_NAVY : 'mb-2 text-sm font-medium'}>
         {preguntaNivelTerritorio(nivel)}
       </legend>
       <ul className={CLASE_LISTA} role="list">
         {items.map((item) => (
-          <ChipOpcion key={item.clave} seleccionado={item.seleccionado} onClick={item.onClick}>
+          <ChipOpcion
+            key={item.clave}
+            seleccionado={item.seleccionado}
+            onClick={item.onClick}
+            variante={variante}
+          >
             {item.etiqueta}
           </ChipOpcion>
         ))}

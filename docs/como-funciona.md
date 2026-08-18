@@ -7,8 +7,11 @@ Si algo de este archivo choca con la guía, gana la guía.
 
 ## A. Comprador
 
-1. Llega por Google a `/seguridad`, `/aseo` o `/control-de-plagas` (o `/plagas` → 308),
-   o entra a la home y elige un atajo / el selector.
+1. Llega por Google a una landing de rubro (`/seguridad`, `/aseo`,
+   `/control-de-plagas`, `/banos-quimicos`, `/generadores`,
+   `/transporte-de-personal`, `/transporte-de-carga`,
+   `/climatizacion-industrial`; `/plagas` y `/climatizacion` son alias 308)
+   o entra a la home y elige el servicio en el cotizador.
 2. Elige Región → Provincia → Comuna (sin typeahead). Si esa combinación
    tiene página publicada, va a `/{rubro}/{comuna}` con el formulario
    listo. Si no, cotiza en `/{rubro}?comuna=` — el formulario acepta las
@@ -38,7 +41,7 @@ El comprador nunca paga. Nadie le vende su teléfono a un proveedor sin
 1. `/proveedores`: empresa, RUT, celular, correo, rubros, cobertura
    (nacional / región / provincia / comuna). OTP al celular.
 2. Al confirmar el código, si el RUT es válido: estado `APROBADO` +
-   200.000 créditos (`AJUSTE`, key `alta:{id}`). Carlos no interviene.
+   50.000 créditos (`AJUSTE`, key `alta:{id}`). Carlos no interviene.
 3. `/entrar` con el mismo celular → `/panel`.
 4. Si el celular no se confirmó, el RUT no calza, o lo suspendieron: un
    mensaje claro. Sin lista de compradores.
@@ -117,6 +120,28 @@ Desde `verificadoAt`, sobre el precio del rubro:
 | seguridad | 50.000 | 20.000 |
 | aseo | 25.000 | 10.000 |
 | plagas | 15.000 | 6.000 |
+| baños químicos | 12.000 | 5.000 |
+| generadores | 20.000 | 8.000 |
+| transporte de personal | 20.000 | 8.000 |
+| transporte de carga | 20.000 | 8.000 |
+| climatización industrial | 25.000 | 10.000 |
+| gasfitería | 12.000 | 5.000 |
+| electricista | 12.000 | 5.000 |
+| destape | 10.000 | 4.000 |
+| pintura | 15.000 | 6.000 |
+| remodelaciones | 25.000 | 10.000 |
+| cerrajero | 8.000 | 3.000 |
+| técnico electrodomésticos | 8.000 | 3.000 |
+| mudanzas | 15.000 | 6.000 |
+| jardinería | 10.000 | 4.000 |
+| aseo a domicilio | 8.000 | 3.000 |
+| cuidado adulto mayor | 20.000 | 8.000 |
+| contabilidad | 20.000 | 8.000 |
+| marketing digital | 25.000 | 10.000 |
+| abogados | 25.000 | 10.000 |
+| reclutamiento | 20.000 | 8.000 |
+| créditos y asesoría financiera | 25.000 | 10.000 |
+| seguros | 15.000 | 6.000 |
 
 ---
 

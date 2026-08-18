@@ -5,11 +5,11 @@ import { COMUNAS_SITEMAP_PILOTO, SLUGS_RUBRO_SITEMAP } from '@/lib/sitemap-pilot
  * Rutas fijas: el mínimo que Google tiene que ver aunque falle todo lo demás.
  * Nunca /admin ni /panel.
  */
+const LANDINGS_VENTA = SLUGS_RUBRO_SITEMAP.map((slug) => `/${slug}`)
+
 export const RUTAS_SITEMAP_FIJAS = [
   '/',
-  '/seguridad',
-  '/aseo',
-  '/control-de-plagas',
+  ...LANDINGS_VENTA,
   '/proveedores',
   '/privacidad',
   '/terminos',
@@ -90,7 +90,7 @@ export function pathsSitemapPiloto(): string[] {
 function metaDePath(path: string): Pick<EntradaSitemap, 'changefreq' | 'priority'> {
   if (path === '/') return { changefreq: 'weekly', priority: 1 }
   if (path === '/proveedores') return { changefreq: 'monthly', priority: 0.6 }
-  if (path === '/seguridad' || path === '/aseo' || path === '/control-de-plagas') {
+  if (LANDINGS_VENTA.includes(path)) {
     return { changefreq: 'weekly', priority: 0.9 }
   }
   if (path.split('/').filter(Boolean).length === 1) {
@@ -154,9 +154,7 @@ export function sitemapMinimoXml(base: string, now = new Date()): string {
   try {
     return xmlSitemap(entradasSitemap(base), lastmod)
   } catch {
-    const locs = ['/', '/seguridad', '/aseo', '/control-de-plagas', '/proveedores'].map((path) =>
-      locSitemap(base, path),
-    )
+    const locs = RUTAS_SITEMAP_FIJAS.map((path) => locSitemap(base, path))
     const urls = locs
       .map((loc) => `  <url><loc>${escaparXml(loc)}</loc></url>`)
       .join('\n')

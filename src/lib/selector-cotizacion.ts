@@ -19,22 +19,35 @@ export type RubroSelector = {
   comunas: { slug: string; nombre: string }[]
 }
 
+function conAudiencia(path: string, audiencia?: string): string {
+  const valor = audiencia?.trim()
+  if (!valor) return path
+  const sep = path.includes('?') ? '&' : '?'
+  return `${path}${sep}audiencia=${encodeURIComponent(valor)}`
+}
+
 export function destinoSelector(
   rubro: Pick<RubroSelector, 'slug' | 'modo'>,
   comunaSlug?: string,
   publicado = false,
+  audiencia?: string,
 ): string {
   const comuna = comunaSlug?.trim()
-  if (comuna && publicado) return pathPublicoCombo(rubro.slug, comuna)
-  if (comuna) return `${pathPublicoRubro(rubro.slug)}?comuna=${encodeURIComponent(comuna)}`
-  return pathPublicoRubro(rubro.slug)
+  if (comuna && publicado) return conAudiencia(pathPublicoCombo(rubro.slug, comuna), audiencia)
+  if (comuna) {
+    return conAudiencia(
+      `${pathPublicoRubro(rubro.slug)}?comuna=${encodeURIComponent(comuna)}`,
+      audiencia,
+    )
+  }
+  return conAudiencia(pathPublicoRubro(rubro.slug), audiencia)
 }
 
 export function claveCombo(rubroSlug: string, comunaSlug: string): string {
   return `${rubroSlug}/${comunaSlug}`
 }
 
-/** Tarjetas “Servicios” de la home: solo VENTA. CAPTURA queda en el cotizador. */
+/** Rubros que se venden. CAPTURA no entra a la venta. */
 export function rubrosEnVenta<T extends { modo: string }>(rubros: readonly T[]): T[] {
   return rubros.filter((rubro) => rubro.modo === 'VENTA')
 }

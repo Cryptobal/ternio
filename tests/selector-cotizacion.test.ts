@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { audienciaPorDefecto, pasoCotizador } from '@/lib/audiencia'
 import { claveCombo, destinoSelector, rubrosEnVenta } from '@/lib/selector-cotizacion'
 
 describe('destinoSelector', () => {
@@ -7,11 +8,17 @@ describe('destinoSelector', () => {
     expect(destinoSelector({ slug: 'seguridad', modo: 'VENTA' }, 'las-condes', true)).toBe(
       '/seguridad/las-condes',
     )
+    expect(destinoSelector({ slug: 'gasfiteria', modo: 'VENTA' }, 'santiago', true, 'hogar')).toBe(
+      '/gasfiteria/santiago?audiencia=hogar',
+    )
   })
 
   it('comuna sin página SEO → /{rubro}?comuna=', () => {
     expect(destinoSelector({ slug: 'seguridad', modo: 'VENTA' }, 'valdivia', false)).toBe(
       '/seguridad?comuna=valdivia',
+    )
+    expect(destinoSelector({ slug: 'gasfiteria', modo: 'VENTA' }, 'valdivia', false, 'empresa')).toBe(
+      '/gasfiteria?comuna=valdivia&audiencia=empresa',
     )
   })
 
@@ -40,5 +47,14 @@ describe('destinoSelector', () => {
       { modo: 'VENTA', slug: 'seguridad' },
     ])
     expect(lista.map((item) => item.slug)).toEqual(['aseo', 'seguridad'])
+  })
+})
+
+describe('cascada del cotizador', () => {
+  it('pide audiencia, después servicio, después territorio', () => {
+    expect(pasoCotizador('', '')).toBe('audiencia')
+    expect(pasoCotizador('hogar', '')).toBe('servicio')
+    expect(pasoCotizador('hogar', 'gasfiteria')).toBe('territorio')
+    expect(audienciaPorDefecto('seguridad')).toBe('empresa')
   })
 })

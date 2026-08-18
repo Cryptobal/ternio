@@ -13,12 +13,43 @@ export type AliasSeo = {
 /** slug público (si alguien entra por alias) → slug de BD. */
 export const SLUG_PUBLICO_A_BD: Record<string, string> = {
   plagas: 'control-de-plagas',
+  climatizacion: 'climatizacion-industrial',
+  gasfiter: 'gasfiteria',
+  maestro: 'remodelaciones',
+  obras: 'remodelaciones',
+  creditos: 'asesoria-financiera',
 }
 
 /** slug de BD → path público. Identity salvo que se declare otra cosa. */
 export const SLUG_BD_A_PUBLICO: Record<string, string> = {}
 
-export const RUBROS_VENTA_PUBLICOS = ['seguridad', 'aseo', 'control-de-plagas'] as const
+export const RUBROS_VENTA_PUBLICOS = [
+  'seguridad',
+  'aseo',
+  'control-de-plagas',
+  'banos-quimicos',
+  'generadores',
+  'transporte-de-personal',
+  'transporte-de-carga',
+  'climatizacion-industrial',
+  'gasfiteria',
+  'electricista',
+  'destape',
+  'pintura',
+  'remodelaciones',
+  'cerrajeria',
+  'tecnico-electrodomesticos',
+  'mudanzas',
+  'jardineria',
+  'aseo-hogar',
+  'cuidado-adulto-mayor',
+  'contabilidad',
+  'marketing-digital',
+  'abogados',
+  'reclutamiento',
+  'asesoria-financiera',
+  'seguros',
+] as const
 
 export const ALIAS_SEO_308: AliasSeo[] = [
   { origen: '/guardias-de-seguridad', destino: '/seguridad' },
@@ -31,6 +62,16 @@ export const ALIAS_SEO_308: AliasSeo[] = [
   { origen: '/guardias-de-seguridad/:comuna', destino: '/seguridad/:comuna' },
   { origen: '/guardias/:comuna', destino: '/seguridad/:comuna' },
   { origen: '/empresas-de-seguridad/:comuna', destino: '/seguridad/:comuna' },
+  { origen: '/climatizacion', destino: '/climatizacion-industrial' },
+  { origen: '/climatizacion/:comuna', destino: '/climatizacion-industrial/:comuna' },
+  { origen: '/gasfiter', destino: '/gasfiteria' },
+  { origen: '/gasfiter/:comuna', destino: '/gasfiteria/:comuna' },
+  { origen: '/maestro', destino: '/remodelaciones' },
+  { origen: '/maestro/:comuna', destino: '/remodelaciones/:comuna' },
+  { origen: '/obras', destino: '/remodelaciones' },
+  { origen: '/obras/:comuna', destino: '/remodelaciones/:comuna' },
+  { origen: '/creditos', destino: '/asesoria-financiera' },
+  { origen: '/creditos/:comuna', destino: '/asesoria-financiera/:comuna' },
 ]
 
 export function slugBdDesdePublico(slugPublico: string): string {

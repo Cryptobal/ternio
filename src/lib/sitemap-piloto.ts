@@ -15,6 +15,23 @@ export const SLUGS_RUBRO_SITEMAP = [
   'transporte-de-personal',
   'transporte-de-carga',
   'climatizacion-industrial',
+  'gasfiteria',
+  'electricista',
+  'destape',
+  'pintura',
+  'remodelaciones',
+  'cerrajeria',
+  'tecnico-electrodomesticos',
+  'mudanzas',
+  'jardineria',
+  'aseo-hogar',
+  'cuidado-adulto-mayor',
+  'contabilidad',
+  'marketing-digital',
+  'abogados',
+  'reclutamiento',
+  'asesoria-financiera',
+  'seguros',
 ] as const
 
 export const COMUNAS_SITEMAP_PILOTO = [

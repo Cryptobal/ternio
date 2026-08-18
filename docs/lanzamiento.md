@@ -9,24 +9,29 @@ indexó ni que hay proveedores comprando.
 ## Sitio y datos
 
 - [ ] `https://ternio.cl` responde.
-- [ ] Seed corrido contra Neon: 8 rubros, 346 comunas CUT, páginas
+- [ ] Seed corrido contra Neon: 25 rubros VENTA, 346 comunas CUT, páginas
       piloto (`COMUNAS_SEO`), cuenta admin. Comando: `pnpm db:seed`
       (no corre solo en el build de Vercel).
 - [ ] Gard Security existe (`slug` `gard-security` o fila real Gard),
       `APROBADO`, cobertura nacional, rubro seguridad. El seed **y**
       `ensureGardSecurity` (al abrir `/admin` o `/panel`) lo crean si
-      falta. Si saldo 0 y no hay `alta:{id}`: pack de arranque 200.000.
-- [ ] `/seguridad`, `/aseo`, `/control-de-plagas` responden **200**.
-- [ ] `/plagas` → 308 `/control-de-plagas`. `/guardias`,
+      falta. Si saldo 0 y no hay `alta:{id}`: pack de arranque 50.000.
+- [ ] `/seguridad`, `/aseo`, `/control-de-plagas`, `/banos-quimicos`,
+      `/generadores`, `/transporte-de-personal`, `/transporte-de-carga`,
+      `/climatizacion-industrial` responden **200** y cotizan (no lista
+      de espera).
+- [ ] `/plagas` → 308 `/control-de-plagas`. `/climatizacion` → 308
+      `/climatizacion-industrial`. `/guardias`,
       `/guardias-de-seguridad` → `/seguridad`. `/empresas-de-aseo` → `/aseo`.
 - [ ] Un combo piloto (ej. `/seguridad/santiago`) abre el cotizador
       precargado.
-- [ ] Home: frase “Cotiza servicios para tu empresa” + atajos + selector.
+- [ ] Home: frase “Cotiza servicios para tu casa o tu empresa” + un solo
+      cotizador en cascada sobre navy (sin pastillas de atajo ni losa blanca).
 
 ## Sitemap y Google
 
 - [ ] `https://www.ternio.cl/sitemap.xml` ya es **200**. Fail-soft si
-      Prisma falla: home + `/seguridad` `/aseo` `/control-de-plagas`.
+      Prisma falla: home + las landings VENTA.
       Nunca 500. `ternio.cl` hace 308 a www.
 - [ ] `https://ternio.cl/robots.txt` apunta al sitemap. **No** menciona
       `/admin`.
@@ -58,7 +63,7 @@ indexó ni que hay proveedores comprando.
 ## Proveedor (un caso real)
 
 - [ ] Crear cuenta en `/proveedores` con celular propio y confirmar OTP.
-- [ ] Queda `APROBADO` y con 200.000 créditos, sin pasar por admin.
+- [ ] Queda `APROBADO` y con 50.000 créditos, sin pasar por admin.
 - [ ] Confirmar saldo en `/panel`. Recarga = packs Flow (si
       `FLOW_API_KEY` + `FLOW_SECRET_KEY` están; en Vercel ya están).
 - [ ] Ver un lead anónimo que calce. Tomar compartido o exclusivo.

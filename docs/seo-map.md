@@ -13,13 +13,13 @@ El sitemap que Google ve es `https://www.ternio.cl/sitemap.xml`
 ## Cómo se indexa
 
 1. `https://www.ternio.cl/sitemap.xml` ya es **200** y lista home,
-   `/seguridad`, `/aseo`, `/control-de-plagas` y combos piloto.
+   las landings VENTA (25 slugs) y combos piloto.
    El código deja fail-soft: si Prisma falla, igual se publican
-   esas URLs fijas (incluidos los 3 rubros VENTA). Nunca 500.
+   esas URLs fijas (incluidas las landings VENTA). Nunca 500.
    Sin `/admin` ni `/panel`.
 2. `robots.txt` apunta al sitemap. **No** menciona `/admin`.
 3. Search Console: enviar el sitemap www y pedir indexación de
-   `/`, `/seguridad`, `/aseo`, `/control-de-plagas`.
+   `/` y las landings de rubro.
 4. Canonical = slug real. Alias 308. Sin HTML duplicado.
 
 Código: `src/app/sitemap.xml/route.ts` (fail-soft, sin Prisma),
@@ -37,13 +37,15 @@ Por eso `https://ternio.cl/plagas` da 404: no es la canónica.
 | `/control-de-plagas` | Canónica. 200. |
 | `/plagas` | Alias 308 → `/control-de-plagas` |
 | `/plagas/{comuna}` | Alias 308 → `/control-de-plagas/{comuna}` |
+| `/climatizacion` | Alias 308 → `/climatizacion-industrial` |
+| `/climatizacion/{comuna}` | Alias 308 → `/climatizacion-industrial/{comuna}` |
 
 ---
 
 ## Por qué el piloto de comunas es acotado
 
 Seed: 346 comunas CUT. Páginas `{rubro}/{comuna}` indexables: 8
-comunas × 8 rubros (`COMUNAS_SEO`): `santiago`, `las-condes`,
+comunas × 25 rubros (`COMUNAS_SEO`): `santiago`, `las-condes`,
 `providencia`, `vitacura`, `nunoa`, `maipu`, `quilicura`,
 `pudahuel`. El resto cotiza en `/{rubro}` con el selector.
 
@@ -78,15 +80,43 @@ Comuna. Se mejora copy/metadata/CTA; no se reinventa el flujo.
 
 ---
 
-## Rubros en CAPTURA
+## Rubros en VENTA (antes CAPTURA)
+
+Los 5 que nacieron en lista de espera cotizan igual que seguridad /
+aseo / plagas. `/climatizacion` es alias 308.
 
 | Rubro | URL canónica | Estado |
 | --- | --- | --- |
-| Arriendo de baños químicos | `/banos-quimicos` | CAPTURA |
-| Arriendo de generadores | `/generadores` | CAPTURA |
-| Transporte de personal | `/transporte-de-personal` | CAPTURA |
-| Transporte de carga | `/transporte-de-carga` | CAPTURA |
-| Climatización industrial | `/climatizacion-industrial` | CAPTURA |
+| Arriendo de baños químicos | `/banos-quimicos` | VENTA |
+| Arriendo de generadores | `/generadores` | VENTA |
+| Transporte de personal | `/transporte-de-personal` | VENTA |
+| Transporte de carga | `/transporte-de-carga` | VENTA |
+| Climatización industrial | `/climatizacion-industrial` | VENTA |
+
+## Ola hogar / empresa / asesoría (VENTA)
+
+Landings propias. Aliases 308 no van al sitemap. Financiero = asesores,
+no bancos.
+
+| Rubro | URL canónica | Alias 308 |
+| --- | --- | --- |
+| Gasfitería | `/gasfiteria` | `/gasfiter` |
+| Electricista | `/electricista` | — |
+| Destape y alcantarillado | `/destape` | — |
+| Pintura | `/pintura` | — |
+| Remodelaciones | `/remodelaciones` | `/maestro`, `/obras` |
+| Cerrajero | `/cerrajeria` | — |
+| Técnico de electrodomésticos | `/tecnico-electrodomesticos` | — |
+| Mudanzas y fletes | `/mudanzas` | — |
+| Jardinería | `/jardineria` | — |
+| Aseo a domicilio | `/aseo-hogar` | — |
+| Cuidado de adulto mayor | `/cuidado-adulto-mayor` | — |
+| Contabilidad | `/contabilidad` | — |
+| Marketing digital | `/marketing-digital` | — |
+| Abogados | `/abogados` | — |
+| Reclutamiento | `/reclutamiento` | — |
+| Créditos y asesoría financiera | `/asesoria-financiera` | `/creditos` |
+| Seguros | `/seguros` | — |
 
 ---
 
@@ -98,7 +128,16 @@ Comuna. Se mejora copy/metadata/CTA; no se reinventa el flujo.
 | `/seguridad` | Sí | 200 en prod. |
 | `/aseo` | Sí | 200 en prod. |
 | `/control-de-plagas` | Sí | Canónica de plagas. 200 en prod. |
+| `/banos-quimicos` | Sí | VENTA. |
+| `/generadores` | Sí | VENTA. |
+| `/transporte-de-personal` | Sí | VENTA. |
+| `/transporte-de-carga` | Sí | VENTA. |
+| `/climatizacion-industrial` | Sí | VENTA. |
+| `/gasfiteria` | Sí | VENTA. `/gasfiter` es alias. |
+| `/aseo-hogar` | Sí | Distinto de `/aseo`. |
+| `/asesoria-financiera` | Sí | Asesores, no banco. `/creditos` es alias. |
 | `/plagas` | No (alias 308) | No duplicar contenido. |
+| `/climatizacion` | No (alias 308) | → `/climatizacion-industrial`. |
 | `/proveedores` | Sí | Alta. |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |

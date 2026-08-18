@@ -20,7 +20,7 @@ const spline = Spline_Sans_Mono({
   variable: '--font-spline',
 })
 
-const titulo = 'Ternio — cotiza servicios para tu empresa'
+const titulo = 'Ternio — cotiza servicios para tu casa o tu empresa'
 const descripcion =
   'Una sola solicitud y hasta tres empresas verificadas te contactan y publican su propuesta. Gratis, sin registro y sin llamadas de más.'
 

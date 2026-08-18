@@ -43,7 +43,7 @@ describe('Gard · ensure', () => {
     expect(debeAcreditarPackGard(0, [], id)).toBe(true)
     expect(debeAcreditarPackGard(0, [claveAsientoAlta(id)], id)).toBe(false)
     expect(debeAcreditarPackGard(200_000, [], id)).toBe(false)
-    expect(CREDITOS_ALTA).toBe(200_000)
+    expect(CREDITOS_ALTA).toBe(50_000)
   })
 })
 

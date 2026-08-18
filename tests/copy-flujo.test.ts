@@ -71,12 +71,36 @@ describe('copy público sin mentiras de launch', () => {
       'utf8',
     )
     const home = readFileSync(resolve(process.cwd(), 'src/components/selector-cotizacion.tsx'), 'utf8')
+    const inicio = readFileSync(resolve(process.cwd(), 'src/app/(sitio)/page.tsx'), 'utf8')
     expect(territorio).toContain('debeMostrarNivelTerritorio')
     expect(territorio).not.toMatch(/buscar comuna|typeahead|<select/i)
     expect(territorio).not.toMatch(/Primero elige la región|Primero elige la provincia/)
-    expect(home).toContain('{rubro ?')
+    expect(home).toContain('pasoCotizador')
+    expect(home).toContain('ComboServicio')
     expect(home).toContain('SelectorTerritorio')
+    expect(home).toContain('PREGUNTA_AUDIENCIA')
+    expect(home).toContain('audienciaInicialParaPagina')
+    expect(home).toContain('rubrosEnVenta')
+    expect(home).not.toMatch(/CLASE_SUPERFICIE/)
     expect(home).not.toMatch(/enVenta\[0\]/)
+    expect(inicio).toContain('SelectorCotizacion')
+    expect(inicio).toMatch(/casa o tu empresa/)
+    expect(inicio).not.toMatch(/atajosHome/)
+    expect(inicio).not.toMatch(/>Servicios</)
+    expect(inicio).not.toMatch(/Guardias de seguridad/)
+    const landing = readFileSync(resolve(process.cwd(), 'src/app/(seo)/[rubro]/page.tsx'), 'utf8')
+    expect(landing).toContain('SelectorCotizacion')
+    expect(landing).toContain('rubroInicial')
+    expect(landing).not.toMatch(/SelectorComunaCta|CLASE_SUPERFICIE/)
+  })
+
+  it('el admin muestra los precios de lanzamiento del seed', () => {
+    const form = readFileSync(
+      resolve(process.cwd(), 'src/app/admin/rubros/formulario-rubro.tsx'),
+      'utf8',
+    )
+    expect(form).toContain('preciosLanzamiento')
+    expect(form).toContain('1 crédito = $1')
   })
 
   it('robots y sitemap no publican /admin', () => {

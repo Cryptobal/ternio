@@ -1,5 +1,6 @@
 import { ModoRubro, PrismaClient, RolUsuario } from '@prisma/client'
 
+import { cambioActivacionVenta } from '../src/lib/activar-venta'
 import { ensureGardSecurity } from '../src/lib/gard'
 import { COMUNAS, COMUNAS_SEO, RUBROS } from './catalogo-inicial'
 import { validarModoRubro } from '../src/lib/rubros'
@@ -7,7 +8,9 @@ import { validarModoRubro } from '../src/lib/rubros'
 /**
  * Seed idempotente y seguro de re-ejecutar.
  *
- * - Rubros: crea si faltan; no pisa copy ni precios editados en admin.
+ * - Rubros: crea si faltan (8 B2B + 17 hogar/empresa/asesoría). Los 5
+ *   de lista de espera pasan a VENTA si siguen en CAPTURA; no pisa
+ *   precios > 0 ni reactiva “Prueba E2E”.
  * - Comunas: upsert de las 346 del CUT (región + provincia).
  * - RubroComuna: crea solo las combinaciones piloto (COMUNAS_SEO).
  *   No activa ni crea páginas para el resto de Chile.
@@ -46,9 +49,33 @@ async function sembrarRubros(): Promise<void> {
 
     const existe = await prisma.rubro.findUnique({
       where: { slug: rubro.slug },
-      select: { id: true },
+      select: {
+        id: true,
+        slug: true,
+        nombre: true,
+        modo: true,
+        activo: true,
+        precioExclusivoClp: true,
+        precioCompartidoClp: true,
+        contenidoSeo: true,
+      },
     })
-    if (existe) continue
+    if (existe) {
+      const cambio = cambioActivacionVenta(existe, rubro)
+      if (!cambio) continue
+      await prisma.rubro.update({
+        where: { id: existe.id },
+        data: {
+          modo: cambio.modo,
+          precioExclusivoClp: cambio.precioExclusivoClp,
+          precioCompartidoClp: cambio.precioCompartidoClp,
+          ...(cambio.actualizarContenidoSeo && rubro.contenidoSeo
+            ? { contenidoSeo: rubro.contenidoSeo }
+            : {}),
+        },
+      })
+      continue
+    }
 
     await prisma.rubro.create({
       data: {

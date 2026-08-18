@@ -31,7 +31,7 @@ pnpm install
 cp .env.example .env.local     # completa los valores; nunca los subas al repo
 pnpm prisma migrate deploy     # o `pnpm db:migrate` en desarrollo
 pnpm hash:password 'tu-contraseña'   # el hash va en ADMIN_PASSWORD_HASH
-pnpm db:seed                   # 8 rubros, 346 comunas CUT y cuenta de admin
+pnpm db:seed                   # 25 rubros VENTA, 346 comunas CUT y cuenta de admin
 pnpm dev
 ```
 

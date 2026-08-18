@@ -26,7 +26,7 @@ describe('admin crea / edita rubro', () => {
 
   it('VENTA exige ambos precios > 0', () => {
     const sinPrecios = parsearDatosRubro({
-      nombre: 'Climatización',
+      nombre: 'Climatización de salas',
       modo: 'VENTA',
       activo: 'true',
     })
@@ -35,7 +35,7 @@ describe('admin crea / edita rubro', () => {
     expect(sinPrecios.motivo).toMatch(/precio/i)
 
     const unPrecio = parsearDatosRubro({
-      nombre: 'Climatización',
+      nombre: 'Climatización de salas',
       modo: 'VENTA',
       precioExclusivoClp: '25000',
       activo: 'true',
@@ -43,7 +43,7 @@ describe('admin crea / edita rubro', () => {
     expect(unPrecio.ok).toBe(false)
 
     const ok = parsearDatosRubro({
-      nombre: 'Climatización',
+      nombre: 'Climatización de salas',
       modo: 'VENTA',
       precioExclusivoClp: '25.000',
       precioCompartidoClp: '10000',
@@ -59,6 +59,8 @@ describe('admin crea / edita rubro', () => {
   it('rechaza slugs reservados', () => {
     const r = parsearDatosRubro({ nombre: 'Admin', slug: 'admin', modo: 'CAPTURA' })
     expect(r.ok).toBe(false)
+    expect(parsearDatosRubro({ nombre: 'Créditos', slug: 'creditos', modo: 'VENTA' }).ok).toBe(false)
+    expect(parsearDatosRubro({ nombre: 'Gasfiter', slug: 'gasfiter', modo: 'VENTA' }).ok).toBe(false)
   })
 })
 

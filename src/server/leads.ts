@@ -26,6 +26,7 @@ import { estadoInicialLead } from '@/lib/rubros'
 import { calcularScore } from '@/lib/score'
 import { esMovil } from '@/lib/telefono'
 import { verificarTurnstile } from '@/lib/turnstile'
+import { audienciaParaLead } from '@/lib/audiencia'
 import { validarIdentidadTronco } from '@/lib/validar-identidad'
 import { avisarProveedoresLeadVerificado } from '@/server/avisos'
 import { usuarioActualId } from '@/server/sesion'
@@ -102,6 +103,10 @@ export async function crearLeadAction(
   }
 
   const errores: Record<string, string> = {}
+  const audiencia = audienciaParaLead(formData.get('audiencia'), rubroSlug)
+  if (!audiencia) {
+    errores.audiencia = 'Elige si es para la casa o para la empresa.'
+  }
 
   const identidad = validarIdentidadTronco({
     razonSocial: formData.get('razonSocial'),
@@ -200,6 +205,7 @@ export async function crearLeadAction(
         score,
         datos: datosAnonimos,
         modoRubroAlCrear: modo,
+        audiencia,
         rutValido: true,
         telefonoVerificado: telefonoYaVerificado,
         verificadoAt: pasaAVenta ? new Date() : undefined,

@@ -3,9 +3,7 @@ import Link from 'next/link'
 import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorCotizacion } from '@/components/selector-cotizacion'
 import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
-import { atajosHome } from '@/lib/seo-contenido'
-import { pathPublicoRubro } from '@/lib/seo-rutas'
-import { claveCombo, rubrosEnVenta, type RubroSelector } from '@/lib/selector-cotizacion'
+import { claveCombo, type RubroSelector } from '@/lib/selector-cotizacion'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,64 +26,27 @@ export default async function Inicio() {
   ])
   const rubros = filas.map(aSelector)
   const publicados = combinaciones.map((fila) => claveCombo(fila.rubro, fila.comuna))
-  const enVenta = rubrosEnVenta(rubros)
 
   return (
     <div>
       <section className="bg-(--color-tinta) text-white">
         <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
           <h1 className="font-display text-4xl leading-tight sm:text-5xl">
-            Cotiza servicios para tu empresa
+            Cotiza servicios para tu casa o tu empresa
           </h1>
           <p className="mt-4 text-lg text-white/80">
             Una solicitud. Hasta tres empresas te contactan. Tú no pagas.
           </p>
 
-          <ul className="mt-6 flex flex-wrap gap-2">
-            {atajosHome().map((atajo) => (
-              <li key={atajo.href}>
-                <Link
-                  href={atajo.href}
-                  className="inline-flex min-h-11 items-center rounded-full bg-(--color-ambar) px-4 py-2 font-semibold text-(--color-tinta)"
-                >
-                  {atajo.etiqueta}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8 text-(--color-tinta)">
+          <div className="mt-8">
             {rubros.length > 0 ? (
               <SelectorCotizacion rubros={rubros} comunas={comunas} publicados={publicados} />
             ) : (
-              <p className="rounded-2xl bg-white p-5 text-(--color-tinta-suave)">
-                Aún no hay servicios publicados.
-              </p>
+              <p className="text-white/70">Aún no hay servicios publicados.</p>
             )}
           </div>
         </div>
       </section>
-
-      {enVenta.length > 0 ? (
-        <section className="mx-auto w-full max-w-xl px-4 py-12">
-          <h2 className="font-display text-2xl">Servicios</h2>
-          <ul className="mt-5 grid gap-3">
-            {enVenta.map((rubro) => (
-              <li key={rubro.slug}>
-                <Link
-                  href={pathPublicoRubro(rubro.slug)}
-                  className="block rounded-3xl border border-(--color-borde) bg-white p-5 shadow-[0_12px_32px_-20px_rgb(14_27_44/0.2)] transition hover:-translate-y-0.5"
-                >
-                  <span className="font-medium">{rubro.nombrePlural ?? rubro.nombre}</span>
-                  <span className="mt-1 block text-sm text-(--color-tinta-suave)">
-                    {rubro.descripcion}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       <section className="border-t border-(--color-linea) bg-white">
         <div className="mx-auto w-full max-w-xl px-4 py-12">

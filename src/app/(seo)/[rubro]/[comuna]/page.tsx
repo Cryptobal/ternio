@@ -17,7 +17,10 @@ import { pathPublicoCombo, pathPublicoRubro, slugPublicoDesdeBd } from '@/lib/se
 export const revalidate = 3600
 export const dynamicParams = true
 
-type Props = { params: Promise<{ rubro: string; comuna: string }> }
+type Props = {
+  params: Promise<{ rubro: string; comuna: string }>
+  searchParams: Promise<{ audiencia?: string }>
+}
 
 type ContenidoSeo = { intro?: string; porQue?: string }
 
@@ -72,8 +75,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function PaginaRubroComuna({ params }: Props) {
+export default async function PaginaRubroComuna({ params, searchParams }: Props) {
   const { rubro: rubroSlug, comuna: comunaSlug } = await params
+  const { audiencia: audienciaQuery } = await searchParams
   const combinacion = await combinacionPorSlugs(rubroSlug, comunaSlug)
 
   if (!combinacion) notFound()
@@ -207,6 +211,7 @@ export default async function PaginaRubroComuna({ params }: Props) {
               rubroSlug={rubro.slug}
               comunaSlug={comuna.slug}
               campos={campos}
+              audienciaInicial={audienciaQuery}
               turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
             />
           </section>
