@@ -25,7 +25,25 @@ pnpm dev
 ```
 
 Las variables de entorno están documentadas una por una en
-[`.env.example`](./.env.example).
+[`.env.example`](./.env.example). En Vercel (y en `.env.local`) son
+**obligatorias por nombre**:
+
+- `DATABASE_URL` — conexión de Neon para la app. En producción usa la pooled
+  (host con `-pooler`).
+- `DIRECT_URL` — conexión directa de Neon (**sin** `-pooler`). Prisma la usa
+  para `migrate deploy` en el build. Sin ella el despliegue falla.
+- `AUTH_SECRET` — secreto de Auth.js. Genera uno con `openssl rand -base64 32`.
+- `ADMIN_EMAIL` — correo de la cuenta admin.
+- `ADMIN_PASSWORD_HASH` — hash bcrypt; se genera con
+  `pnpm hash:password 'tu-contraseña'`.
+
+El seed (`pnpm db:seed`) es **manual y de una sola vez**. No corre en el build
+de Vercel. Usa upsert con `update`: re-correrlo pisa precios u otros campos
+editados desde el admin.
+
+El build de producción aplica las migraciones: `prisma generate && prisma migrate deploy && next build`.
+Ese comando vive solo en `package.json` (`pnpm run build`); `vercel.json`
+lo invoca, no lo duplica.
 
 Dos que conviene entender antes de desplegar:
 
