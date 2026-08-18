@@ -197,3 +197,19 @@ lanzamiento ni la operación de las fases anteriores.
 ## Reporte al cierre de cada sesión
 Qué se construyó, qué se validó (comandos y resultado), qué queda
 pendiente, y riesgos o supuestos que yo deba confirmar.
+
+## Delta vs docs/guia-de-desarrollo.md
+
+La fuente de verdad operativa es `docs/guia-de-desarrollo.md`. Si este
+archivo choca con esa guía, gana la guía. Deltas conscientes:
+
+- URL canónica de plagas: `/plagas` (este prompt usaba el slug de BD
+  `control-de-plagas` como path). `/control-de-plagas` es alias 308.
+- Sitemap: nunca 500; fail-soft incluye home + `/seguridad` `/aseo`
+  `/plagas`.
+- Créditos de lanzamiento: los carga el admin (`AJUSTE`). MercadoPago
+  sigue siendo fase siguiente, no bloquea operar.
+- Matching y toma de lead viven en `src/lib/matching.ts` +
+  `src/server/marketplace.ts` (este prompt los dejaba en Fase 3).
+- Al aprobar un proveedor se acreditan 200.000 (idempotente). Gard
+  semilla: 500.000 si saldo 0.

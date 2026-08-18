@@ -1,13 +1,18 @@
 # Ternio
 
-Marketplace de leads B2B en Chile. El comprador cotiza gratis en una página
-`{rubro}/{comuna}`; los proveedores compran el contacto verificado con créditos
-prepagados. El contexto completo del producto está en [`CLAUDE.md`](./CLAUDE.md).
+Marketplace de leads B2B en Chile. El comprador cotiza gratis; el proveedor
+compra el contacto verificado. El comprador nunca paga.
 
-Este repositorio está en **Fase 0 (validación)**: landing real con formulario,
-cuenta del comprador, panel mínimo de seguimiento, cuenta mínima de proveedor
-(`/panel`), panel de admin en ruta oculta y medición del embudo. Todavía no hay
-venta de leads ni marketplace.
+**La fuente de verdad de producto e ingeniería es
+[`docs/guia-de-desarrollo.md`](./docs/guia-de-desarrollo.md).** Ahí está qué
+es / qué no es, referentes, la definición de “100% operativa” y cómo se
+trabaja. Si `CLAUDE.md` choca con la guía, gana la guía.
+
+También: [`docs/como-funciona.md`](./docs/como-funciona.md) (flujos),
+[`docs/seo-map.md`](./docs/seo-map.md) (keyword → URL),
+[`docs/lanzamiento.md`](./docs/lanzamiento.md) (checklist).
+
+`CLAUDE.md` es el prompt maestro histórico (fases, stack, reglas duras).
 
 ## Stack
 
