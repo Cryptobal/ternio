@@ -17,7 +17,7 @@ import {
   errorDePaso,
   etiquetaAvancePaso,
   mostrarBotonAvance,
-  TRONCO_IDENTIDAD,
+  troncoIdentidad,
   valorComoTexto,
   type PasoCotizacion,
   type ValoresFormulario,
@@ -91,10 +91,6 @@ export function FormularioCotizacion({
   audienciaInicial?: string | null
   turnstileSiteKey: string | undefined
 }) {
-  const pasos = useMemo(
-    () => construirPasos(campos, { pideComuna: !comunaSlug }),
-    [campos, comunaSlug],
-  )
   const [indice, setIndice] = useState(0)
   const [valores, setValores] = useState<ValoresFormulario>(
     comunaSlug ? { comuna: comunaSlug } : {},
@@ -104,6 +100,18 @@ export function FormularioCotizacion({
   const [errorPaso, setErrorPaso] = useState<string | undefined>()
   const [audiencia, setAudiencia] = useState<Audiencia | ''>(() =>
     audienciaInicialParaPagina(audienciasRubro, audienciaInicial),
+  )
+  const pasos = useMemo(
+    () =>
+      construirPasos(campos, {
+        pideComuna: !comunaSlug,
+        audiencia: audiencia || 'empresa',
+      }),
+    [campos, comunaSlug, audiencia],
+  )
+  const camposTronco = useMemo(
+    () => troncoIdentidad(audiencia || 'empresa'),
+    [audiencia],
   )
   const errores = estado.errores ?? {}
   const resumenRef = useRef<HTMLDivElement>(null)
@@ -137,7 +145,7 @@ export function FormularioCotizacion({
   }
 
   function intentarAvanzar(siguientes: ValoresFormulario = valores) {
-    const error = errorDePaso(paso, siguientes)
+    const error = errorDePaso(paso, siguientes, audiencia || 'empresa')
     if (error) {
       setErrorPaso(error)
       return
@@ -178,7 +186,7 @@ export function FormularioCotizacion({
       ) : (
         <>
       <RielFases tramos={tramos} variante="claro" />
-      {TRONCO_IDENTIDAD.map((campo) => (
+      {camposTronco.map((campo) => (
         <input
           key={campo.id}
           type="hidden"
@@ -187,7 +195,7 @@ export function FormularioCotizacion({
         />
       ))}
       {Object.entries(valores).map(([clave, valor]) =>
-        clave === 'comuna' || TRONCO_IDENTIDAD.some((campo) => campo.id === clave) ? null : Array.isArray(
+        clave === 'comuna' || camposTronco.some((campo) => campo.id === clave) ? null : Array.isArray(
             valor,
           ) ? (
           valor.map((item) => <input key={`${clave}-${item}`} type="hidden" name={clave} value={item} />)

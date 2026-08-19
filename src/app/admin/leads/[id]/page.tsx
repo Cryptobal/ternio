@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { formatearRut } from '@/lib/rut'
 import { formatearTelefono } from '@/lib/telefono'
 import { ETIQUETA_AUDIENCIA, parsearAudiencia } from '@/lib/audiencia'
+import { scoreMaximoPorAudiencia } from '@/lib/score'
 import { requerirAdmin } from '@/server/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -70,7 +71,8 @@ export default async function DetalleLead({ params }: Props) {
       </h1>
       <p className="mt-1 text-sm text-(--color-tinta-suave)">
         Recibida el {formatoFechaHora.format(lead.createdAt)} · Estado {lead.estado} · Score{' '}
-        {lead.score} · Rubro en modo {lead.modoRubroAlCrear} al crearse
+        {lead.score}/{scoreMaximoPorAudiencia(audienciaLead)} · Rubro en modo{' '}
+        {lead.modoRubroAlCrear} al crearse
         {audienciaLead ? ` · ${ETIQUETA_AUDIENCIA[audienciaLead]}` : ''}
       </p>
 

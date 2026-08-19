@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { SCORE_MAXIMO, calcularScore, esCorreoCorporativo } from '@/lib/score'
+import {
+  SCORE_MAXIMO,
+  SCORE_MAXIMO_HOGAR,
+  calcularScore,
+  esCorreoCorporativo,
+  scoreMaximoPorAudiencia,
+} from '@/lib/score'
 
 const BASE = {
   rutValido: true,
@@ -56,6 +62,15 @@ describe('calcularScore', () => {
       plazo: undefined,
     })
     expect(minimo).toBe(0)
+  })
+
+  it('el tope hogar es 90 (sin bonus de razón social)', () => {
+    expect(scoreMaximoPorAudiencia('hogar')).toBe(SCORE_MAXIMO_HOGAR)
+    expect(scoreMaximoPorAudiencia('empresa')).toBe(SCORE_MAXIMO)
+    expect(scoreMaximoPorAudiencia(null)).toBe(SCORE_MAXIMO)
+
+    const hogar = calcularScore({ ...BASE, razonSocialDeclarada: false, telefonoVerificado: true })
+    expect(hogar).toBeLessThanOrEqual(SCORE_MAXIMO_HOGAR)
   })
 
   it('es determinista', () => {

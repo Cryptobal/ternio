@@ -29,6 +29,32 @@ describe('validarIdentidadTronco', () => {
     if (!rutMalo.ok) expect(rutMalo.errores.rut).toMatch(/dígito verificador/)
   })
 
+  it('hogar sin razón social es válido; empresa sin razón social no', () => {
+    const sinRazon = { ...valido, razonSocial: '' }
+    const hogar = validarIdentidadTronco(sinRazon, 'hogar')
+    expect(hogar.ok).toBe(true)
+    if (hogar.ok) expect(hogar.datos.razonSocial).toBeNull()
+
+    const empresa = validarIdentidadTronco(sinRazon, 'empresa')
+    expect(empresa.ok).toBe(false)
+    if (!empresa.ok) expect(empresa.errores.razonSocial).toMatch(/razón social/)
+  })
+
+  it('hogar con RUT de DV inválido falla', () => {
+    const malo = validarIdentidadTronco(
+      { ...valido, razonSocial: undefined, rut: '12.345.678-4' },
+      'hogar',
+    )
+    expect(malo.ok).toBe(false)
+    if (!malo.ok) expect(malo.errores.rut).toMatch(/dígito verificador/)
+  })
+
+  it('hogar pide "tu RUT" cuando el campo viene vacío', () => {
+    const vacio = validarIdentidadTronco({ ...valido, razonSocial: '', rut: '' }, 'hogar')
+    expect(vacio.ok).toBe(false)
+    if (!vacio.ok) expect(vacio.errores.rut).toMatch(/tu RUT/i)
+  })
+
   it('exige celular chileno, no un fijo', () => {
     const fijo = validarIdentidadTronco({ ...valido, telefono: '223456789' })
     expect(fijo.ok).toBe(false)

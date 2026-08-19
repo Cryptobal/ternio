@@ -1,7 +1,8 @@
+import type { Audiencia } from '@/lib/audiencia'
 import { esOpcionUnica, type CampoFormulario } from '@/lib/campos'
 import { errorCampoIdentidad } from '@/lib/validar-identidad'
 
-export const TRONCO_IDENTIDAD = [
+const TRONCO_EMPRESA = [
   { id: 'razonSocial', etiqueta: 'Razón social', requerido: true },
   { id: 'rut', etiqueta: 'RUT de la empresa', requerido: true },
   { id: 'nombreContacto', etiqueta: 'Tu nombre', requerido: true },
@@ -9,7 +10,28 @@ export const TRONCO_IDENTIDAD = [
   { id: 'email', etiqueta: 'Correo', requerido: true },
 ] as const
 
-export type IdTronco = (typeof TRONCO_IDENTIDAD)[number]['id']
+const TRONCO_HOGAR = [
+  { id: 'rut', etiqueta: 'Tu RUT', requerido: true },
+  { id: 'nombreContacto', etiqueta: 'Tu nombre', requerido: true },
+  { id: 'telefono', etiqueta: 'Teléfono', requerido: true },
+  { id: 'email', etiqueta: 'Correo', requerido: true },
+] as const
+
+/** Tronco de identidad empresa (5 pasos). Preferir troncoIdentidad(audiencia). */
+export const TRONCO_IDENTIDAD = TRONCO_EMPRESA
+
+export type IdTronco = (typeof TRONCO_EMPRESA)[number]['id']
+
+export type CampoTronco = {
+  id: IdTronco
+  etiqueta: string
+  requerido: boolean
+}
+
+/** Rama el tronco: hogar omite razón social y etiqueta el RUT como personal. */
+export function troncoIdentidad(audiencia: Audiencia): readonly CampoTronco[] {
+  return audiencia === 'hogar' ? TRONCO_HOGAR : TRONCO_EMPRESA
+}
 
 export type PasoCotizacion =
   | { tipo: 'comuna'; id: 'comuna'; etiqueta: string }
@@ -19,9 +41,10 @@ export type PasoCotizacion =
 
 export function construirPasos(
   campos: CampoFormulario[],
-  opciones: { pideComuna: boolean },
+  opciones: { pideComuna: boolean; audiencia?: Audiencia },
 ): PasoCotizacion[] {
   const pasos: PasoCotizacion[] = []
+  const audiencia = opciones.audiencia ?? 'empresa'
 
   if (opciones.pideComuna) {
     pasos.push({ tipo: 'comuna', id: 'comuna', etiqueta: '¿En qué comuna?' })
@@ -31,7 +54,7 @@ export function construirPasos(
     pasos.push({ tipo: 'modulo', id: campo.nombre, campo })
   }
 
-  for (const campo of TRONCO_IDENTIDAD) {
+  for (const campo of troncoIdentidad(audiencia)) {
     pasos.push({
       tipo: 'tronco',
       id: campo.id,
@@ -84,8 +107,12 @@ export function mostrarBotonAvance(paso: PasoCotizacion, valores: ValoresFormula
   return true
 }
 
-export function avanceBloqueado(paso: PasoCotizacion, valores: ValoresFormulario): boolean {
-  return Boolean(errorDePaso(paso, valores))
+export function avanceBloqueado(
+  paso: PasoCotizacion,
+  valores: ValoresFormulario,
+  audiencia: Audiencia = 'empresa',
+): boolean {
+  return Boolean(errorDePaso(paso, valores, audiencia))
 }
 
 export function valorComoTexto(valor: string | string[] | undefined): string {
@@ -119,6 +146,7 @@ export function clavePaso(paso: PasoCotizacion): string {
 export function errorDePaso(
   paso: PasoCotizacion,
   valores: ValoresFormulario,
+  audiencia: Audiencia = 'empresa',
 ): string | undefined {
   if (paso.tipo === 'comuna') {
     if (!valorComoTexto(valores.comuna).trim()) return 'Elige una comuna.'
@@ -137,7 +165,7 @@ export function errorDePaso(
   }
 
   if (paso.tipo === 'tronco') {
-    return errorCampoIdentidad(paso.id, valorComoTexto(valores[paso.id]))
+    return errorCampoIdentidad(paso.id, valorComoTexto(valores[paso.id]), audiencia)
   }
 
   return undefined

@@ -4,7 +4,12 @@
  * Un correo Gmail no descarta un lead, solo le baja el puntaje. Lo que sí es
  * requisito duro para vender es RUT válido + teléfono verificado, y eso se
  * controla con los estados del lead, no con este número.
+ *
+ * En hogar el tope es 90: el +10 de razón social no aplica (no se inventan
+ * puntos compensatorios).
  */
+
+import type { Audiencia } from '@/lib/audiencia'
 
 const DOMINIOS_GENERICOS = new Set([
   'gmail.com',
@@ -31,6 +36,12 @@ export type SenalesScore = {
 }
 
 export const SCORE_MAXIMO = 100
+/** Tope hogar: sin el bonus de razón social (+10). */
+export const SCORE_MAXIMO_HOGAR = 90
+
+export function scoreMaximoPorAudiencia(audiencia: Audiencia | null | undefined): number {
+  return audiencia === 'hogar' ? SCORE_MAXIMO_HOGAR : SCORE_MAXIMO
+}
 
 export function esCorreoCorporativo(email: string): boolean {
   const dominio = email.trim().toLowerCase().split('@')[1]
