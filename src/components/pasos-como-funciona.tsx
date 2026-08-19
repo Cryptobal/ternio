@@ -14,7 +14,7 @@ export function PasosComoFunciona({
       {pasos.map((paso) => (
         <li key={paso.titulo}>
           <h3 className="font-medium">{paso.titulo}</h3>
-          <p className="mt-1 text-sm text-(--color-tinta-suave)">{paso.texto}</p>
+          <p className="mt-1 text-sm text-(--color-texto-suave)">{paso.texto}</p>
         </li>
       ))}
     </ol>

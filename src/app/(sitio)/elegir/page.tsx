@@ -25,7 +25,7 @@ export default async function Elegir() {
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
       <h1 className="font-display text-2xl sm:text-3xl">¿A dónde entras?</h1>
-      <p className="mt-3 text-(--color-tinta-suave)">
+      <p className="mt-3 text-(--color-texto-suave)">
         Este celular tiene cotizaciones y una cuenta de proveedor. Elige una.
       </p>
       <div className="mt-8 grid gap-4">
@@ -34,7 +34,7 @@ export default async function Elegir() {
           className={`${CLASE_SUPERFICIE} block min-h-11 transition hover:border-(--color-marca) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-ambar)`}
         >
           <p className="font-display text-xl">Mis cotizaciones</p>
-          <p className="mt-1 text-sm text-(--color-tinta-suave)">
+          <p className="mt-1 text-sm text-(--color-texto-suave)">
             Ver el estado de lo que pedí
           </p>
         </Link>
@@ -43,7 +43,7 @@ export default async function Elegir() {
           className={`${CLASE_SUPERFICIE} block min-h-11 transition hover:border-(--color-marca) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-ambar)`}
         >
           <p className="font-display text-xl">Mi panel de proveedor</p>
-          <p className="mt-1 text-sm text-(--color-tinta-suave)">Contactos y saldo</p>
+          <p className="mt-1 text-sm text-(--color-texto-suave)">Contactos y saldo</p>
         </Link>
       </div>
     </div>

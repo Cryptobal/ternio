@@ -62,6 +62,13 @@ export const PROMESAS_HOME = [
   },
 ] as const
 
+export const CATALOGO_HOME = {
+  titulo: 'Todos los servicios',
+  bajada: 'Elige casa o empresa, busca y cotiza.',
+  notaEspera:
+    'Los servicios en gris todavía no tienen empresas: cotizas igual y quedas en lista de espera.',
+} as const
+
 export type RubroCatalogo = {
   slug: string
   nombre: string

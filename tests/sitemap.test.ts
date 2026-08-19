@@ -34,6 +34,8 @@ describe('sitemap público', () => {
     expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/gasfiteria')
     expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/proveedores')
     expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/blog')
+    expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/como-funciona')
+    expect(urlsSitemapFijas(BASE)).toContain('https://www.ternio.cl/precios')
   })
 
   it('excluye /admin y /panel', () => {

@@ -13,7 +13,7 @@ export default function Terminos() {
   return (
     <article className="mx-auto w-full max-w-2xl px-4 py-10 sm:py-14">
       <h1 className="font-display text-3xl">Términos de uso</h1>
-      <p className="mt-2 text-sm text-(--color-tinta-suave)">
+      <p className="mt-2 text-sm text-(--color-texto-suave)">
         Última actualización: agosto de 2026.
       </p>
 

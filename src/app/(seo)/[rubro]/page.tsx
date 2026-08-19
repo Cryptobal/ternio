@@ -132,7 +132,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
         comuna={comunaPreseleccionada ?? undefined}
       />
 
-      <section className="bg-(--color-tinta) text-white">
+      <section className="bg-(--color-hero) text-white">
         <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
           <nav aria-label="Migas de pan" className="mb-6 text-sm text-white/55">
             <Link href="/" className="underline-offset-4 hover:underline">
@@ -166,7 +166,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
 
       <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
         {copy.queIncluye.length > 0 ? (
-          <ul className="list-disc space-y-1 pl-5 text-(--color-tinta-suave)">
+          <ul className="list-disc space-y-1 pl-5 text-(--color-texto-suave)">
             {copy.queIncluye.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -183,7 +183,7 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
         {comunaPreseleccionada ? (
           <section className="mt-10">
             <h2 className="font-display text-xl">Pide tu cotización</h2>
-            <p className="mt-1 mb-5 text-sm text-(--color-tinta-suave)">Toma un par de minutos. Es gratis.</p>
+            <p className="mt-1 mb-5 text-sm text-(--color-texto-suave)">Toma un par de minutos. Es gratis.</p>
             <FormularioCotizacion
               rubroSlug={rubro.slug}
               comunaSlug={comunaPreseleccionada}

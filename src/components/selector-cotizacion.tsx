@@ -9,8 +9,6 @@ import { SelectorTerritorio } from '@/components/selector-territorio'
 import { PasoAnimado } from '@/components/ui/motion'
 import {
   audienciaInicialParaPagina,
-  CONTEXTO_AUDIENCIA,
-  ETIQUETA_AUDIENCIA,
   filtrarServiciosPorAudiencia,
   PREGUNTA_AUDIENCIA,
   pasoCotizador,
@@ -19,11 +17,56 @@ import {
 import {
   claveCombo,
   destinoSelector,
-  rubrosEnVenta,
   type RubroSelector,
 } from '@/lib/selector-cotizacion'
 import type { ComunaTerritorio } from '@/lib/territorio'
-import { CLASE_BOTON_AMBAR, CLASE_PREGUNTA_NAVY, CLASE_TARJETA_NAVY, CLASE_TARJETA_NAVY_ACTIVA } from '@/lib/ui'
+import {
+  CLASE_BOTON_AMBAR,
+  CLASE_PREGUNTA_NAVY,
+  CLASE_RIEL_PROGRESO,
+  CLASE_RIEL_TRAMO,
+  CLASE_RIEL_TRAMO_ACTIVO,
+  CLASE_TARJETA_AUDIENCIA,
+  CLASE_TARJETA_AUDIENCIA_ACTIVA,
+} from '@/lib/ui'
+
+const PALABRA: Record<Audiencia, string> = {
+  hogar: 'Casa',
+  empresa: 'Empresa',
+}
+
+const MICRO: Record<Audiencia, string> = {
+  hogar: 'hogar',
+  empresa: 'negocio',
+}
+
+function IconoCasa() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconoEmpresa() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 20V7.5L12 3l8 4.5V20H4Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <path d="M9 20v-5h6v5" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8 10h.01M12 10h.01M16 10h.01M8 13h.01M12 13h.01M16 13h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  )
+}
 
 export function SelectorCotizacion({
   rubros,
@@ -41,7 +84,8 @@ export function SelectorCotizacion({
   idPrefijo?: string
 }) {
   const router = useRouter()
-  const servicios = useMemo(() => rubrosEnVenta(rubros), [rubros])
+  /** VENTA y CAPTURA: el combo los agrupa; CAPTURA queda en lista de espera. */
+  const servicios = rubros
   const partida = servicios.find((item) => item.slug === rubroInicial)
 
   const [audiencia, setAudiencia] = useState<Audiencia | ''>(() =>
@@ -61,6 +105,8 @@ export function SelectorCotizacion({
     ? filtrarServiciosPorAudiencia(servicios, audiencia)
     : servicios
 
+  const tramosCompletos = (audiencia ? 1 : 0) + (slug ? 1 : 0) + (comunaSlug ? 1 : 0)
+
   function ir(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!rubro) return
@@ -77,6 +123,18 @@ export function SelectorCotizacion({
 
   return (
     <form onSubmit={ir} className="grid gap-4 text-white">
+      <div className={CLASE_RIEL_PROGRESO} aria-hidden="true">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className={`${CLASE_RIEL_TRAMO} ${i < tramosCompletos ? CLASE_RIEL_TRAMO_ACTIVO : ''}`}
+          />
+        ))}
+      </div>
+      <p className="font-eyebrow text-[0.65rem] text-white/55">
+        Ternio · {tramosCompletos} de 3 · hasta tres empresas
+      </p>
+
       {audiencia || rubro ? (
         <div className="flex flex-wrap gap-2">
           {audiencia ? (
@@ -89,7 +147,7 @@ export function SelectorCotizacion({
                 setError(undefined)
               }}
             >
-              {ETIQUETA_AUDIENCIA[audiencia]}
+              {PALABRA[audiencia]}
             </ChipMiga>
           ) : null}
           {rubro ? (
@@ -125,11 +183,12 @@ export function SelectorCotizacion({
                         setComunaSlug('')
                         setError(undefined)
                       }}
-                      className={`${CLASE_TARJETA_NAVY} ${activa ? CLASE_TARJETA_NAVY_ACTIVA : ''}`}
+                      className={`${CLASE_TARJETA_AUDIENCIA} ${activa ? CLASE_TARJETA_AUDIENCIA_ACTIVA : ''}`}
                     >
-                      <span className="font-semibold">{ETIQUETA_AUDIENCIA[opcion]}</span>
-                      <span className="mt-1 text-sm text-white/70">
-                        {CONTEXTO_AUDIENCIA[opcion]}
+                      {opcion === 'hogar' ? <IconoCasa /> : <IconoEmpresa />}
+                      <span className="text-xl font-semibold">{PALABRA[opcion]}</span>
+                      <span className="font-mono text-[0.7rem] uppercase tracking-wider text-white/55">
+                        {MICRO[opcion]}
                       </span>
                     </button>
                   </li>
@@ -143,6 +202,7 @@ export function SelectorCotizacion({
           <ComboServicio
             servicios={delFiltro}
             idPrefijo={idPrefijo}
+            abrirAlMontar
             onElegir={(siguiente) => {
               setSlug(siguiente)
               setComunaSlug('')
@@ -156,6 +216,7 @@ export function SelectorCotizacion({
             comunas={comunas}
             value={comunaSlug}
             variante="navy"
+            frecuentes
             onChange={(siguiente) => {
               setComunaSlug(siguiente)
               setError(undefined)

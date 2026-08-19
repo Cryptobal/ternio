@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { NavAdmin } from '@/components/admin/nav-admin'
+import { ForzarTemaDia } from '@/components/sitio/forzar-tema-dia'
 
 export const metadata: Metadata = {
   title: 'Panel',
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
  */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 text-(--color-tinta)">
+      <ForzarTemaDia />
       <NavAdmin />
       {children}
     </div>

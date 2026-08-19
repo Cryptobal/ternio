@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  CATALOGO_HOME,
   FAQ_HOME,
   PROMESAS_HOME,
   audienciaCatalogoFallback,
@@ -29,6 +30,12 @@ describe('contenido-home', () => {
     expect(cupo).toBeDefined()
     expect(cupo?.titulo).toContain(String(CUPOS_COMPARTIDO))
     expect(cupo?.texto.toLowerCase()).toContain('tres')
+  })
+
+  it('CATALOGO_HOME explica la lista de espera', () => {
+    expect(CATALOGO_HOME.titulo.trim().length).toBeGreaterThan(0)
+    expect(CATALOGO_HOME.notaEspera.toLowerCase()).toContain('lista de espera')
+    expect(CATALOGO_HOME.notaEspera.toLowerCase()).toContain('gris')
   })
 
   it('JSON-LD FAQPage sale bien formado desde las mismas preguntas', () => {

@@ -78,7 +78,7 @@ export default async function PaginaArticulo({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <article>
-        <header className="bg-(--color-tinta) text-white">
+        <header className="bg-(--color-hero) text-white">
           <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
             <nav aria-label="Migas de pan" className="mb-6 text-sm text-white/55">
               <Link href="/" className="underline-offset-4 hover:underline">
@@ -103,11 +103,11 @@ export default async function PaginaArticulo({ params }: Props) {
 
         <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
           <div
-            className="prosa-blog text-base leading-relaxed text-(--color-tinta) [&_a]:underline [&_a]:underline-offset-4 [&_em]:italic [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-xl [&_h3]:mt-6 [&_h3]:font-display [&_h3]:text-lg [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_p]:mt-4 [&_p]:text-(--color-tinta-suave) [&_strong]:font-semibold [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5"
+            className="prosa-blog text-base leading-relaxed text-(--color-texto) [&_a]:underline [&_a]:underline-offset-4 [&_em]:italic [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-xl [&_h3]:mt-6 [&_h3]:font-display [&_h3]:text-lg [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_p]:mt-4 [&_p]:text-(--color-texto-suave) [&_strong]:font-semibold [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5"
             dangerouslySetInnerHTML={{ __html: post.html }}
           />
 
-          <aside className="mt-10 rounded-2xl bg-(--color-tinta) p-6 text-white">
+          <aside className="mt-10 rounded-2xl bg-(--color-hero) p-6 text-white">
             <h2 className="font-display text-xl">
               {copy ? copy.cta.replace(/^Pedir /, 'Pide ') : 'Pide tu cotización'}
             </h2>

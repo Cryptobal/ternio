@@ -4,6 +4,7 @@ import { Archivo, Spline_Sans_Mono } from 'next/font/google'
 import { NoscriptGtm } from '@/components/gtm'
 import { idContenedorGtm, snippetGtm } from '@/lib/gtm'
 import { OG_IMAGE, URL_OG_PNG, URL_SITIO_CANONICA } from '@/lib/metadata-publico'
+import { snippetTemaSinDestello } from '@/lib/tema'
 
 import './globals.css'
 
@@ -58,8 +59,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const gtmId = idContenedorGtm()
 
   return (
-    <html lang="es-CL">
+    <html lang="es-CL" data-tema="dia" suppressHydrationWarning>
       <head>
+        <meta name="theme-color" content="#f1f4f8" />
+        <script dangerouslySetInnerHTML={{ __html: snippetTemaSinDestello() }} />
         {gtmId ? (
           // Script inline oficial: next/script lo envuelve en un loader y
           // lo deja fuera de <head>, así que el HTML de origen no coincidiría

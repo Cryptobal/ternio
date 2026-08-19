@@ -13,12 +13,12 @@ El sitemap que Google ve es `https://www.ternio.cl/sitemap.xml`
 ## Cómo se indexa
 
 1. `https://www.ternio.cl/sitemap.xml` ya es **200** y lista home,
-   las landings VENTA (25 slugs), combos piloto, `/blog` y los
-   artículos. El `<loc>` usa el mismo host que los canonicals
-   (`https://www.ternio.cl`). El código deja fail-soft: si Prisma
-   o un `.md` del blog fallan, igual se publican las URLs fijas
-   (incluidas las landings VENTA y `/blog`). Nunca 500.
-   Sin `/admin` ni `/panel`.
+   las landings VENTA (25 slugs), combos piloto, `/blog`,
+   `/como-funciona`, `/precios` y los artículos. El `<loc>` usa el
+   mismo host que los canonicals (`https://www.ternio.cl`). El código
+   deja fail-soft: si Prisma o un `.md` del blog fallan, igual se
+   publican las URLs fijas (incluidas las landings VENTA y `/blog`).
+   Nunca 500. Sin `/admin` ni `/panel`.
 2. `robots.txt` apunta al sitemap www. **No** menciona `/admin`.
 3. Search Console: enviar el sitemap www y pedir indexación de
    `/` y las landings de rubro.
@@ -142,7 +142,9 @@ no bancos.
 | `/asesoria-financiera` | Sí | Asesores, no banco. `/creditos` es alias. |
 | `/plagas` | No (alias 308) | No duplicar contenido. |
 | `/climatizacion` | No (alias 308) | → `/climatizacion-industrial`. |
-| `/proveedores` | Sí | Alta. |
+| `/proveedores` | Sí | Alta. Precios viven en `/precios`. |
+| `/como-funciona` | Sí | Dos lados: cotizas / vendes. |
+| `/precios` | Sí | $0 comprador primero; contactos por rubro. |
 | `/blog` | Sí | Índice, más nuevo primero. |
 | `/blog/cuanto-cuesta-un-guardia-de-seguridad-en-chile` | Sí | → `/seguridad` |
 | `/blog/como-elegir-empresa-de-aseo-industrial` | Sí | → `/aseo` |

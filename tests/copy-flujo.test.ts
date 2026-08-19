@@ -70,7 +70,7 @@ describe('copy público sin mentiras de launch', () => {
     expect(otp).toMatch(/Crea tu acceso o entra con este celular/)
   })
 
-  it('el selector de territorio no apila niveles ni usa typeahead', () => {
+  it('el selector de territorio muestra un nivel a la vez; el cotizador usa buscador + frecuentes', () => {
     const territorio = readFileSync(
       resolve(process.cwd(), 'src/components/selector-territorio.tsx'),
       'utf8',
@@ -78,20 +78,21 @@ describe('copy público sin mentiras de launch', () => {
     const home = readFileSync(resolve(process.cwd(), 'src/components/selector-cotizacion.tsx'), 'utf8')
     const inicio = readFileSync(resolve(process.cwd(), 'src/app/(sitio)/page.tsx'), 'utf8')
     expect(territorio).toContain('debeMostrarNivelTerritorio')
-    expect(territorio).not.toMatch(/buscar comuna|typeahead|<select/i)
+    expect(territorio).toContain('frecuentes')
+    expect(territorio).toContain('Ver más comunas')
     expect(territorio).not.toMatch(/Primero elige la región|Primero elige la provincia/)
+    expect(territorio).not.toMatch(/<select/)
     expect(home).toContain('pasoCotizador')
     expect(home).toContain('ComboServicio')
     expect(home).toContain('SelectorTerritorio')
     expect(home).toContain('PREGUNTA_AUDIENCIA')
     expect(home).toContain('audienciaInicialParaPagina')
-    expect(home).toContain('rubrosEnVenta')
+    expect(home).toContain('abrirAlMontar')
     expect(home).not.toMatch(/CLASE_SUPERFICIE/)
     expect(home).not.toMatch(/enVenta\[0\]/)
     expect(inicio).toContain('SelectorCotizacion')
     expect(inicio).toMatch(/casa o tu empresa/)
     expect(inicio).not.toMatch(/atajosHome/)
-    expect(inicio).not.toMatch(/>Servicios</)
     expect(inicio).not.toMatch(/Guardias de seguridad/)
     const landing = readFileSync(resolve(process.cwd(), 'src/app/(seo)/[rubro]/page.tsx'), 'utf8')
     expect(landing).toContain('SelectorCotizacion')
