@@ -127,7 +127,7 @@ export function pathsPublicosBlog(raiz = process.cwd()): string[] {
 }
 
 export function pathCtaPost(post: Pick<PostBlog, 'rubro'>): string {
-  return post.rubro ? `${pathPublicoRubro(post.rubro)}#cotizar` : '/#cotizar'
+  return post.rubro ? `${pathPublicoRubro(post.rubro)}#cotizar` : '/#cotizador'
 }
 
 export function fechaLegible(iso: string): string {

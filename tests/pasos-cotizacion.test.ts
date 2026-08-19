@@ -107,6 +107,27 @@ describe('payloadDesdeValores', () => {
     expect(tipo && mostrarBotonAvance(tipo, {})).toBe(false)
   })
 
+  it('la comuna avanza sola: sin botón Continuar', () => {
+    const pasos = construirPasos(CAMPOS, { pideComuna: true })
+    const comuna = pasos.find((paso) => paso.tipo === 'comuna')
+    expect(comuna && avanzaSoloAlElegir(comuna)).toBe(true)
+    expect(comuna && mostrarBotonAvance(comuna, {})).toBe(false)
+    expect(comuna && mostrarBotonAvance(comuna, { comuna: 'las-condes' })).toBe(false)
+  })
+
+  it('el tronco sigue mostrando Continuar; el módulo opcional vacío Saltar', () => {
+    const pasos = construirPasos(CAMPOS, { pideComuna: false })
+    const razon = pasos.find((paso) => paso.id === 'razonSocial')
+    const rut = pasos.find((paso) => paso.id === 'rut')
+    const cantidad = pasos.find((paso) => paso.id === 'cantidad')
+
+    expect(razon && etiquetaAvancePaso(razon, {})).toBe('Continuar')
+    expect(razon && mostrarBotonAvance(razon, {})).toBe(true)
+    expect(rut && etiquetaAvancePaso(rut, { rut: '12.345.678-5' })).toBe('Continuar')
+    expect(cantidad && etiquetaAvancePaso(cantidad, {})).toBe('Saltar')
+    expect(cantidad && mostrarBotonAvance(cantidad, {})).toBe(true)
+  })
+
   it('conserva las respuestas al reconstruir el payload después de navegar', () => {
     const ida = { tipo_servicio: 'guardias', cantidad: '2' }
     const vuelta = { ...ida, rut: '76482113-5' }

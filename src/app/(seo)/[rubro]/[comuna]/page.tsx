@@ -165,7 +165,7 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
         </nav>
 
         <div className="grid gap-10 lg:grid-cols-[1fr_minmax(0,26rem)] lg:items-start">
-          <div>
+          <div className="lg:col-start-1 lg:row-start-1">
             <h1 className="font-display text-3xl sm:text-4xl">{titulo}</h1>
             {intro ? (
               <p className="mt-4 text-lg text-(--color-texto-suave)">{intro}</p>
@@ -182,27 +182,11 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
                 </p>
               </div>
             ) : null}
-
-            {porQue ? (
-              <section className="mt-8">
-                <h2 className="font-display text-xl">
-                  Cómo funciona en {comuna.nombre}
-                </h2>
-                <p className="mt-2 text-(--color-texto-suave)">{porQue}</p>
-                <PasosComoFunciona comuna={comuna.nombre} listaEspera={enCaptura} />
-              </section>
-            ) : null}
-
-            <FaqRubro items={generado.faq} />
-
-            <div id="otro-servicio" className="mt-8">
-              <OtroServicio comunaSlug={comuna.slug} />
-            </div>
           </div>
 
           <section
             id="cotizar"
-            className="rounded-2xl border border-(--color-borde) bg-(--color-superficie) p-5 shadow-sm sm:p-6"
+            className="rounded-2xl border border-(--color-borde) bg-(--color-superficie) p-5 shadow-sm sm:p-6 lg:col-start-2 lg:row-start-1 lg:row-span-2"
           >
             <h2 className="font-display text-xl">
               {enCaptura ? 'Déjanos tu solicitud' : 'Pide tu cotización'}
@@ -220,6 +204,24 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
               turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
             />
           </section>
+
+          <div className="lg:col-start-1 lg:row-start-2">
+            {porQue ? (
+              <section>
+                <h2 className="font-display text-xl">
+                  Cómo funciona en {comuna.nombre}
+                </h2>
+                <p className="mt-2 text-(--color-texto-suave)">{porQue}</p>
+                <PasosComoFunciona comuna={comuna.nombre} listaEspera={enCaptura} />
+              </section>
+            ) : null}
+
+            <FaqRubro items={generado.faq} />
+
+            <div id="otro-servicio" className="mt-8">
+              <OtroServicio comunaSlug={comuna.slug} />
+            </div>
+          </div>
         </div>
       </div>
     </>

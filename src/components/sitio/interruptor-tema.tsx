@@ -20,8 +20,7 @@ function leerTemaActual(): Tema {
   const attr = document.documentElement.getAttribute('data-tema')
   if (esTema(attr)) return attr
   const guardado = localStorage.getItem(CLAVE_TEMA)
-  const prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches
-  return resolverTemaInicial(guardado, prefiereOscuro)
+  return resolverTemaInicial(guardado)
 }
 
 export function InterruptorTema({ className = '' }: { className?: string }) {
