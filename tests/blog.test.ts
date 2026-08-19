@@ -23,6 +23,7 @@ const SLUGS_PRIMEROS = [
   'mudanza-en-santiago-que-cotizar',
   'contador-para-pyme-f29-y-remuneraciones',
   'gasfiter-de-urgencia-vs-programado',
+  'destape-de-urgencia-vs-programado',
 ] as const
 
 describe('markdown del blog', () => {
@@ -77,8 +78,9 @@ Hola
 describe('posts publicados', () => {
   const posts = listarPosts()
 
-  it('son 6, más nuevo primero, slugs pedidos', () => {
+  it('son 7, más nuevo primero, slugs pedidos', () => {
     expect(posts.map((post) => post.slug)).toEqual([
+      'destape-de-urgencia-vs-programado',
       'gasfiter-de-urgencia-vs-programado',
       'contador-para-pyme-f29-y-remuneraciones',
       'mudanza-en-santiago-que-cotizar',
@@ -86,9 +88,9 @@ describe('posts publicados', () => {
       'como-elegir-empresa-de-aseo-industrial',
       'cuanto-cuesta-un-guardia-de-seguridad-en-chile',
     ])
-    expect(posts[0]?.date).toBe('2026-08-18')
+    expect(posts[0]?.date).toBe('2026-08-19')
     expect(posts.at(-1)?.date).toBe('2026-08-13')
-    expect(new Set(posts.map((post) => post.date)).size).toBe(6)
+    expect(new Set(posts.map((post) => post.date)).size).toBe(7)
   })
 
   it('cada post renderiza HTML, metadescripción propia y CTA al rubro', () => {
@@ -100,11 +102,12 @@ describe('posts publicados', () => {
       'mudanza-en-santiago-que-cotizar': '/mudanzas#cotizar',
       'contador-para-pyme-f29-y-remuneraciones': '/contabilidad#cotizar',
       'gasfiter-de-urgencia-vs-programado': '/gasfiteria#cotizar',
+      'destape-de-urgencia-vs-programado': '/destape#cotizar',
     }
     const titles = posts.map((post) => post.title)
     const descriptions = posts.map((post) => post.description)
-    expect(new Set(titles).size).toBe(6)
-    expect(new Set(descriptions).size).toBe(6)
+    expect(new Set(titles).size).toBe(7)
+    expect(new Set(descriptions).size).toBe(7)
 
     for (const slug of SLUGS_PRIMEROS) {
       const post = porSlug.get(slug)
