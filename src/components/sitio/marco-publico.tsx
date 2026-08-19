@@ -8,11 +8,18 @@ import { combosDestacados, enlacesCatalogo } from '@/lib/contenido-home'
 export { NavPublica as CabeceraPublica }
 
 export async function PiePublico() {
-  const [filas, comunas, combinaciones] = await Promise.all([
-    rubrosConComunas(),
-    comunasActivas(),
-    combinacionesPublicadas(),
-  ])
+  let filas: Awaited<ReturnType<typeof rubrosConComunas>> = []
+  let comunas: Awaited<ReturnType<typeof comunasActivas>> = []
+  let combinaciones: Awaited<ReturnType<typeof combinacionesPublicadas>> = []
+  try {
+    ;[filas, comunas, combinaciones] = await Promise.all([
+      rubrosConComunas(),
+      comunasActivas(),
+      combinacionesPublicadas(),
+    ])
+  } catch {
+    /* Pie vacío si la base no responde: mejor que tumbar la página. */
+  }
 
   const servicios = enlacesCatalogo(
     filas.map((r) => ({ slug: r.slug, nombre: r.nombre, audiencias: r.audiencias })),

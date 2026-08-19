@@ -220,9 +220,11 @@ export function SelectorPuertaEntrar() {
           ← Volver
         </button>
         <h2 className="mt-4 font-display text-xl">Vendo servicios</h2>
-        <div className={`${CLASE_SUPERFICIE} mt-4`}>
+        <div className="mt-4">
           {modo === 'password' ? (
-            <FormularioPasswordProveedor onOtp={() => setModo('otp')} />
+            <div className={CLASE_SUPERFICIE}>
+              <FormularioPasswordProveedor onOtp={() => setModo('otp')} />
+            </div>
           ) : (
             <FormularioOtpEntrar />
           )}

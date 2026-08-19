@@ -22,7 +22,12 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function PreciosPage() {
-  const rubros = rubrosConPrecioPublico(await rubrosActivos())
+  let rubros: ReturnType<typeof rubrosConPrecioPublico> = []
+  try {
+    rubros = rubrosConPrecioPublico(await rubrosActivos())
+  } catch {
+    rubros = []
+  }
   const minimo = precioDesdeMinimo(rubros)
   const desde = etiquetaDesde(minimo)
 

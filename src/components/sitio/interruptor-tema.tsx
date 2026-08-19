@@ -34,10 +34,16 @@ export function InterruptorTema({ className = '' }: { className?: string }) {
   }, [])
 
   function alternar() {
-    const siguiente: Tema = tema === 'dia' ? 'noche' : 'dia'
-    localStorage.setItem(CLAVE_TEMA, siguiente)
+    const actual = leerTemaActual()
+    const siguiente: Tema = actual === 'dia' ? 'noche' : 'dia'
+    try {
+      localStorage.setItem(CLAVE_TEMA, siguiente)
+    } catch {
+      /* private mode: igual aplicamos el tema en la sesión */
+    }
     aplicarTema(siguiente)
     setTema(siguiente)
+    setListo(true)
   }
 
   const esNoche = tema === 'noche'
