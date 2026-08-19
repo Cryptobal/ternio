@@ -11,7 +11,9 @@ import { RielFases } from '@/components/ui/riel-fases'
 import {
   audienciaInicialParaPagina,
   filtrarServiciosPorAudiencia,
+  PALABRA_AUDIENCIA,
   PREGUNTA_AUDIENCIA,
+  preguntaServicioPorAudiencia,
   pasoCotizador,
   type Audiencia,
 } from '@/lib/audiencia'
@@ -28,16 +30,6 @@ import {
   CLASE_TARJETA_AUDIENCIA,
   CLASE_TARJETA_AUDIENCIA_ACTIVA,
 } from '@/lib/ui'
-
-const PALABRA: Record<Audiencia, string> = {
-  hogar: 'Casa',
-  empresa: 'Empresa',
-}
-
-const MICRO: Record<Audiencia, string> = {
-  hogar: 'hogar',
-  empresa: 'negocio',
-}
 
 function IconoCasa() {
   return (
@@ -147,7 +139,7 @@ export function SelectorCotizacion({
                 navegando.current = false
               }}
             >
-              {PALABRA[audiencia]}
+              {PALABRA_AUDIENCIA[audiencia]}
             </ChipMiga>
           ) : null}
           {rubro ? (
@@ -188,10 +180,7 @@ export function SelectorCotizacion({
                       className={`${CLASE_TARJETA_AUDIENCIA} ${activa ? CLASE_TARJETA_AUDIENCIA_ACTIVA : ''}`}
                     >
                       {opcion === 'hogar' ? <IconoCasa /> : <IconoEmpresa />}
-                      <span className="text-xl font-semibold">{PALABRA[opcion]}</span>
-                      <span className="font-mono text-[0.7rem] uppercase tracking-wider text-white/55">
-                        {MICRO[opcion]}
-                      </span>
+                      <span className="text-xl font-semibold">{PALABRA_AUDIENCIA[opcion]}</span>
                     </button>
                   </li>
                 )
@@ -200,9 +189,10 @@ export function SelectorCotizacion({
           </fieldset>
         ) : null}
 
-        {paso === 'servicio' ? (
+        {paso === 'servicio' && audiencia ? (
           <ComboServicio
             servicios={delFiltro}
+            pregunta={preguntaServicioPorAudiencia(audiencia)}
             idPrefijo={idPrefijo}
             abrirAlMontar
             onElegir={(siguiente) => {
