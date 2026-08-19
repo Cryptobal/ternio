@@ -11,6 +11,7 @@ import {
   GARD_SLUG,
   slugAltaProveedor,
 } from '@/lib/gard'
+import { origenAltaDesdeQuery, parcheOrigenAlta } from '@/lib/origen-alta'
 import { hashPassword } from '@/lib/password'
 import { prisma } from '@/lib/prisma'
 import { consumirRateLimit } from '@/lib/rate-limit'
@@ -75,6 +76,13 @@ export async function crearCuentaProveedorAction(
   }
 
   const { nombreEmpresa, rubros, cobertura, email, password, audienciasPorRubro } = validacion.datos
+  const candidatoOrigen = origenAltaDesdeQuery({
+    origenAlta: formData.get('origenAlta'),
+    origen: formData.get('origen'),
+    utm_source: formData.get('utm_source'),
+    utm_medium: formData.get('utm_medium'),
+    utm_campaign: formData.get('utm_campaign'),
+  })
   const rutNormalizado = normalizarRut(validacion.datos.rut)
   const telefonoE164 = normalizarTelefonoE164(validacion.datos.telefono)
   if (!rutNormalizado || !telefonoE164) {
@@ -131,6 +139,7 @@ export async function crearCuentaProveedorAction(
       estado: true,
       usuarioId: true,
       rutNormalizado: true,
+      origenAlta: true,
       usuario: { select: { id: true, rol: true, telefonoE164Verificado: true } },
     },
   })
@@ -211,6 +220,7 @@ export async function crearCuentaProveedorAction(
     comunaBaseId,
     solicitudEspera: snapshot,
     usuarioId,
+    ...parcheOrigenAlta(existente?.origenAlta, candidatoOrigen),
   }
 
   const proveedor = existente

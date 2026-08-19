@@ -26,6 +26,7 @@ export default async function AdminProveedores() {
       estado: true,
       coberturaNacional: true,
       solicitudEspera: true,
+      origenAlta: true,
       usuario: { select: { telefonoE164Verificado: true } },
       movimientos: { select: { montoCreditos: true } },
       _count: { select: { coberturas: true } },
@@ -68,6 +69,8 @@ export default async function AdminProveedores() {
                 </p>
                 <p className="text-sm text-(--color-tinta-suave)">
                   {snapshot?.rubros.join(', ') || 'Sin rubros'}
+                  {' · '}
+                  Origen: {fila.origenAlta ?? 'directo'}
                 </p>
                 <AccionesProveedor proveedorId={fila.id} estado={fila.estado} />
               </li>

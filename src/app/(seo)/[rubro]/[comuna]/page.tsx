@@ -13,6 +13,7 @@ import { combinacionPorSlugs, combinacionesPublicadas } from '@/lib/catalogo'
 import { OG_IMAGE } from '@/lib/metadata-publico'
 import { copyCombo, jsonLdFaq } from '@/lib/seo-contenido'
 import { pathPublicoCombo, pathPublicoRubro, slugPublicoDesdeBd } from '@/lib/seo-rutas'
+import { leerQueryCotizador } from '@/lib/selector-cotizacion'
 
 /** ISR: el contenido cambia poco y la página tiene que salir rápido. */
 export const revalidate = 3600
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PaginaRubroComuna({ params, searchParams }: Props) {
   const { rubro: rubroSlug, comuna: comunaSlug } = await params
-  const { audiencia: audienciaQuery } = await searchParams
+  const { audiencia: audienciaQuery } = leerQueryCotizador(await searchParams)
   const combinacion = await combinacionPorSlugs(rubroSlug, comunaSlug)
 
   if (!combinacion) notFound()

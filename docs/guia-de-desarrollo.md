@@ -99,7 +99,7 @@ producción (`ternio.cl`), sin mentir.
 
 ### B. Proveedor entra y compra contactos
 
-- `/proveedores` crea cuenta (RUT con DV + OTP de celular).
+- `/proveedores` crea cuenta (RUT con DV + OTP de celular). Los links de outreach deben ser `https://www.ternio.cl/proveedores?utm_source=email&utm_medium=outreach&utm_campaign=proveedores`.
 - Al verificar el celular, si el RUT es válido, la cuenta queda
   **APROBADA** sola y el sistema acredita 50.000 créditos (`AJUSTE`,
   `idempotencyKey = alta:{proveedorId}`). Carlos no carga créditos.

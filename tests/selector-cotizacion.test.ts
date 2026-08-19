@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { audienciaPorDefecto, pasoCotizador } from '@/lib/audiencia'
-import { claveCombo, destinoSelector, rubrosEnVenta } from '@/lib/selector-cotizacion'
+import { claveCombo, destinoSelector, leerQueryCotizador, rubrosEnVenta } from '@/lib/selector-cotizacion'
 
 describe('destinoSelector', () => {
   it('combo publicado → /{rubro}/{comuna}', () => {
@@ -48,6 +48,15 @@ describe('destinoSelector', () => {
     ).toBe('/seguridad?comuna=valdivia&audiencia=empresa')
   })
 
+  it('no agrega UTM a las URLs del cotizador', () => {
+    expect(destinoSelector({ slug: 'seguridad', modo: 'VENTA' }, 'las-condes', true)).not.toMatch(
+      /utm_|origen=/,
+    )
+    expect(
+      destinoSelector({ slug: 'seguridad', modo: 'VENTA' }, 'valdivia', false, 'empresa'),
+    ).not.toMatch(/utm_|origen=/)
+  })
+
   it('las tarjetas Servicios son solo VENTA', () => {
     const lista = rubrosEnVenta([
       { modo: 'VENTA', slug: 'aseo' },
@@ -55,6 +64,25 @@ describe('destinoSelector', () => {
       { modo: 'VENTA', slug: 'seguridad' },
     ])
     expect(lista.map((item) => item.slug)).toEqual(['aseo', 'seguridad'])
+  })
+})
+
+describe('leerQueryCotizador', () => {
+  it('ignora UTM y origen=; solo lee comuna y audiencia', () => {
+    expect(
+      leerQueryCotizador({
+        utm_source: 'email',
+        utm_medium: 'outreach',
+        utm_campaign: 'proveedores',
+        origen: 'email-outreach',
+        comuna: 'santiago',
+        audiencia: 'empresa',
+      }),
+    ).toEqual({ comuna: 'santiago', audiencia: 'empresa' })
+    expect(leerQueryCotizador({ utm_source: 'email' })).toEqual({
+      comuna: undefined,
+      audiencia: undefined,
+    })
   })
 })
 

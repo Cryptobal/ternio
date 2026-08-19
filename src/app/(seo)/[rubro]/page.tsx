@@ -19,7 +19,7 @@ import { OG_IMAGE } from '@/lib/metadata-publico'
 import { prisma } from '@/lib/prisma'
 import { copyRubro, jsonLdFaq } from '@/lib/seo-contenido'
 import { pathPublicoRubro, RUBROS_VENTA_PUBLICOS, slugsBdCandidatos, slugPublicoDesdeBd } from '@/lib/seo-rutas'
-import { claveCombo, type RubroSelector } from '@/lib/selector-cotizacion'
+import { claveCombo, leerQueryCotizador, type RubroSelector } from '@/lib/selector-cotizacion'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -91,7 +91,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PaginaRubro({ params, searchParams }: Props) {
   const { rubro: slug } = await params
-  const { comuna: comunaQuery, audiencia: audienciaQuery } = await searchParams
+  const { comuna: comunaQuery, audiencia: audienciaQuery } = leerQueryCotizador(await searchParams)
   const [rubro, comunas, combinaciones, filas] = await Promise.all([
     rubroPorParam(slug),
     comunasActivas(),
