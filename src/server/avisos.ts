@@ -191,7 +191,7 @@ export async function avisarProveedoresLeadVerificado(leadId: string): Promise<v
   }
 }
 
-/** Tras CompraLead PAGADA. Nunca lanza. Sin nombre del proveedor. */
+/** Tras CompraLead PAGADA. Incluye nombre y logo del proveedor. Nunca lanza. */
 export async function avisarCompradorCompraPagada(args: {
   leadId: string
   compraId: string
@@ -205,15 +205,31 @@ export async function avisarCompradorCompraPagada(args: {
         contacto: { select: { email: true } },
         compras: {
           where: { id: args.compraId, estado: EstadoCompraLead.PAGADA },
-          select: { id: true },
+          select: {
+            id: true,
+            proveedor: {
+              select: { nombre: true, razonSocial: true, logoUrl: true },
+            },
+          },
         },
       },
     })
 
     const email = lead?.contacto?.email
-    if (!lead || !email || lead.compras.length === 0) return
+    const compra = lead?.compras[0]
+    if (!lead || !email || !compra) return
 
-    const cuerpo = correoAvisoCompra({ rubro: lead.rubro.nombre, comuna: lead.comuna.nombre })
+    const proveedorNombre =
+      compra.proveedor.razonSocial?.trim() ||
+      compra.proveedor.nombre.trim() ||
+      'Una empresa'
+
+    const cuerpo = correoAvisoCompra({
+      rubro: lead.rubro.nombre,
+      comuna: lead.comuna.nombre,
+      proveedorNombre,
+      logoUrl: compra.proveedor.logoUrl,
+    })
     await enviarCorreo({
       to: email,
       subject: cuerpo.subject,

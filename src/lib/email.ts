@@ -22,6 +22,8 @@ export type FichaAvisoProveedor = {
 export type FichaAvisoComprador = {
   rubro: string
   comuna: string
+  proveedorNombre: string
+  logoUrl?: string | null
 }
 
 export type EnvioCorreo = {
@@ -197,20 +199,28 @@ export function correoAvisoCompra(ficha: FichaAvisoComprador): {
   html: string
   text: string
 } {
-  const subject = 'Una empresa ya tiene tus datos'
+  const subject = `${ficha.proveedorNombre} ya tiene tus datos`
   const text = [
-    'Una empresa ya tiene tus datos y te va a contactar.',
+    `${ficha.proveedorNombre} ya tiene tus datos y te va a contactar.`,
     '',
     `Pedido: ${ficha.rubro} en ${ficha.comuna}.`,
     '',
     `Sigue tu solicitud: ${URL_MIS_COTIZACIONES}`,
   ].join('\n')
 
+  const logoHtml =
+    ficha.logoUrl && /^https:\/\//i.test(ficha.logoUrl)
+      ? `<p><img src="${escaparHtml(ficha.logoUrl)}" alt="${escaparHtml(ficha.proveedorNombre)}" width="64" height="64" style="display:block;border-radius:12px;border:1px solid #e5e7eb;object-fit:contain;" /></p>`
+      : ''
+
   const html = [
-    '<p>Una empresa ya tiene tus datos y te va a contactar.</p>',
+    logoHtml,
+    `<p><strong>${escaparHtml(ficha.proveedorNombre)}</strong> ya tiene tus datos y te va a contactar.</p>`,
     `<p>Pedido: ${escaparHtml(ficha.rubro)} en ${escaparHtml(ficha.comuna)}.</p>`,
     `<p><a href="${URL_MIS_COTIZACIONES}">Ver tus cotizaciones</a></p>`,
-  ].join('')
+  ]
+    .filter(Boolean)
+    .join('')
 
   return { subject, html, text }
 }

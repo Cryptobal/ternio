@@ -275,6 +275,8 @@ model Proveedor {
   telefonoE164   String?
   descripcion    String?
   sitioWeb       String?
+  /// URL pública del logo (Vercel Blob). Null = sin logo.
+  logoUrl        String?
   estado         EstadoProveedor @default(NO_RECLAMADO)
   comunaBaseId   String?
 

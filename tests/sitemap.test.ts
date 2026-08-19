@@ -74,6 +74,11 @@ describe('sitemap público', () => {
     )
   })
 
+  it('incluye perfiles /empresa pasados como extras', () => {
+    const locs = armarSitemapXml(BASE, new Date(), ['/empresa/gard-security']).locs
+    expect(locs).toContain('https://www.ternio.cl/empresa/gard-security')
+  })
+
   it('filtra extras prohibidos o alias y no truena', () => {
     const entradas = entradasSitemap(BASE, ['/admin', '/panel', '/guardias', '/plagas', '/seguridad/santiago'])
     const locs = entradas.map((e) => e.loc)
@@ -97,13 +102,14 @@ describe('sitemap público', () => {
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
 
-  it('el route del sitemap no importa el catálogo ni Prisma', () => {
+  it('el route del sitemap no importa el catálogo ni Prisma directo', () => {
     const ruta = readFileSync(resolve(process.cwd(), 'src/app/sitemap.xml/route.ts'), 'utf8')
     expect(ruta).not.toMatch(/from ['"]@\/lib\/catalogo['"]/)
     expect(ruta).not.toMatch(/from ['"]@\/lib\/prisma['"]/)
     expect(ruta).not.toMatch(/from ['"]@prisma\/client['"]/)
     expect(ruta).toMatch(/status: 200/)
     expect(ruta).toMatch(/urlPublicaSitio/)
+    expect(ruta).toMatch(/pathsEmpresasSitemap/)
   })
 
   it('robots.txt apunta al sitemap www y no menciona /admin', () => {
