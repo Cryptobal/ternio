@@ -1,8 +1,8 @@
 /**
  * Backfill de audiencias hogar y precios hogar.
  * Corrige el default ['empresa'] que quedó en producción porque el seed
- * no corre en Vercel. Solo UPDATE de configuración; no toca Lead,
- * CompraLead, MovimientoCreditos, Proveedor ni User.
+ * no corre en Vercel. Solo UPDATE de configuración de Rubro y Cobertura;
+ * no toca leads, compras, ledger, proveedores ni usuarios.
  *
  * Idempotente: precios solo si IS NULL; coberturas solo si siguen en el
  * default ARRAY['empresa'].
