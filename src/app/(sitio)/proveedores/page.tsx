@@ -55,11 +55,11 @@ export default async function Proveedores() {
 
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-12 sm:py-16">
-      <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">Para empresas de servicios</p>
+      <p className="font-eyebrow text-[0.7rem] text-(--color-texto-suave)">Para empresas de servicios</p>
       <h1 className="font-display mt-3 text-4xl leading-tight">
         Clientes que ya te buscan. Pagas solo el contacto.
       </h1>
-      <p className="mt-4 text-lg text-(--color-tinta-suave)">
+      <p className="mt-4 text-lg text-(--color-texto-suave)">
         Ves la ficha anónima, eliges compartido o exclusivo, y al pagar se revela el teléfono.
         Sin suscripción: solo créditos.
       </p>
@@ -70,42 +70,24 @@ export default async function Proveedores() {
         Crear cuenta de proveedor
       </a>
 
-      {rubrosVenta.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="font-display text-2xl">Precios por contacto</h2>
-          <p className="mt-2 text-sm text-(--color-tinta-suave)">
-            Precio base. Baja con la antigüedad del comprador (100% / 80% / 50%).
-          </p>
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-(--color-borde) bg-white">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-(--color-borde) text-(--color-tinta-suave)">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Servicio</th>
-                  <th className="px-4 py-3 font-medium text-right">Compartido</th>
-                  <th className="px-4 py-3 font-medium text-right">Exclusivo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rubrosVenta.map((rubro) => (
-                  <tr key={rubro.slug} className="border-b border-(--color-borde)/60 last:border-0">
-                    <td className="px-4 py-3">{rubro.nombre}</td>
-                    <td className="px-4 py-3 text-right">
-                      {formatearClp(rubro.precioCompartidoClp ?? 0)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {formatearClp(rubro.precioExclusivoClp ?? 0)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
+      <section className="mt-12 rounded-3xl border border-(--color-borde) bg-(--color-superficie) p-5 sm:p-6">
+        <h2 className="font-display text-2xl">Precios por contacto</h2>
+        <p className="mt-2 text-sm text-(--color-texto-suave)">
+          {rubrosVenta.length > 0
+            ? 'Compartido o exclusivo, con descuento según la frescura del lead.'
+            : 'Cuando abramos servicios a la venta, los precios viven en una sola página.'}
+        </p>
+        <Link
+          href="/precios"
+          className="mt-4 inline-flex min-h-12 items-center font-semibold text-(--color-marca) underline-offset-4 hover:underline"
+        >
+          Ver precios
+        </Link>
+      </section>
 
       <section className="mt-12">
         <h2 className="font-display text-2xl">Así se ve un comprador</h2>
-        <p className="mt-2 text-sm text-(--color-tinta-suave)">
+        <p className="mt-2 text-sm text-(--color-texto-suave)">
           Ficha anónima hasta que pagas. Este módulo es ilustrativo.
         </p>
         <div className="mt-4">
@@ -130,13 +112,13 @@ export default async function Proveedores() {
 
       <div className="mt-14" id="crear-cuenta">
         <h2 className="font-display text-2xl">Crea tu cuenta de proveedor</h2>
-        <p className="mt-2 text-(--color-tinta-suave)">
+        <p className="mt-2 text-(--color-texto-suave)">
           Dejas los datos de tu empresa, eliges cobertura y confirmas el celular con un código
           OTP. Después de eso puedes tomar contactos.
         </p>
         <div className="mt-6">
           {rubros.length === 0 ? (
-            <p className="rounded-2xl border border-(--color-borde) bg-white p-5 text-(--color-tinta-suave)">
+            <p className="rounded-2xl border border-(--color-borde) bg-(--color-superficie) p-5 text-(--color-texto-suave)">
               Aún no podemos crear cuentas: falta el catálogo de rubros. Vuelve en un rato.
             </p>
           ) : (
@@ -152,7 +134,7 @@ export default async function Proveedores() {
         </div>
       </div>
 
-      <p className="mt-6 text-sm text-(--color-tinta-suave)">
+      <p className="mt-6 text-sm text-(--color-texto-suave)">
         ¿Ya tienes cuenta?{' '}
         <Link href="/entrar" className="font-medium text-(--color-marca) underline-offset-4 hover:underline">
           Entra con tu celular
@@ -161,7 +143,7 @@ export default async function Proveedores() {
       </p>
 
       {CORREO ? (
-        <p className="mt-4 text-sm text-(--color-tinta-suave)">
+        <p className="mt-4 text-sm text-(--color-texto-suave)">
           Si prefieres, escríbenos a{' '}
           <a href={`mailto:${CORREO}`} className="font-medium text-(--color-marca) underline-offset-4 hover:underline">
             {CORREO}
@@ -170,7 +152,7 @@ export default async function Proveedores() {
         </p>
       ) : null}
 
-      <p className="mt-8 text-sm text-(--color-tinta-suave)">
+      <p className="mt-8 text-sm text-(--color-texto-suave)">
         ¿Necesitas un servicio para tu empresa?{' '}
         <Link href="/" className="font-medium text-(--color-marca) underline-offset-4 hover:underline">
           Cotiza gratis
@@ -185,7 +167,7 @@ function Garantia({ titulo, texto }: { titulo: string; texto: string }) {
   return (
     <div className={CLASE_SUPERFICIE}>
       <h3 className="font-display text-lg">{titulo}</h3>
-      <p className="mt-2 text-sm text-(--color-tinta-suave)">{texto}</p>
+      <p className="mt-2 text-sm text-(--color-texto-suave)">{texto}</p>
     </div>
   )
 }

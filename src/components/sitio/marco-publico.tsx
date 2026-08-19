@@ -1,41 +1,25 @@
 import Link from 'next/link'
 
-import { Isotipo, Logo } from '@/components/marca/logo'
+import { Isotipo } from '@/components/marca/logo'
+import { NavPublica } from '@/components/sitio/nav-publica'
 import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
 import { combosDestacados, enlacesCatalogo } from '@/lib/contenido-home'
 
-export function CabeceraPublica() {
-  return (
-    <header className="sticky top-0 z-20 bg-(--color-tinta)/95 text-white backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
-        <Link href="/" aria-label="Ternio, ir al inicio">
-          <Logo variante="oscuro" />
-        </Link>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Link
-            href="/entrar"
-            className="inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-white/90 underline-offset-4 transition hover:text-white hover:underline"
-          >
-            Entrar
-          </Link>
-          <Link
-            href="/proveedores"
-            className="inline-flex min-h-11 items-center rounded-full border border-(--color-ambar) px-4 py-2 text-sm font-semibold text-(--color-ambar) transition hover:bg-(--color-ambar) hover:text-(--color-tinta)"
-          >
-            Soy proveedor
-          </Link>
-        </div>
-      </div>
-    </header>
-  )
-}
+export { NavPublica as CabeceraPublica }
 
 export async function PiePublico() {
-  const [filas, comunas, combinaciones] = await Promise.all([
-    rubrosConComunas(),
-    comunasActivas(),
-    combinacionesPublicadas(),
-  ])
+  let filas: Awaited<ReturnType<typeof rubrosConComunas>> = []
+  let comunas: Awaited<ReturnType<typeof comunasActivas>> = []
+  let combinaciones: Awaited<ReturnType<typeof combinacionesPublicadas>> = []
+  try {
+    ;[filas, comunas, combinaciones] = await Promise.all([
+      rubrosConComunas(),
+      comunasActivas(),
+      combinacionesPublicadas(),
+    ])
+  } catch {
+    /* Pie vacío si la base no responde: mejor que tumbar la página. */
+  }
 
   const servicios = enlacesCatalogo(
     filas.map((r) => ({ slug: r.slug, nombre: r.nombre, audiencias: r.audiencias })),
@@ -66,14 +50,14 @@ export async function PiePublico() {
   )
 
   return (
-    <footer className="border-t border-(--color-linea) bg-white">
+    <footer className="border-t border-(--color-linea) bg-(--color-superficie)">
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex items-start gap-3">
             <Isotipo variante="claro" className="size-7 shrink-0" />
             <div>
-              <p className="font-medium text-(--color-tinta)">ternio.cl</p>
-              <p className="mt-1 text-xs text-(--color-tinta-suave)">
+              <p className="font-medium text-(--color-texto)">ternio.cl</p>
+              <p className="mt-1 text-xs text-(--color-texto-suave)">
                 Cotiza servicios para tu casa o tu empresa.
               </p>
             </div>
@@ -81,13 +65,13 @@ export async function PiePublico() {
 
           {servicios.length > 0 ? (
             <div>
-              <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">Servicios</p>
+              <p className="font-eyebrow text-[0.7rem] text-(--color-texto-suave)">Servicios</p>
               <ul className="mt-3 space-y-2 text-sm">
                 {servicios.map((item) => (
                   <li key={item.slug}>
                     <Link
                       href={item.href!}
-                      className="underline-offset-4 hover:underline"
+                      className="text-(--color-texto) underline-offset-4 hover:underline"
                     >
                       {item.nombre}
                     </Link>
@@ -99,13 +83,16 @@ export async function PiePublico() {
 
           {combos.length > 0 ? (
             <div>
-              <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">
+              <p className="font-eyebrow text-[0.7rem] text-(--color-texto-suave)">
                 Cotiza en tu comuna
               </p>
               <ul className="mt-3 space-y-2 text-sm">
                 {combos.map((combo) => (
                   <li key={combo.href}>
-                    <Link href={combo.href} className="underline-offset-4 hover:underline">
+                    <Link
+                      href={combo.href}
+                      className="text-(--color-texto) underline-offset-4 hover:underline"
+                    >
                       {combo.etiqueta}
                     </Link>
                   </li>
@@ -115,38 +102,69 @@ export async function PiePublico() {
           ) : null}
 
           <div>
-            <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">Ternio</p>
+            <p className="font-eyebrow text-[0.7rem] text-(--color-texto-suave)">Ternio</p>
             <ul className="mt-3 space-y-2 text-sm">
               <li>
-                <Link href="/proveedores" className="underline-offset-4 hover:underline">
+                <Link
+                  href="/como-funciona"
+                  className="text-(--color-texto) underline-offset-4 hover:underline"
+                >
+                  Cómo funciona
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/precios"
+                  className="text-(--color-texto) underline-offset-4 hover:underline"
+                >
+                  Precios
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/proveedores"
+                  className="text-(--color-texto) underline-offset-4 hover:underline"
+                >
                   Soy proveedor
                 </Link>
               </li>
               <li>
-                <Link href="/entrar" className="underline-offset-4 hover:underline">
+                <Link
+                  href="/entrar"
+                  className="text-(--color-texto) underline-offset-4 hover:underline"
+                >
                   Entrar
                 </Link>
               </li>
               <li>
-                <Link href="/terminos" className="underline-offset-4 hover:underline">
+                <Link
+                  href="/blog"
+                  className="text-(--color-texto) underline-offset-4 hover:underline"
+                >
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terminos"
+                  className="text-(--color-texto) underline-offset-4 hover:underline"
+                >
                   Términos
                 </Link>
               </li>
               <li>
-                <Link href="/privacidad" className="underline-offset-4 hover:underline">
+                <Link
+                  href="/privacidad"
+                  className="text-(--color-texto) underline-offset-4 hover:underline"
+                >
                   Privacidad
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="underline-offset-4 hover:underline">
-                  Blog
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        <p className="mt-8 text-xs text-(--color-tinta-suave)">
+        <p className="mt-8 text-xs text-(--color-texto-suave)">
           Tratamos tus datos conforme a la Ley 21.719.
         </p>
       </div>
@@ -156,8 +174,8 @@ export async function PiePublico() {
 
 export function MarcoPublico({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <CabeceraPublica />
+    <div className="flex min-h-screen flex-col bg-(--color-fondo) text-(--color-texto)">
+      <NavPublica />
       <main className="flex-1">{children}</main>
       <PiePublico />
     </div>

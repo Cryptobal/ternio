@@ -2,12 +2,13 @@ import Link from 'next/link'
 
 import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorCotizacion } from '@/components/selector-cotizacion'
+import { CatalogoHome } from '@/components/sitio/catalogo-home'
 import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
 import {
+  CATALOGO_HOME,
   FAQ_HOME,
   PROMESAS_HOME,
   combosDestacados,
-  enlacesCatalogo,
   type ComboPublicado,
 } from '@/lib/contenido-home'
 import { claveCombo, type RubroSelector } from '@/lib/selector-cotizacion'
@@ -57,10 +58,14 @@ export default async function Inicio() {
   ])
   const rubros = filas.map(aSelector)
   const publicados = combinaciones.map((fila) => claveCombo(fila.rubro, fila.comuna))
-  const catalogo = enlacesCatalogo(
-    filas.map((r) => ({ slug: r.slug, nombre: r.nombre, audiencias: r.audiencias })),
-    combinaciones,
-  )
+  const conPagina = new Set(combinaciones.map((c) => c.rubro))
+  const itemsCatalogo = filas.map((r) => ({
+    slug: r.slug,
+    nombre: r.nombre,
+    modo: r.modo,
+    audiencias: r.audiencias,
+    href: conPagina.has(r.slug) ? `/${r.slug}` : null,
+  }))
   const combos = combosDestacados(enriquecerCombos(combinaciones, filas, comunas), 10)
   const faqLd = jsonLdFaq(FAQ_HOME)
 
@@ -71,7 +76,7 @@ export default async function Inicio() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
       />
 
-      <section className="bg-(--color-tinta) text-white">
+      <section className="bg-(--color-hero) text-white">
         <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-14">
             <div>
@@ -93,63 +98,34 @@ export default async function Inicio() {
         </div>
       </section>
 
-      <section className="border-t border-(--color-linea) bg-(--color-papel)">
+      <section className="border-t border-(--color-linea) bg-(--color-fondo)">
         <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-6 px-4 py-10 sm:grid-cols-3">
           {PROMESAS_HOME.map((promesa) => (
             <div key={promesa.titulo}>
               <p className="font-display text-xl sm:text-2xl">{promesa.titulo}</p>
-              <p className="mt-2 text-sm text-(--color-tinta-suave)">{promesa.texto}</p>
+              <p className="mt-2 text-sm text-(--color-texto-suave)">{promesa.texto}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {catalogo.length > 0 ? (
-        <section className="border-t border-(--color-linea) bg-white">
+      {itemsCatalogo.length > 0 ? (
+        <section id="servicios" className="border-t border-(--color-linea) bg-(--color-superficie)">
           <div className="mx-auto w-full max-w-5xl px-4 py-12">
-            <h2 className="font-display text-2xl">Todos los servicios</h2>
-            <p className="mt-2 text-(--color-tinta-suave)">
-              Elige uno o cotiza con el selector de arriba.
-            </p>
-            <div className="mt-8 grid gap-10 lg:grid-cols-2">
-              {catalogo.map((grupo) => (
-                <div key={grupo.audiencia}>
-                  <h3 className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">
-                    {grupo.etiqueta}
-                  </h3>
-                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                    {grupo.items.map((item) => (
-                      <li key={`${grupo.audiencia}-${item.slug}`}>
-                        {item.href ? (
-                          <Link
-                            href={item.href}
-                            className="block min-h-11 truncate rounded-2xl border border-(--color-borde) bg-white px-4 py-3 text-sm font-medium transition hover:border-(--color-marca)"
-                          >
-                            {item.nombre}
-                          </Link>
-                        ) : (
-                          <a
-                            href="#cotizador"
-                            className="block min-h-11 truncate rounded-2xl border border-dashed border-(--color-borde) px-4 py-3 text-sm text-(--color-tinta-suave) transition hover:border-(--color-marca)"
-                          >
-                            {item.nombre}
-                          </a>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            <h2 className="font-display text-2xl">{CATALOGO_HOME.titulo}</h2>
+            <p className="mt-2 text-(--color-texto-suave)">{CATALOGO_HOME.bajada}</p>
+            <div className="mt-8">
+              <CatalogoHome rubros={itemsCatalogo} notaEspera={CATALOGO_HOME.notaEspera} />
             </div>
           </div>
         </section>
       ) : null}
 
       {combos.length > 0 ? (
-        <section className="border-t border-(--color-linea) bg-(--color-papel)">
+        <section className="border-t border-(--color-linea) bg-(--color-fondo)">
           <div className="mx-auto w-full max-w-5xl px-4 py-12">
             <h2 className="font-display text-2xl">Cotiza en tu comuna</h2>
-            <p className="mt-2 text-(--color-tinta-suave)">
+            <p className="mt-2 text-(--color-texto-suave)">
               Páginas ya publicadas. Sin URLs inventadas.
             </p>
             <ul className="mt-6 columns-1 gap-x-8 sm:columns-2 lg:columns-3">
@@ -168,36 +144,36 @@ export default async function Inicio() {
         </section>
       ) : null}
 
-      <section className="border-t border-(--color-linea) bg-white">
+      <section className="border-t border-(--color-linea) bg-(--color-superficie)">
         <div className="mx-auto w-full max-w-5xl px-4 py-12">
           <h2 className="font-display text-2xl">Preguntas frecuentes</h2>
           <div className="mt-6 space-y-3">
             {FAQ_HOME.map((item) => (
               <details
                 key={item.pregunta}
-                className="group rounded-2xl border border-(--color-borde) bg-(--color-papel) px-4 py-3"
+                className="group rounded-2xl border border-(--color-borde) bg-(--color-fondo) px-4 py-3"
               >
                 <summary className="cursor-pointer list-none font-medium outline-none marker:content-none [&::-webkit-details-marker]:hidden">
                   <span className="flex min-h-11 items-center justify-between gap-3">
                     {item.pregunta}
-                    <span className="text-(--color-tinta-suave) transition group-open:rotate-45">+</span>
+                    <span className="text-(--color-texto-suave) transition group-open:rotate-45">+</span>
                   </span>
                 </summary>
-                <p className="pb-2 text-sm text-(--color-tinta-suave)">{item.respuesta}</p>
+                <p className="pb-2 text-sm text-(--color-texto-suave)">{item.respuesta}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-(--color-linea) bg-white">
+      <section className="border-t border-(--color-linea) bg-(--color-superficie)">
         <div className="mx-auto w-full max-w-5xl px-4 py-12">
           <h2 className="font-display text-2xl">Cómo funciona</h2>
           <PasosComoFunciona />
         </div>
       </section>
 
-      <section className="bg-(--color-tinta) text-white">
+      <section className="bg-(--color-hero) text-white">
         <div className="mx-auto w-full max-w-5xl px-4 py-12">
           <h2 className="font-display text-2xl">¿Vendes servicios?</h2>
           <p className="mt-2 text-white/80">

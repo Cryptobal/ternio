@@ -28,20 +28,20 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
         {estado === 'duplicada' ? 'Ya teníamos tu solicitud' : 'Recibimos tu cotización'}
       </h1>
 
-      <p className="mt-3 text-(--color-tinta-suave)">
+      <p className="mt-3 text-(--color-texto-suave)">
         {estado === 'duplicada'
           ? 'Encontramos una solicitud tuya reciente para este servicio, así que no la duplicamos.'
           : 'Estamos verificando tus datos. Es rápido y lo hacemos para que solo lleguen solicitudes reales a las empresas.'}
       </p>
 
       {sesion ? (
-        <div className="mt-8 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
+        <div className="mt-8 rounded-2xl border border-(--color-borde) bg-(--color-superficie) p-5 shadow-sm">
           <p className="font-medium">
             {reclamo.reclamados > 0
               ? 'Listo: tu cotización quedó guardada.'
               : 'Tu sesión ya está lista.'}
           </p>
-          <p className="mt-1 text-sm text-(--color-tinta-suave)">
+          <p className="mt-1 text-sm text-(--color-texto-suave)">
             En tus cotizaciones ves qué pediste y cuántas empresas la tomaron.
           </p>
           <Link
@@ -53,7 +53,7 @@ export default async function CotizacionEnviada({ searchParams }: Props) {
         </div>
       ) : otp?.telefonoEnmascarado || otp?.ok ? (
         <div className="mt-8">
-          <p className="text-(--color-tinta-suave)">
+          <p className="text-(--color-texto-suave)">
             Crea tu acceso o entra con este celular para seguir la solicitud. El código es de un
             solo uso.
           </p>

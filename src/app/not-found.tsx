@@ -15,7 +15,7 @@ export default function NoEncontrado() {
       <title>{TITULO_404}</title>
       <div className="mx-auto w-full max-w-2xl px-4 py-20 text-center">
         <h1 className="font-display text-2xl">No encontramos esta página</h1>
-        <p className="mt-3 text-(--color-tinta-suave)">
+        <p className="mt-3 text-(--color-texto-suave)">
           Puede que el enlace esté malo o que la página ya no exista.
         </p>
         <Link

@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
+  /* Marca: no cambian entre temas. */
   --color-tinta: #0e1b2c;
   --color-tinta-suave: #48566c;
   --color-papel: #f1f4f8;
@@ -12,10 +13,8 @@
   --color-verde-suave: #e2f3eb;
   --color-rojo: #c1462b;
   --color-rojo-suave: #fbeae4;
-  --color-borde: #d9e0ea;
-  --color-linea: #e7ecf3;
 
-  /* Alias de compatibilidad con componentes que aún no se restilizan. */
+  /* Alias de compatibilidad. */
   --color-arena: #f1f4f8;
   --color-marca-oscura: #0e1b2c;
 
@@ -23,13 +22,48 @@
   --font-mono: var(--font-spline), ui-monospace, 'Cascadia Code', monospace;
 }
 
+/*
+ * Tokens semánticos: día por defecto (también sin JS).
+ * --color-tinta queda solo como valor de marca; el sitio público usa
+ * --color-texto / --color-hero / --color-fondo.
+ */
+:root,
+[data-tema='dia'] {
+  --color-fondo: #f1f4f8;
+  --color-superficie: #ffffff;
+  --color-superficie-2: #f1f4f8;
+  --color-texto: #0e1b2c;
+  --color-texto-suave: #48566c;
+  --color-borde: #d9e0ea;
+  --color-linea: #e7ecf3;
+  --color-hero: #0e1b2c;
+  --color-boton: #14385e;
+}
+
+[data-tema='noche'] {
+  --color-fondo: #0a1522;
+  --color-superficie: #16283f;
+  --color-superficie-2: #101f30;
+  --color-texto: #e8eff7;
+  --color-texto-suave: #9aabc2;
+  --color-borde: rgba(255, 255, 255, 0.12);
+  --color-linea: rgba(255, 255, 255, 0.08);
+  --color-hero: #101f33;
+  --color-boton: #2a5c94;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+}
+
+html[data-tema='noche'] {
+  color-scheme: dark;
 }
 
 body {
-  background-color: var(--color-papel);
-  color: var(--color-tinta);
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
   font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -50,6 +84,63 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-ambar);
   outline-offset: 2px;
+}
+
+/* Ficha de servicio/rubro: alto fijo, dos líneas. */
+.ficha-simetrica {
+  display: flex;
+  height: 64px;
+  min-height: 64px;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+  padding: 0.625rem 0.875rem;
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.ficha-simetrica:hover {
+  border-color: var(--color-boton);
+}
+
+.ficha-simetrica__punto {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--color-verde);
+}
+
+.ficha-simetrica__punto--apagado {
+  background: var(--color-texto-suave);
+  opacity: 0.45;
+}
+
+.ficha-simetrica__texto {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--color-texto);
+}
+
+.rejilla-fichas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .rejilla-fichas {
+    grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  }
 }
 
 /* Respeta a quien pide menos movimiento. */

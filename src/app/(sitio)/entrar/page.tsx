@@ -17,7 +17,7 @@ export default async function Entrar() {
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-12 sm:py-16">
       <h1 className="font-display text-2xl sm:text-3xl">Entrar</h1>
-      <p className="mt-3 text-(--color-tinta-suave)">
+      <p className="mt-3 text-(--color-texto-suave)">
         Elige cómo entras. Comprador y proveedor son puertas distintas.
       </p>
       <div className="mt-8">

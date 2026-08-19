@@ -13,6 +13,8 @@ export const RUTAS_SITEMAP_FIJAS = [
   '/',
   ...LANDINGS_VENTA,
   '/blog',
+  '/como-funciona',
+  '/precios',
   '/proveedores',
   '/privacidad',
   '/terminos',
@@ -84,6 +86,9 @@ export function pathsSitemapPiloto(): string[] {
 function metaDePath(path: string): Pick<EntradaSitemap, 'changefreq' | 'priority'> {
   if (path === '/') return { changefreq: 'weekly', priority: 1 }
   if (path === '/proveedores') return { changefreq: 'monthly', priority: 0.6 }
+  if (path === '/como-funciona' || path === '/precios') {
+    return { changefreq: 'monthly', priority: 0.8 }
+  }
   if (path === '/blog') return { changefreq: 'weekly', priority: 0.7 }
   if (path.startsWith('/blog/')) return { changefreq: 'monthly', priority: 0.6 }
   if (LANDINGS_VENTA.includes(path)) {

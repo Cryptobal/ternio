@@ -68,6 +68,8 @@ export async function rubrosActivos() {
           audiencias: true,
           precioExclusivoClp: true,
           precioCompartidoClp: true,
+          precioExclusivoHogarClp: true,
+          precioCompartidoHogarClp: true,
         },
       }),
     [],

@@ -24,7 +24,7 @@ export default function PaginaBlog() {
 
   return (
     <div>
-      <section className="bg-(--color-tinta) text-white">
+      <section className="bg-(--color-hero) text-white">
         <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
           <nav aria-label="Migas de pan" className="mb-6 text-sm text-white/55">
             <Link href="/" className="underline-offset-4 hover:underline">
@@ -42,18 +42,18 @@ export default function PaginaBlog() {
 
       <div className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
         {posts.length === 0 ? (
-          <p className="text-(--color-tinta-suave)">Todavía no hay artículos publicados.</p>
+          <p className="text-(--color-texto-suave)">Todavía no hay artículos publicados.</p>
         ) : (
           <ul className="space-y-8">
             {posts.map((post) => (
               <li key={post.slug}>
-                <p className="font-eyebrow text-xs text-(--color-tinta-suave)">{fechaLegible(post.date)}</p>
+                <p className="font-eyebrow text-xs text-(--color-texto-suave)">{fechaLegible(post.date)}</p>
                 <h2 className="mt-1 font-display text-xl">
                   <Link href={post.path} className="underline-offset-4 hover:underline">
                     {post.title}
                   </Link>
                 </h2>
-                <p className="mt-2 text-(--color-tinta-suave)">{post.description}</p>
+                <p className="mt-2 text-(--color-texto-suave)">{post.description}</p>
                 <p className="mt-2">
                   <Link href={post.path} className="text-sm font-medium underline-offset-4 hover:underline">
                     Leer

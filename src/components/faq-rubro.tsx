@@ -10,7 +10,7 @@ export function FaqRubro({ items }: { items: readonly PreguntaFaq[] }) {
         {items.map((item) => (
           <div key={item.pregunta}>
             <dt className="font-medium">{item.pregunta}</dt>
-            <dd className="mt-1 text-(--color-tinta-suave)">{item.respuesta}</dd>
+            <dd className="mt-1 text-(--color-texto-suave)">{item.respuesta}</dd>
           </div>
         ))}
       </dl>

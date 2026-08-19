@@ -152,7 +152,7 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
       <MedidorVisita rubro={rubro.slug} comuna={comuna.slug} />
 
       <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-12">
-        <nav aria-label="Migas de pan" className="mb-6 text-sm text-(--color-tinta-suave)">
+        <nav aria-label="Migas de pan" className="mb-6 text-sm text-(--color-texto-suave)">
           <Link href="/" className="underline-offset-4 hover:underline">
             Inicio
           </Link>
@@ -161,18 +161,18 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
             {rubro.nombrePlural ?? rubro.nombre}
           </Link>
           <span aria-hidden="true"> › </span>
-          <span className="text-(--color-tinta)">{comuna.nombre}</span>
+          <span className="text-(--color-texto)">{comuna.nombre}</span>
         </nav>
 
         <div className="grid gap-10 lg:grid-cols-[1fr_minmax(0,26rem)] lg:items-start">
           <div>
             <h1 className="font-display text-3xl sm:text-4xl">{titulo}</h1>
             {intro ? (
-              <p className="mt-4 text-lg text-(--color-tinta-suave)">{intro}</p>
+              <p className="mt-4 text-lg text-(--color-texto-suave)">{intro}</p>
             ) : null}
 
             {enCaptura ? (
-              <div className="mt-6 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-4 text-sm text-(--color-tinta)">
+              <div className="mt-6 rounded-2xl border border-(--color-ambar-borde) bg-(--color-ambar-suave) p-4 text-sm text-(--color-texto)">
                 <p className="font-medium">
                   Todavía estamos sumando empresas de este rubro en {comuna.nombre}.
                 </p>
@@ -188,7 +188,7 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
                 <h2 className="font-display text-xl">
                   Cómo funciona en {comuna.nombre}
                 </h2>
-                <p className="mt-2 text-(--color-tinta-suave)">{porQue}</p>
+                <p className="mt-2 text-(--color-texto-suave)">{porQue}</p>
                 <PasosComoFunciona comuna={comuna.nombre} listaEspera={enCaptura} />
               </section>
             ) : null}
@@ -202,12 +202,12 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
 
           <section
             id="cotizar"
-            className="rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm sm:p-6"
+            className="rounded-2xl border border-(--color-borde) bg-(--color-superficie) p-5 shadow-sm sm:p-6"
           >
             <h2 className="font-display text-xl">
               {enCaptura ? 'Déjanos tu solicitud' : 'Pide tu cotización'}
             </h2>
-            <p className="mt-1 mb-5 text-sm text-(--color-tinta-suave)">
+            <p className="mt-1 mb-5 text-sm text-(--color-texto-suave)">
               Toma menos de dos minutos y es gratis.
             </p>
 

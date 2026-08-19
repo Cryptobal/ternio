@@ -44,9 +44,9 @@ export function FormularioOtpCodigo({
   const aviso = confirmacion.mensaje || reenvio.mensaje || avisoInicial
 
   return (
-    <div className="mt-4 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
+    <div className="mt-4 rounded-2xl border border-(--color-borde) bg-(--color-superficie) p-5 shadow-sm">
       <h2 className="font-medium">Confirma tu teléfono</h2>
-      <p className="mt-1 text-sm text-(--color-tinta-suave)">
+      <p className="mt-1 text-sm text-(--color-texto-suave)">
         {origen === 'reclamo'
           ? `Crea tu acceso o entra con este celular para seguir la solicitud. Te mandamos un código de 6 dígitos${telefonoEnmascarado ? ` a ${telefonoEnmascarado}` : ''}. Sin contraseña.`
           : `Te enviamos un código de 6 dígitos${telefonoEnmascarado ? ` a ${telefonoEnmascarado}` : ''}. Sin contraseña.`}
@@ -67,7 +67,7 @@ export function FormularioOtpCodigo({
           className={`${claseCampo} text-center font-mono text-lg tracking-[0.4em]`}
         />
         {aviso ? (
-          <p role="status" className="text-sm text-(--color-tinta-suave)">
+          <p role="status" className="text-sm text-(--color-texto-suave)">
             {aviso}
           </p>
         ) : null}
@@ -107,7 +107,7 @@ export function FormularioOtpEntrar() {
   }
 
   return (
-    <form action={pedir} className="mt-8 space-y-3 rounded-2xl border border-(--color-borde) bg-white p-5 shadow-sm">
+    <form action={pedir} className="mt-8 space-y-3 rounded-2xl border border-(--color-borde) bg-(--color-superficie) p-5 shadow-sm">
       <label htmlFor="telefono-entrar" className="block text-sm font-medium">
         Teléfono
       </label>

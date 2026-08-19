@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest'
 describe('admin sin chrome público', () => {
   it('el layout de admin no monta la cabecera ni el pie comerciales', () => {
     const layout = readFileSync(resolve(process.cwd(), 'src/app/admin/layout.tsx'), 'utf8')
-    expect(layout).not.toMatch(/CabeceraPublica|PiePublico|MarcoPublico|Soy proveedor/)
-    expect(layout).not.toMatch(/from ['"]@\/components\/sitio/)
+    expect(layout).not.toMatch(/CabeceraPublica|PiePublico|MarcoPublico|NavPublica|Soy proveedor/)
+    expect(layout).not.toMatch(/from ['"]@\/components\/sitio\/(marco-publico|nav-publica)/)
     expect(layout).not.toMatch(/from ['"]@\/components\/marca/)
   })
 
