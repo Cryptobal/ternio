@@ -5,6 +5,7 @@ import { ModoRubro } from '@prisma/client'
 
 import { FaqRubro } from '@/components/faq-rubro'
 import { FormularioCotizacion } from '@/components/formulario-cotizacion'
+import { ListadoProveedoresZona } from '@/components/listado-proveedores-zona'
 import { MedidorVisita } from '@/components/medidor-embudo'
 import { OtroServicio } from '@/components/otro-servicio'
 import { PasosComoFunciona } from '@/components/pasos-como-funciona'
@@ -14,6 +15,7 @@ import { OG_IMAGE } from '@/lib/metadata-publico'
 import { copyCombo, jsonLdFaq } from '@/lib/seo-contenido'
 import { pathPublicoCombo, pathPublicoRubro, slugPublicoDesdeBd } from '@/lib/seo-rutas'
 import { leerQueryCotizador } from '@/lib/selector-cotizacion'
+import { proveedoresEnCombo } from '@/server/proveedores-publicos'
 
 /** ISR: el contenido cambia poco y la página tiene que salir rápido. */
 export const revalidate = 3600
@@ -102,6 +104,15 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
   const contenidoCombinacion = leerContenidoSeo(combinacion.contenido)
   const intro = contenidoCombinacion.intro ?? generado.intro
   const porQue = contenidoCombinacion.porQue ?? contenidoRubro.porQue ?? generado.porQue
+
+  const proveedoresZona = enCaptura
+    ? []
+    : await proveedoresEnCombo({
+        rubroSlug: rubro.slug,
+        comunaSlug: comuna.slug,
+        region: comuna.region,
+        provincia: comuna.provincia,
+      })
 
   const titulo = generado.h1
   const base = process.env.NEXT_PUBLIC_SITIO_URL ?? 'https://ternio.cl'
@@ -216,6 +227,11 @@ export default async function PaginaRubroComuna({ params, searchParams }: Props)
                 <PasosComoFunciona comuna={comuna.nombre} listaEspera={enCaptura} />
               </section>
             ) : null}
+
+            <ListadoProveedoresZona
+              comunaNombre={comuna.nombre}
+              proveedores={proveedoresZona}
+            />
 
             <FaqRubro items={generado.faq} />
 

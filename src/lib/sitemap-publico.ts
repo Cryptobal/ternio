@@ -86,6 +86,7 @@ export function pathsSitemapPiloto(): string[] {
 function metaDePath(path: string): Pick<EntradaSitemap, 'changefreq' | 'priority'> {
   if (path === '/') return { changefreq: 'weekly', priority: 1 }
   if (path === '/proveedores') return { changefreq: 'monthly', priority: 0.6 }
+  if (path.startsWith('/empresa/')) return { changefreq: 'weekly', priority: 0.5 }
   if (path === '/como-funciona' || path === '/precios') {
     return { changefreq: 'monthly', priority: 0.8 }
   }
@@ -167,10 +168,14 @@ ${urls}
   }
 }
 
-export function armarSitemapXml(base: string, now = new Date()): { xml: string; locs: string[] } {
+export function armarSitemapXml(
+  base: string,
+  now = new Date(),
+  extrasExtra: readonly string[] = [],
+): { xml: string; locs: string[] } {
   const lastmod = now.toISOString()
   try {
-    const extras = [...pathsSitemapPiloto()]
+    const extras = [...pathsSitemapPiloto(), ...extrasExtra]
     try {
       extras.push(...pathsPublicosBlog())
     } catch {

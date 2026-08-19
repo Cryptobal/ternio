@@ -213,6 +213,9 @@ export async function cargarPanelProveedor(usuarioId: string) {
       rutNormalizado: true,
       coberturaNacional: true,
       solicitudEspera: true,
+      descripcion: true,
+      sitioWeb: true,
+      logoUrl: true,
       coberturas: {
         select: {
           activa: true,

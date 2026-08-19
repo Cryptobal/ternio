@@ -7,10 +7,12 @@ import {
   GARD_VENTANA_MS,
   geografiaCubreLead,
   leadSePuedeVender,
+  ordenarProveedoresPublicos,
   puedeTomarLead,
   precioVigente,
   proveedorCubreLead,
   proveedorEsDuenioDelLead,
+  proveedorVisibleEnCombo,
   resumenConfirmacionCompra,
   resumenCupos,
   slugsRubroDelProveedor,
@@ -408,5 +410,62 @@ describe('matching por audiencia', () => {
         lead({ rubroSlug: 'control-de-plagas', comunaSlug: 'nunoa', audiencia: 'empresa' }),
       ),
     ).toBe(true)
+  })
+})
+
+describe('proveedorVisibleEnCombo', () => {
+  const combo = {
+    rubroSlug: 'seguridad',
+    comunaSlug: 'santiago',
+    region: 'Región Metropolitana',
+    provincia: 'Santiago',
+  }
+
+  it('lista APROBADO que cubre geografía sin filtrar audiencia', () => {
+    const soloEmpresa = proveedor({
+      solicitudEspera: {
+        modo: 'nacional',
+        rubros: ['seguridad'],
+        regiones: [],
+        provincias: [],
+        comunas: [],
+        audienciasPorRubro: { seguridad: ['empresa'] },
+      },
+      coberturaNacional: true,
+      coberturas: [],
+    })
+    expect(proveedorVisibleEnCombo(soloEmpresa, combo)).toBe(true)
+  })
+
+  it('omite pendientes y otros rubros', () => {
+    expect(proveedorVisibleEnCombo(proveedor({ estado: 'PENDIENTE' }), combo)).toBe(false)
+    expect(
+      proveedorVisibleEnCombo(
+        proveedor({
+          solicitudEspera: {
+            modo: 'nacional',
+            rubros: ['aseo'],
+            regiones: [],
+            provincias: [],
+            comunas: [],
+          },
+          coberturaNacional: true,
+          coberturas: [],
+        }),
+        combo,
+      ),
+    ).toBe(false)
+  })
+
+  it('ordenarProveedoresPublicos prioriza logo y respeta tope', () => {
+    const orden = ordenarProveedoresPublicos(
+      [
+        { nombre: 'Zeta', logoUrl: null },
+        { nombre: 'Alfa', logoUrl: 'https://cdn.example/a.png' },
+        { nombre: 'Beta', logoUrl: null },
+      ],
+      2,
+    )
+    expect(orden.map((p) => p.nombre)).toEqual(['Alfa', 'Beta'])
   })
 })

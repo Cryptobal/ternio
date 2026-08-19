@@ -4,12 +4,15 @@ import Link from 'next/link'
 import { MarcarContactado } from '@/app/(sitio)/panel/marcar-contactado'
 import { PacksCreditos } from '@/app/(sitio)/panel/packs'
 import { TomarLead } from '@/app/(sitio)/panel/tomar-lead'
+import { LogoProveedor } from '@/components/marca/logo-proveedor'
 import { FormularioCambiarPassword } from '@/components/panel/formulario-cambiar-password'
 import { FichaLead } from '@/components/panel/ficha-lead'
 import { FormularioAudienciaRubro } from '@/components/panel/formulario-audiencia-rubro'
+import { FormularioMarca } from '@/components/panel/formulario-marca'
 import { etiquetaModoCobertura, leerSnapshotCobertura, textoCobertura } from '@/lib/cobertura'
 import { formatearClp } from '@/lib/dinero'
 import { flowConfigurado } from '@/lib/flow'
+import { pathPublicoEmpresa } from '@/lib/logo-proveedor'
 import { prisma } from '@/lib/prisma'
 import { formatearRut } from '@/lib/rut'
 import { formatearTelefono } from '@/lib/telefono'
@@ -189,9 +192,27 @@ export default async function PanelProveedor({
       ) : null}
 
       <header className="mt-2 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">{cobertura}</p>
-          <h1 className="font-display mt-2 text-3xl sm:text-4xl">{proveedor.nombre}</h1>
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+          <LogoProveedor
+            nombre={proveedor.nombre}
+            logoUrl={proveedor.logoUrl}
+            tamano="md"
+            className="mt-1"
+          />
+          <div className="min-w-0">
+            <p className="font-eyebrow text-[0.7rem] text-(--color-tinta-suave)">{cobertura}</p>
+            <h1 className="font-display mt-2 text-3xl sm:text-4xl">{proveedor.nombre}</h1>
+            {proveedor.estado === 'APROBADO' ? (
+              <p className="mt-1 text-sm text-(--color-tinta-suave)">
+                <Link
+                  href={pathPublicoEmpresa(proveedor.slug)}
+                  className="underline underline-offset-4"
+                >
+                  Ver perfil público
+                </Link>
+              </p>
+            ) : null}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-right">
@@ -206,6 +227,13 @@ export default async function PanelProveedor({
           </a>
         </div>
       </header>
+
+      <FormularioMarca
+        nombre={proveedor.nombre}
+        logoUrl={proveedor.logoUrl}
+        descripcion={proveedor.descripcion}
+        sitioWeb={proveedor.sitioWeb}
+      />
 
       {rubrosInfo.length > 0 ? (
         <section className={`mt-6 ${CLASE_SUPERFICIE}`}>

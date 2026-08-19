@@ -146,14 +146,20 @@ describe('copy de avisos', () => {
     expect(cuerpo).not.toMatch(/te van a contactar 5/i)
   })
 
-  it('el aviso al comprador no nombra al proveedor', () => {
-    const correo = correoAvisoCompra({ rubro: 'Control de plagas', comuna: 'Valdivia' })
+  it('el aviso al comprador nombra al proveedor y puede incluir logo', () => {
+    const correo = correoAvisoCompra({
+      rubro: 'Control de plagas',
+      comuna: 'Valdivia',
+      proveedorNombre: 'Acme Plagas',
+      logoUrl: 'https://example.public.blob.vercel-storage.com/logo.png',
+    })
     const cuerpo = `${correo.subject}\n${correo.text}\n${correo.html}`
-    expect(cuerpo).toMatch(/Una empresa ya tiene tus datos y te va a contactar/)
+    expect(correo.subject).toBe('Acme Plagas ya tiene tus datos')
+    expect(cuerpo).toMatch(/Acme Plagas ya tiene tus datos y te va a contactar/)
     expect(cuerpo).toMatch(/Valdivia/)
     expect(cuerpo).toMatch(/plagas/i)
     expect(cuerpo).toContain(URL_MIS_COTIZACIONES)
-    expect(cuerpo).not.toMatch(/Gard|Acme|proveedor/i)
+    expect(correo.html).toContain('https://example.public.blob.vercel-storage.com/logo.png')
     expect(claveIdempotenciaCompraComprador('cmp-1')).toBe('aviso-compra/cmp-1')
   })
 })
@@ -199,7 +205,9 @@ describe('destinatarios del aviso de lead', () => {
     const caraPublica = avisos.slice(0, avisos.indexOf('type EnviarAviso'))
     expect(caraPublica).toContain('avisarProveedoresLeadVerificado')
     expect(caraPublica).toContain('avisarCompradorCompraPagada')
-    expect(caraPublica).not.toMatch(/proveedor\.nombre|razonSocial/)
+    expect(caraPublica).toContain('SELECT_FICHA_ANONIMA')
+    // Aviso a proveedores: ficha anónima. Aviso al comprador: sí nombra/logo del que tomó.
+    expect(caraPublica).toMatch(/logoUrl/)
   })
 
   it('toma el correo de la cuenta si el perfil no tiene', () => {

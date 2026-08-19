@@ -180,6 +180,47 @@ export function proveedorCubreLead(proveedor: ProveedorMatch, lead: LeadMatch): 
   return geografiaCubreLead(proveedor, lead)
 }
 
+export type ComboPublico = {
+  rubroSlug: string
+  comunaSlug: string
+  region: string
+  provincia: string
+}
+
+/**
+ * Proveedor APROBADO que cubre rubro+comuna (listado SEO).
+ * No filtra por audiencia: la ficha pública no es un lead.
+ */
+export function proveedorVisibleEnCombo(
+  proveedor: ProveedorMatch,
+  combo: ComboPublico,
+): boolean {
+  if (proveedor.estado !== 'APROBADO') return false
+  const rubros = slugsRubroDelProveedor(proveedor)
+  if (!rubros.includes(combo.rubroSlug)) return false
+  return geografiaCubreLead(proveedor, {
+    rubroSlug: combo.rubroSlug,
+    comunaSlug: combo.comunaSlug,
+    region: combo.region,
+    provincia: combo.provincia,
+  })
+}
+
+/** Orden estable: con logo primero, luego nombre. Tope para la landing. */
+export function ordenarProveedoresPublicos<T extends { logoUrl?: string | null; nombre: string }>(
+  filas: readonly T[],
+  tope = 12,
+): T[] {
+  return [...filas]
+    .sort((a, b) => {
+      const logoA = a.logoUrl ? 0 : 1
+      const logoB = b.logoUrl ? 0 : 1
+      if (logoA !== logoB) return logoA - logoB
+      return a.nombre.localeCompare(b.nombre, 'es')
+    })
+    .slice(0, tope)
+}
+
 export function leadSePuedeVender(lead: LeadMatch, ahora = new Date()): boolean {
   if (lead.estado !== 'VERIFICADO') return false
   if (lead.modoRubroAlCrear !== 'VENTA') return false

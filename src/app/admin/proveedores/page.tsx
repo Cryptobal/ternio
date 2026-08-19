@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 
 import { AccionesProveedor } from '@/app/admin/proveedores/acciones-proveedor'
+import { LogoProveedor } from '@/components/marca/logo-proveedor'
 import { etiquetaModoCobertura, leerSnapshotCobertura, textoCobertura } from '@/lib/cobertura'
 import { formatearClp } from '@/lib/dinero'
 import { prisma } from '@/lib/prisma'
@@ -22,6 +23,7 @@ export default async function AdminProveedores() {
     select: {
       id: true,
       nombre: true,
+      logoUrl: true,
       rutNormalizado: true,
       estado: true,
       coberturaNacional: true,
@@ -59,19 +61,24 @@ export default async function AdminProveedores() {
             const saldo = saldoDesdeMovimientos(fila.movimientos.map((m) => m.montoCreditos))
             return (
               <li key={fila.id} className="rounded-2xl border border-(--color-borde) bg-white p-5">
-                <p className="font-medium">{fila.nombre}</p>
-                <p className="text-sm text-(--color-tinta-suave)">
-                  {fila.rutNormalizado ? formatearRut(fila.rutNormalizado) : 'Sin RUT'} ·{' '}
-                  {fila.usuario?.telefonoE164Verificado ? 'Celular ok' : 'Celular pendiente'}
-                </p>
-                <p className="mt-1 text-sm">
-                  {fila.estado} · {formatearClp(saldo)} · {cobertura}
-                </p>
-                <p className="text-sm text-(--color-tinta-suave)">
-                  {snapshot?.rubros.join(', ') || 'Sin rubros'}
-                  {' · '}
-                  Origen: {fila.origenAlta ?? 'directo'}
-                </p>
+                <div className="flex items-start gap-3">
+                  <LogoProveedor nombre={fila.nombre} logoUrl={fila.logoUrl} tamano="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{fila.nombre}</p>
+                    <p className="text-sm text-(--color-tinta-suave)">
+                      {fila.rutNormalizado ? formatearRut(fila.rutNormalizado) : 'Sin RUT'} ·{' '}
+                      {fila.usuario?.telefonoE164Verificado ? 'Celular ok' : 'Celular pendiente'}
+                    </p>
+                    <p className="mt-1 text-sm">
+                      {fila.estado} · {formatearClp(saldo)} · {cobertura}
+                    </p>
+                    <p className="text-sm text-(--color-tinta-suave)">
+                      {snapshot?.rubros.join(', ') || 'Sin rubros'}
+                      {' · '}
+                      Origen: {fila.origenAlta ?? 'directo'}
+                    </p>
+                  </div>
+                </div>
                 <AccionesProveedor proveedorId={fila.id} estado={fila.estado} />
               </li>
             )
