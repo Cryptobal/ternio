@@ -241,8 +241,7 @@ describe('cargarTraficoGa4 fail-closed', () => {
         throw new Error('no debería llamar a la red')
       },
     })
-    expect(trafico.estado).toBe('desconectado')
-    expect(trafico.motivo).toBe(MOTIVO_GA4.propertyInvalida)
+    expect(trafico).toEqual(desconectadoGa4(MOTIVO_GA4.propertyInvalida))
   })
 
   it('JSON inválido no finge cero visitas', async () => {
@@ -252,8 +251,7 @@ describe('cargarTraficoGa4 fail-closed', () => {
         GA4_SERVICE_ACCOUNT_JSON: '{no-json',
       },
     })
-    expect(trafico.estado).toBe('desconectado')
-    expect(trafico.motivo).toBe(MOTIVO_GA4.jsonInvalido)
+    expect(trafico).toEqual(desconectadoGa4(MOTIVO_GA4.jsonInvalido))
   })
 
   it('si la API falla, desconectado — no un 0 medido', async () => {
