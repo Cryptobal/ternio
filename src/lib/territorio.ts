@@ -94,7 +94,7 @@ export function debeMostrarNivelTerritorio(
 
 export function preguntaNivelTerritorio(nivel: NivelListaTerritorio): string {
   if (nivel === 'region') return '¿En qué región?'
-  if (nivel === 'provincia') return '¿En qué provincia?'
+  if (nivel === 'provincia') return '¿En qué ciudad?'
   return '¿En qué comuna?'
 }
 

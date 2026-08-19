@@ -6,7 +6,7 @@
  * - El doc describe OTP como único login del comprador; el sitio también
  *   ofrece reingreso por celular en /entrar (misma OTP).
  * - El doc dice "Región → Provincia → Comuna (sin typeahead)"; el cotizador
- *   ahora antepone buscador + frecuentes, con la jerarquía como respaldo.
+ *   de la home pide esa cascada al tiro después del servicio.
  * - El proveedor puede entrar con correo+contraseña además del OTP.
  */
 

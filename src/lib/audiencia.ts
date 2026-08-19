@@ -7,6 +7,7 @@
  * SEMILLA_AUDIENCIAS_POR_SLUG solo alimenta el seed.
  */
 
+import { textoBusquedaRubro } from '@/lib/sinonimos-rubro'
 import { slugificarNombre } from '@/lib/territorio'
 
 export const AUDIENCIAS = ['hogar', 'empresa'] as const
@@ -160,10 +161,15 @@ export function filtrarServiciosPorTexto<
 >(rubros: readonly T[], query: string): T[] {
   const q = slugificarNombre(query.trim())
   if (!q) return [...rubros]
-  return rubros.filter((rubro) => {
-    const hay = `${slugificarNombre(rubro.nombre)} ${slugificarNombre(rubro.nombrePlural ?? '')} ${rubro.slug}`
-    return hay.includes(q)
-  })
+  return rubros.filter((rubro) => textoBusquedaRubro(rubro).includes(q))
+}
+
+export function ordenarServiciosPorNombre<
+  T extends { nombre: string; nombrePlural?: string | null },
+>(rubros: readonly T[]): T[] {
+  return [...rubros].sort((a, b) =>
+    (a.nombrePlural ?? a.nombre).localeCompare(b.nombrePlural ?? b.nombre, 'es-CL'),
+  )
 }
 
 /** Para el lead: query/form si calza; si el rubro es único, se infiere. */

@@ -354,13 +354,14 @@ Carlos no carga créditos. El sistema sí.
 - “Saltar” solo en pasos opcionales. Continuar bloquea identidad.
 - Móvil primero. Targets grandes (`min-h-11`).
 - Home: frase canónica (“Cotiza servicios para tu casa o tu empresa”) y
-  cotizador en cascada sobre el navy (casa/empresa → servicio → región →
-  provincia → comuna). En desktop el hero va a dos columnas (mensaje +
-  cotizador); en móvil, apilado. Naranja solo en Cotizar. Bajo el hero:
-  cifras honestas desde la DB, catálogo por audiencia con enlaces a
-  `/{rubro}` solo si hay combinación publicada, combos `/{rubro}/{comuna}`,
-  FAQ + JSON-LD. Sin typeahead ni pastillas de atajo en el cotizador.
-  Sin inventar métricas.
+  cotizador en cascada sobre el navy (casa/empresa → servicio compacto →
+  región → ciudad → comuna). El listado de servicios es corto, alfabético
+  y se filtra escribiendo (sinónimos: guardia, nana, destape…). Tras el
+  servicio, la cascada CUT al tiro. En desktop el hero va a dos columnas
+  (mensaje + cotizador); en móvil, apilado. Naranja solo en Cotizar. Bajo
+  el hero: cifras honestas desde la DB, catálogo por audiencia, selector
+  de comuna que solo lista combos publicados, FAQ + JSON-LD. Sin pastillas
+  de atajo ni URLs inventadas. Sin inventar métricas.
 - `/panel` de un comprador: “esta es la cuenta de proveedores” + link a
   `/proveedores`. No fingir que es el otro lado.
 
@@ -372,7 +373,7 @@ Detalle en [`docs/seo-map.md`](./seo-map.md).
 
 | Keyword | Vol/mes | KD | Canónica | Alias 308 |
 | --- | ---: | ---: | --- | --- |
-| guardias de seguridad | 3.600 | 30 | `/seguridad` | `/guardias-de-seguridad`, `/guardias` |
+| guardias de seguridad | 3.600 | 30 | `/seguridad` | `/guardias-de-seguridad`, `/guardias`, `/guardia`, `/guarda`, `/guardia-de-seguridad`, `/guarda-de-seguridad` |
 | seguridad privada | 1.900 | 34 | `/seguridad` | — |
 | empresas de seguridad | 590 | 30 | `/seguridad` | `/empresas-de-seguridad` |
 | empresas de aseo | 2.400 | 23 | `/aseo` | `/empresas-de-aseo` |
@@ -389,7 +390,9 @@ Sitemap www ya es 200. Fail-soft si Prisma falla: `/`, las landings
 VENTA (25 slugs, sin aliases) y `/proveedores`. Nunca 500. No incluye
 `/admin` ni `/panel`. `/climatizacion` → `/climatizacion-industrial`,
 `/gasfiter` → `/gasfiteria`, `/maestro` y `/obras` → `/remodelaciones`,
-`/creditos` → `/asesoria-financiera` (308).
+`/creditos` → `/asesoria-financiera`, `/nana` y `/aseo-a-domicilio` →
+`/aseo-hogar` (308). El typeahead del cotizador acepta sinónimos
+(guardia, guarda, nana, destape, gasfiter) sin inventar landings.
 
 No inventar “+1000 empresas” ni prueba social. Schema.org `Service` o
 `LocalBusiness` donde corresponda, con datos reales.

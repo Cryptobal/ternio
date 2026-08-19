@@ -4,7 +4,8 @@ import { useActionState, useEffect, useId, useMemo, useRef, useState } from 'rea
 import { useFormStatus } from 'react-dom'
 
 import { HojaInferior } from '@/components/ui/hoja-inferior'
-import { filtrarServiciosPorTexto } from '@/lib/audiencia'
+import { filtrarServiciosPorTexto, ordenarServiciosPorNombre } from '@/lib/audiencia'
+import { agruparPorGrupo, grupoRubro, type GrupoRubro } from '@/lib/grupos-rubro'
 import { CLASE_CAMPO_NAVY, CLASE_LEYENDA_NAVY } from '@/lib/ui'
 import { solicitarOtroServicioAction, type EstadoFormulario } from '@/server/leads'
 
@@ -30,7 +31,9 @@ function resaltar(texto: string, query: string): React.ReactNode {
 }
 
 const CLASE_LISTA_FLUJO =
-  'mt-2 w-full rounded-2xl border border-white/20 bg-[#0a1522] py-1'
+  'mt-2 max-h-72 w-full overflow-y-auto overscroll-contain rounded-2xl border border-white/20 bg-[#0a1522] py-1'
+
+const PLACEHOLDER_SERVICIO = 'Escribe el servicio'
 
 const CLASE_OPCION =
   'flex min-h-11 w-full px-3.5 py-2.5 text-left text-sm'
@@ -95,13 +98,19 @@ export function ComboServicio({
   const caja = useRef<HTMLDivElement>(null)
   const disparadorRef = useRef<HTMLButtonElement>(null)
   const [query, setQuery] = useState('')
+  const [grupo, setGrupo] = useState<GrupoRubro | ''>('')
   const [abierto, setAbierto] = useState(abrirAlMontar)
   const [activo, setActivo] = useState(0)
   const [escritorio, setEscritorio] = useState<boolean | null>(null)
 
+  const grupos = useMemo(() => agruparPorGrupo(servicios), [servicios])
+  const delGrupo = useMemo(
+    () => (grupo ? servicios.filter((item) => grupoRubro(item.slug) === grupo) : servicios),
+    [servicios, grupo],
+  )
   const filtrados = useMemo(
-    () => filtrarServiciosPorTexto(servicios, query),
-    [servicios, query],
+    () => ordenarServiciosPorNombre(filtrarServiciosPorTexto(delGrupo, query)),
+    [delGrupo, query],
   )
 
   const disponibles = useMemo(
@@ -190,6 +199,37 @@ export function ComboServicio({
     )
   }
 
+  function chipsGrupo() {
+    if (grupos.length < 2) return null
+    return (
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          aria-pressed={!grupo}
+          onClick={() => setGrupo('')}
+          className={`rounded-full border px-2.5 py-1 text-xs ${
+            !grupo ? 'border-white/70 bg-white/10 text-white' : 'border-white/25 text-white/70'
+          }`}
+        >
+          Todos
+        </button>
+        {grupos.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={grupo === item.id}
+            onClick={() => setGrupo(item.id)}
+            className={`rounded-full border px-2.5 py-1 text-xs ${
+              grupo === item.id ? 'border-white/70 bg-white/10 text-white' : 'border-white/25 text-white/70'
+            }`}
+          >
+            {item.etiqueta}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
   function estadoVacio() {
     const texto = query.trim()
     if (texto.length >= 3) {
@@ -203,7 +243,7 @@ export function ComboServicio({
       <li className="px-3.5 py-3 text-sm text-white/55">
         {texto
           ? 'Sigue escribiendo el nombre del servicio…'
-          : 'Escribe o elige un servicio de la lista.'}
+          : 'Escribe el servicio o elige de la lista.'}
       </li>
     )
   }
@@ -250,7 +290,7 @@ export function ComboServicio({
   }
 
   if (!escritorio) {
-    const etiquetaBoton = query.trim() || 'Escribe o elige un servicio'
+    const etiquetaBoton = query.trim() || PLACEHOLDER_SERVICIO
     return (
       <div>
         <p className={CLASE_LEYENDA_NAVY}>¿Qué servicio necesitas?</p>
@@ -278,10 +318,11 @@ export function ComboServicio({
             type="text"
             autoComplete="off"
             value={query}
-            placeholder="Escribe o elige un servicio"
+            placeholder={PLACEHOLDER_SERVICIO}
             onChange={(event) => setQuery(event.target.value)}
             className={`${CLASE_CAMPO_NAVY} mb-3`}
           />
+          {chipsGrupo()}
           {lista()}
         </HojaInferior>
       </div>
@@ -302,7 +343,7 @@ export function ComboServicio({
         aria-autocomplete="list"
         autoComplete="off"
         value={query}
-        placeholder="Escribe o elige un servicio"
+        placeholder={PLACEHOLDER_SERVICIO}
         onChange={(event) => {
           setQuery(event.target.value)
           setAbierto(true)
@@ -311,7 +352,12 @@ export function ComboServicio({
         onKeyDown={tecla}
         className={CLASE_CAMPO_NAVY}
       />
-      {abierto ? lista() : null}
+      {abierto ? (
+        <div className="mt-2">
+          {chipsGrupo()}
+          {lista()}
+        </div>
+      ) : null}
     </div>
   )
 }

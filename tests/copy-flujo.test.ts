@@ -59,6 +59,7 @@ describe('copy público sin mentiras de launch', () => {
     expect(enviada).toMatch(/este celular para seguir la solicitud/)
 
     const marco = readFileSync(resolve(process.cwd(), 'src/components/sitio/marco-publico.tsx'), 'utf8')
+    expect(marco).not.toMatch(/Páginas ya publicadas|Sin URLs inventadas|Cotiza en tu comuna/)
     expect(marco).toContain('Entrar')
     expect(marco).not.toContain('Ya coticé')
     expect(marco).toContain('href="/entrar"')
@@ -70,16 +71,15 @@ describe('copy público sin mentiras de launch', () => {
     expect(otp).toMatch(/Crea tu acceso o entra con este celular/)
   })
 
-  it('el selector de territorio muestra un nivel a la vez; el cotizador usa buscador + frecuentes', () => {
+  it('el selector de territorio muestra un nivel a la vez; el cotizador pide la cascada al tiro', () => {
     const territorio = readFileSync(
       resolve(process.cwd(), 'src/components/selector-territorio.tsx'),
       'utf8',
     )
     const home = readFileSync(resolve(process.cwd(), 'src/components/selector-cotizacion.tsx'), 'utf8')
     const inicio = readFileSync(resolve(process.cwd(), 'src/app/(sitio)/page.tsx'), 'utf8')
+    const combo = readFileSync(resolve(process.cwd(), 'src/components/combo-servicio.tsx'), 'utf8')
     expect(territorio).toContain('debeMostrarNivelTerritorio')
-    expect(territorio).toContain('frecuentes')
-    expect(territorio).toContain('Ver más comunas')
     expect(territorio).not.toMatch(/Primero elige la región|Primero elige la provincia/)
     expect(territorio).not.toMatch(/<select/)
     expect(home).toContain('pasoCotizador')
@@ -88,12 +88,17 @@ describe('copy público sin mentiras de launch', () => {
     expect(home).toContain('PREGUNTA_AUDIENCIA')
     expect(home).toContain('audienciaInicialParaPagina')
     expect(home).toContain('abrirAlMontar')
+    expect(home).not.toMatch(/\bfrecuentes\b/)
     expect(home).not.toMatch(/CLASE_SUPERFICIE/)
     expect(home).not.toMatch(/enVenta\[0\]/)
+    expect(combo).toContain('max-h-72')
+    expect(combo).toContain('Escribe el servicio')
     expect(inicio).toContain('SelectorCotizacion')
+    expect(inicio).toContain('SelectorLugarCombos')
     expect(inicio).toMatch(/casa o tu empresa/)
     expect(inicio).not.toMatch(/atajosHome/)
     expect(inicio).not.toMatch(/Guardias de seguridad/)
+    expect(inicio).not.toMatch(/Páginas ya publicadas|Sin URLs inventadas|Cotiza en tu comuna/)
     const landing = readFileSync(resolve(process.cwd(), 'src/app/(seo)/[rubro]/page.tsx'), 'utf8')
     expect(landing).toContain('SelectorCotizacion')
     expect(landing).toContain('rubroInicial')

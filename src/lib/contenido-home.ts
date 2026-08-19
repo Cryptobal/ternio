@@ -10,6 +10,7 @@ import {
   type Audiencia,
 } from '@/lib/audiencia'
 import type { PreguntaFaq } from '@/lib/seo-contenido'
+import { pathPublicoCombo } from '@/lib/seo-rutas'
 
 export const FAQ_HOME: readonly PreguntaFaq[] = [
   {
@@ -61,6 +62,13 @@ export const PROMESAS_HOME = [
       'Mientras nadie tome tu solicitud, las empresas solo ven servicio y comuna.',
   },
 ] as const
+
+export const LUGAR_HOME = {
+  titulo: 'Elige tu comuna',
+  bajada: 'Primero el lugar. Después ves los servicios con página en esa zona.',
+  vacio:
+    'Todavía no hay páginas para esta comuna. Cotiza arriba y quedas en lista de espera.',
+} as const
 
 export const CATALOGO_HOME = {
   titulo: 'Todos los servicios',
@@ -139,9 +147,24 @@ export function combosDestacados(
   })
 
   return ordenados.slice(0, Math.max(0, max)).map((combo) => ({
-    href: `/${combo.rubroSlug}/${combo.comunaSlug}`,
+    href: pathPublicoCombo(combo.rubroSlug, combo.comunaSlug),
     etiqueta: `${combo.rubroNombre} en ${combo.comunaNombre}`,
   }))
+}
+
+/** Combos reales de una comuna. No inventa URLs. */
+export function combosDeLugar(
+  combinaciones: readonly ComboPublicado[],
+  comunaSlug: string,
+): { href: string; etiqueta: string }[] {
+  return combinaciones
+    .filter((combo) => combo.comunaSlug === comunaSlug)
+    .slice()
+    .sort((a, b) => a.rubroNombre.localeCompare(b.rubroNombre, 'es-CL'))
+    .map((combo) => ({
+      href: pathPublicoCombo(combo.rubroSlug, combo.comunaSlug),
+      etiqueta: combo.rubroNombre,
+    }))
 }
 
 /** Fallback si el rubro llega sin audiencias: empresa (B2B). */

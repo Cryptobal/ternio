@@ -3,12 +3,12 @@ import Link from 'next/link'
 import { PasosComoFunciona } from '@/components/pasos-como-funciona'
 import { SelectorCotizacion } from '@/components/selector-cotizacion'
 import { CatalogoHome } from '@/components/sitio/catalogo-home'
+import { SelectorLugarCombos } from '@/components/sitio/selector-lugar-combos'
 import { combinacionesPublicadas, comunasActivas, rubrosConComunas } from '@/lib/catalogo'
 import {
   CATALOGO_HOME,
   FAQ_HOME,
   PROMESAS_HOME,
-  combosDestacados,
   type ComboPublicado,
 } from '@/lib/contenido-home'
 import { claveCombo, type RubroSelector } from '@/lib/selector-cotizacion'
@@ -66,7 +66,7 @@ export default async function Inicio() {
     audiencias: r.audiencias,
     href: conPagina.has(r.slug) ? `/${r.slug}` : null,
   }))
-  const combos = combosDestacados(enriquecerCombos(combinaciones, filas, comunas), 10)
+  const combos = enriquecerCombos(combinaciones, filas, comunas)
   const faqLd = jsonLdFaq(FAQ_HOME)
 
   return (
@@ -121,25 +121,10 @@ export default async function Inicio() {
         </section>
       ) : null}
 
-      {combos.length > 0 ? (
+      {comunas.length > 0 && combos.length > 0 ? (
         <section className="border-t border-(--color-linea) bg-(--color-fondo)">
           <div className="mx-auto w-full max-w-5xl px-4 py-12">
-            <h2 className="font-display text-2xl">Cotiza en tu comuna</h2>
-            <p className="mt-2 text-(--color-texto-suave)">
-              Páginas ya publicadas. Sin URLs inventadas.
-            </p>
-            <ul className="mt-6 columns-1 gap-x-8 sm:columns-2 lg:columns-3">
-              {combos.map((combo) => (
-                <li key={combo.href} className="mb-2 break-inside-avoid">
-                  <Link
-                    href={combo.href}
-                    className="text-sm font-medium text-(--color-marca) underline-offset-4 hover:underline"
-                  >
-                    {combo.etiqueta}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <SelectorLugarCombos comunas={comunas} combos={combos} />
           </div>
         </section>
       ) : null}

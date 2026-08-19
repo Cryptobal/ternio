@@ -59,7 +59,7 @@ comunas × 25 rubros (`COMUNAS_SEO`): `santiago`, `las-condes`,
 
 | Keyword | Vol/mes | KD | URL canónica | Title | Alias 308 |
 | --- | ---: | ---: | --- | --- | --- |
-| guardias de seguridad | 3.600 | 30 | `/seguridad` | Guardias de seguridad | `/guardias-de-seguridad`, `/guardias` |
+| guardias de seguridad | 3.600 | 30 | `/seguridad` | Guardias de seguridad | `/guardias-de-seguridad`, `/guardias`, `/guardia`, `/guarda`, `/guardia-de-seguridad`, `/guarda-de-seguridad` |
 | seguridad privada | 1.900 | 34 | `/seguridad` | (misma página; description) | — |
 | empresas de seguridad | 590 | 30 | `/seguridad` | (misma página; description) | `/empresas-de-seguridad` |
 | empresas de aseo / empresa de aseo | 2.400 | 23 | `/aseo` | Empresas de aseo | `/empresas-de-aseo` |
@@ -105,16 +105,16 @@ no bancos.
 | Rubro | URL canónica | Alias 308 |
 | --- | --- | --- |
 | Gasfitería | `/gasfiteria` | `/gasfiter` |
-| Electricista | `/electricista` | — |
-| Destape y alcantarillado | `/destape` | — |
-| Pintura | `/pintura` | — |
+| Electricista | `/electricista` | `/electricistas` |
+| Destape y alcantarillado | `/destape` | `/alcantarillado`, `/destape-de-alcantarillado` |
+| Pintura | `/pintura` | `/pintor` |
 | Remodelaciones | `/remodelaciones` | `/maestro`, `/obras` |
-| Cerrajero | `/cerrajeria` | — |
+| Cerrajero | `/cerrajeria` | `/cerrajero` |
 | Técnico de electrodomésticos | `/tecnico-electrodomesticos` | — |
-| Mudanzas y fletes | `/mudanzas` | — |
-| Jardinería | `/jardineria` | — |
-| Aseo a domicilio | `/aseo-hogar` | — |
-| Cuidado de adulto mayor | `/cuidado-adulto-mayor` | — |
+| Mudanzas y fletes | `/mudanzas` | `/mudanza`, `/fletes` |
+| Jardinería | `/jardineria` | `/jardinero` |
+| Aseo a domicilio | `/aseo-hogar` | `/nana`, `/nanas`, `/aseo-a-domicilio`, `/aseo-domicilio` |
+| Cuidado de adulto mayor | `/cuidado-adulto-mayor` | `/cuidadora` |
 | Contabilidad | `/contabilidad` | — |
 | Marketing digital | `/marketing-digital` | — |
 | Abogados | `/abogados` | — |
@@ -186,8 +186,9 @@ No es parte de “100% operativa”. Crecimiento.
 La home (`/`) y el footer público enlazan solo a rutas ya publicadas:
 
 - Catálogo: `/{rubro}` si el rubro tiene ≥ 1 fila en `combinacionesPublicadas()`.
-- «Cotiza en tu comuna»: hasta 10 combos `/{rubro}/{comuna}` (seguridad primero).
-- Footer: hasta 6 rubros con página + 4 combos destacados.
+- Selector de lugar: Región → ciudad → comuna (CUT). Tras elegir comuna,
+  solo enlaces `/{rubro}/{comuna}` que ya existen en `combinacionesPublicadas()`.
+- Footer: hasta 6 rubros con página + 4 combos destacados («En tu zona»).
 
 No se inventan URLs: todo sale de `combinacionesPublicadas()` + catálogo activo.
 FAQ de la home lleva JSON-LD `FAQPage` (mismas 6 preguntas del copy).
