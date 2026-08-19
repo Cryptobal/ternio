@@ -89,6 +89,7 @@ describe('copy público sin mentiras de launch', () => {
     expect(home).toContain('audienciaInicialParaPagina')
     expect(home).toContain('abrirAlMontar')
     expect(home).toContain('preguntaServicioPorAudiencia')
+    expect(home).toContain('GlifoAudiencia')
     expect(home).not.toMatch(/\bMICRO\b/)
     expect(home).not.toMatch(/negocio/)
     expect(home).not.toMatch(/\bfrecuentes\b/)
