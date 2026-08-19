@@ -3,18 +3,21 @@ import 'server-only'
 import { del, put } from '@vercel/blob'
 
 import {
+  accesoBlobLogo,
   blobConfigurado,
+  esUrlBlobVercel,
   extensionLogo,
+  mensajeErrorSubidaLogo,
   validarArchivoLogo,
 } from '@/lib/logo-proveedor'
+
+export { esUrlBlobVercel, mensajeErrorSubidaLogo }
 
 export async function subirLogoProveedor(args: {
   proveedorId: string
   archivo: File
-  token?: string
 }): Promise<{ ok: true; url: string } | { ok: false; motivo: string }> {
-  const token = args.token ?? process.env.BLOB_READ_WRITE_TOKEN
-  if (!blobConfigurado(token)) {
+  if (!blobConfigurado()) {
     return { ok: false, motivo: 'La subida de logos no está configurada todavía.' }
   }
 
@@ -27,34 +30,21 @@ export async function subirLogoProveedor(args: {
   const pathname = `proveedores/${args.proveedorId}/logo-${Date.now()}.${ext}`
   try {
     const blob = await put(pathname, args.archivo, {
-      access: 'public',
-      token: token!.trim(),
+      access: accesoBlobLogo(),
       contentType: args.archivo.type,
       addRandomSuffix: true,
     })
     return { ok: true, url: blob.url }
   } catch (error) {
     console.error('[blob] subir logo', error)
-    return { ok: false, motivo: 'No pudimos subir el logo. Intenta de nuevo.' }
+    return { ok: false, motivo: mensajeErrorSubidaLogo(error) }
   }
 }
 
-export function esUrlBlobVercel(url: string): boolean {
+export async function borrarBlobSiEsNuestro(url: string | null | undefined): Promise<void> {
+  if (!url || !esUrlBlobVercel(url) || !blobConfigurado()) return
   try {
-    const host = new URL(url).hostname
-    return host.endsWith('.public.blob.vercel-storage.com') || host === 'public.blob.vercel-storage.com'
-  } catch {
-    return false
-  }
-}
-
-export async function borrarBlobSiEsNuestro(
-  url: string | null | undefined,
-  token = process.env.BLOB_READ_WRITE_TOKEN,
-): Promise<void> {
-  if (!url || !esUrlBlobVercel(url) || !blobConfigurado(token)) return
-  try {
-    await del(url, { token: token!.trim() })
+    await del(url)
   } catch (error) {
     console.error('[blob] borrar logo', error)
   }

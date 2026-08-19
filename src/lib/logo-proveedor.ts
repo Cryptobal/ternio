@@ -7,8 +7,72 @@ export const DESCRIPCION_MAX = 280
 export const LOGO_MAX_BYTES = 1_048_576
 const TIPOS_LOGO = ['image/png', 'image/jpeg', 'image/webp'] as const
 
-export function blobConfigurado(token = process.env.BLOB_READ_WRITE_TOKEN): boolean {
-  return Boolean(token?.trim())
+export type AccesoBlob = 'public' | 'private'
+
+/** Blob listo si hay token RW o store conectado (OIDC en Vercel). */
+export function blobConfigurado(
+  token = process.env.BLOB_READ_WRITE_TOKEN,
+  storeId = process.env.BLOB_STORE_ID,
+): boolean {
+  return Boolean(token?.trim() || storeId?.trim())
+}
+
+/** Debe calzar con el modo del store al crearlo (no se puede cambiar después). */
+export function accesoBlobLogo(raw = process.env.BLOB_ACCESS): AccesoBlob {
+  return raw?.trim().toLowerCase() === 'private' ? 'private' : 'public'
+}
+
+export function esUrlBlobVercel(url: string): boolean {
+  try {
+    const host = new URL(url).hostname
+    return (
+      host.endsWith('.public.blob.vercel-storage.com') ||
+      host.endsWith('.private.blob.vercel-storage.com') ||
+      host === 'public.blob.vercel-storage.com' ||
+      host === 'private.blob.vercel-storage.com'
+    )
+  } catch {
+    return false
+  }
+}
+
+export function esLogoBlobPrivado(url: string): boolean {
+  try {
+    return new URL(url).hostname.endsWith('.private.blob.vercel-storage.com')
+  } catch {
+    return false
+  }
+}
+
+/** URL usable en <img>: blobs privados pasan por proxy autenticado en servidor. */
+export function urlLogoVisible(logoUrl: string | null | undefined): string | null {
+  if (!logoUrl) return null
+  if (esLogoBlobPrivado(logoUrl)) {
+    return `/api/blob-marca?u=${encodeURIComponent(logoUrl)}`
+  }
+  return logoUrl
+}
+
+export function mensajeErrorSubidaLogo(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error)
+
+  if (msg.includes('Access denied')) {
+    return 'El token de Blob no tiene permiso. Revisa que BLOB_READ_WRITE_TOKEN sea del mismo store que BLOB_STORE_ID.'
+  }
+  if (msg.includes('OIDC is enabled')) {
+    return 'Blob está conectado pero OIDC no aplica en este entorno. Agrega un BLOB_READ_WRITE_TOKEN válido del store.'
+  }
+  if (msg.includes('store does not exist')) {
+    return 'No encontramos el Blob store. Reconecta el store al proyecto en Vercel → Storage.'
+  }
+  if (msg.includes('File is too large')) {
+    return 'El archivo es demasiado grande para Blob.'
+  }
+  if (/access|private|public/i.test(msg)) {
+    return 'El modo de acceso no calza con tu Blob store. Si lo creaste privado, agrega BLOB_ACCESS=private en Vercel y redeploy.'
+  }
+
+  return 'No pudimos subir el logo. Intenta de nuevo.'
 }
 
 export function extensionLogo(tipo: string): string | null {

@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import { monogramaProveedor } from '@/lib/logo-proveedor'
+import { monogramaProveedor, urlLogoVisible } from '@/lib/logo-proveedor'
 
 const TAMANOS = {
   sm: 'h-10 w-10 text-sm',
@@ -21,13 +21,14 @@ export function LogoProveedor({
 }) {
   const caja = TAMANOS[tamano]
   const mono = monogramaProveedor(nombre)
+  const src = urlLogoVisible(logoUrl)
 
-  if (logoUrl) {
+  if (src) {
     return (
       <span
         className={`relative inline-flex shrink-0 overflow-hidden rounded-2xl border border-(--color-borde) bg-white ${caja} ${className}`}
       >
-        <Image src={logoUrl} alt={`Logo de ${nombre}`} fill sizes="80px" className="object-contain p-1" />
+        <Image src={src} alt={`Logo de ${nombre}`} fill sizes="80px" className="object-contain p-1" />
       </span>
     )
   }
