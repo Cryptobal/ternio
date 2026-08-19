@@ -126,6 +126,13 @@ producción (`ternio.cl`), sin mentir.
 - El admin **no** es el cajero. Un ajuste de emergencia puede existir
   escondido; no es el flujo normal.
 - No hace falta SSH ni Prisma Studio para el día a día.
+- Tráfico GA4 en `/admin/embudo` (bloque aparte del embudo first-party;
+  no se mezclan). Se lee **la property de Ternio** con la Data API, no
+  Haberes ni el contenedor GTM. En Vercel: `GA4_PROPERTY_ID` (solo el
+  número, nunca un `GTM-` ni un `G-`) y `GA4_SERVICE_ACCOUNT_JSON`
+  (service account con Viewer). Si falta alguno, el JSON es inválido o
+  la API falla, el admin dice que no está conectado; cero visitas
+  inventadas. GTM-K3F8GGHV sigue siendo el tag público; no se toca.
 
 ### D. Documentado en el repo
 
@@ -166,7 +173,7 @@ Soñado (después; **no bloquea** operativa):
 | Host | Vercel |
 | SMS | Twilio (en dev sin keys el código sale en el log) |
 | Antifraude | Cloudflare Turnstile + honeypot |
-| Analítica | GTM-K3F8GGHV (no tocarlo) |
+| Analítica | GTM-K3F8GGHV (sitio; no tocarlo). Admin: GA4 Data API (fail-closed) |
 | Pagos | Flow Checkout (packs de créditos) |
 | WhatsApp | Solo Cloud API oficial, Fase 5 |
 
@@ -215,6 +222,7 @@ Datos y venta:
 | Packs / Flow | `src/lib/flow.ts` + `src/server/packs.ts` + `/api/flow/confirmacion` |
 | Acciones admin | `src/server/admin.ts` |
 | Rubros admin | `src/lib/admin-rubros.ts` + `src/server/admin-rubros.ts` + `/admin/rubros` |
+| Tráfico GA4 admin | `src/lib/ga4.ts` + `src/server/ga4.ts` + `/admin/embudo` |
 
 Precios de lead de lanzamiento (1 crédito = 1 CLP; editables en admin):
 

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { FormularioInversionAds } from '@/app/admin/embudo/formulario-inversion'
+import { BloqueTraficoGa4 } from '@/components/admin/trafico-ga4'
 import { rutaAdmin } from '@/lib/admin-ruta'
 import { formatearClp } from '@/lib/dinero'
 import {
@@ -12,6 +13,7 @@ import {
 } from '@/lib/metricas'
 import { parsearRango } from '@/lib/metricas-calculo'
 import { pathPublicoCombo, pathPublicoRubro } from '@/lib/seo-rutas'
+import { cargarTraficoGa4Admin } from '@/server/ga4'
 import { requerirAdmin } from '@/server/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -138,7 +140,10 @@ export default async function AdminEmbudo({
   await requerirAdmin()
   const params = await searchParams
   const rango: RangoEmbudo = parsearRango(params.rango)
-  const tablero = await cargarTableroEmbudo(rango)
+  const [tablero, traficoGa4] = await Promise.all([
+    cargarTableroEmbudo(rango),
+    cargarTraficoGa4Admin(),
+  ])
 
   const slaColor =
     tablero.sla.semaforo === 'verde'
@@ -162,8 +167,9 @@ export default async function AdminEmbudo({
         <div>
           <h1 className="text-2xl font-semibold">Embudo</h1>
           <p className="mt-1 text-sm text-(--color-tinta-suave)">
-            Visitas son pageviews (cada carga de página). El id anónimo vive en
-            localStorage; no deduplicamos sesiones en estas tarjetas.
+            Visitas del embudo son pageviews propias (cada carga de página; el
+            id anónimo vive en localStorage). El bloque GA4 es otra fuente: no
+            se suman ni se reemplazan.
           </p>
         </div>
         <ul className="flex flex-wrap gap-2 text-sm">
@@ -184,7 +190,9 @@ export default async function AdminEmbudo({
         </ul>
       </div>
 
-      <section className="mt-8">
+      <BloqueTraficoGa4 trafico={traficoGa4} />
+
+      <section className="mt-10">
         <h2 className="text-lg font-semibold">1. Embudo</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {tablero.embudo.pasos.map((paso) => (
