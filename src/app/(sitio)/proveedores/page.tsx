@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { FormularioCuentaProveedor } from '@/components/formulario-cuenta-proveedor'
 import { FichaLead } from '@/components/panel/ficha-lead'
 import { comunasActivas, rubrosActivos } from '@/lib/catalogo'
+import { origenAltaDesdeQuery } from '@/lib/origen-alta'
 import { CREDITOS_ALTA } from '@/lib/creditos'
 import { formatearClp } from '@/lib/dinero'
 import { precioVigente } from '@/lib/matching'
@@ -23,7 +24,12 @@ export const dynamic = 'force-dynamic'
 
 const CORREO = process.env.NEXT_PUBLIC_CONTACTO_PROVEEDORES
 
-export default async function Proveedores() {
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function Proveedores({ searchParams }: Props) {
+  const origenAlta = origenAltaDesdeQuery(await searchParams)
   const sesion = await sesionActual()
   if (sesion?.user?.rol === ROLES.PROVEEDOR) redirect('/panel')
 
@@ -129,6 +135,7 @@ export default async function Proveedores() {
                 audiencias: rubro.audiencias,
               }))}
               comunas={comunas}
+              origenAlta={origenAlta}
             />
           )}
         </div>

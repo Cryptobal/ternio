@@ -33,9 +33,11 @@ function BotonEnviar() {
 export function FormularioCuentaProveedor({
   rubros,
   comunas,
+  origenAlta,
 }: {
   rubros: { slug: string; nombre: string; audiencias?: string[] }[]
   comunas: ComunaTerritorio[]
+  origenAlta?: string | null
 }) {
   const [estado, accion] = useActionState(crearCuentaProveedorAction, ESTADO_INICIAL)
   const [cobertura, setCobertura] = useState<SeleccionCobertura>(seleccionVacia('nacional'))
@@ -114,6 +116,7 @@ export function FormularioCuentaProveedor({
       ) : null}
 
       <CampoHoneypot id="sitio_web_proveedor" />
+      {origenAlta ? <input type="hidden" name="origenAlta" value={origenAlta} /> : null}
 
       <div>
         <label htmlFor="nombreEmpresa" className="mb-1 block text-sm font-medium">

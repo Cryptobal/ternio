@@ -20,6 +20,29 @@ export type RubroSelector = {
   comunas: { slug: string; nombre: string }[]
 }
 
+function primerQuery(valor: string | string[] | undefined): string | undefined {
+  const crudo = Array.isArray(valor) ? valor[0] : valor
+  const texto = crudo?.trim()
+  return texto ? texto : undefined
+}
+
+/**
+ * Query del cotizador: solo comuna y audiencia.
+ * UTM, origen= y cualquier otro param se ignoran.
+ */
+export function leerQueryCotizador(
+  query: Record<string, string | string[] | undefined> | {
+    comuna?: string | string[]
+    audiencia?: string | string[]
+  },
+): { comuna?: string; audiencia?: string } {
+  const q = query as Record<string, string | string[] | undefined>
+  return {
+    comuna: primerQuery(q.comuna),
+    audiencia: primerQuery(q.audiencia),
+  }
+}
+
 function conAudiencia(path: string, audiencia?: string): string {
   const valor = audiencia?.trim()
   if (!valor) return path

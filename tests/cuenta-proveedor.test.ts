@@ -75,5 +75,7 @@ describe('copy del alta de proveedor', () => {
     expect(src).toContain('passwordHash')
     expect(src).toContain('telefonoE164Verificado: telefonoE164')
     expect(src).toContain('activarProveedorTrasOtp')
+    expect(src).toContain('parcheOrigenAlta')
+    expect(src).toContain('origenAltaDesdeQuery')
   })
 })

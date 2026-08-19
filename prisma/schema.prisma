@@ -293,6 +293,10 @@ model Proveedor {
   solicitudEspera Json?
   vistoAt         DateTime?
 
+  /// Primer toque de captación en /proveedores (UTM u origen=). Null = directo.
+  /// Se escribe una sola vez; nunca se pisa.
+  origenAlta String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

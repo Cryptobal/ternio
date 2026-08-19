@@ -36,6 +36,17 @@ describe('migración audiencia del lead', () => {
   })
 })
 
+describe('migración origenAlta en Proveedor', () => {
+  it('agrega la columna nullable sin backfill ni DROP', () => {
+    const sql = readFileSync(
+      resolve(process.cwd(), 'prisma/migrations/20260819040000_proveedor_origen_alta/migration.sql'),
+      'utf8',
+    )
+    expect(sql).toMatch(/ALTER TABLE "Proveedor" ADD COLUMN "origenAlta" TEXT/)
+    expect(sql).not.toMatch(/DELETE FROM|DROP COLUMN|UPDATE /i)
+  })
+})
+
 describe('migración contactadoEn en CompraLead', () => {
   it('agrega la columna nullable sin backfill ni DROP', () => {
     const sql = readFileSync(
