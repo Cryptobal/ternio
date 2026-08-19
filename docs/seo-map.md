@@ -192,6 +192,17 @@ FAQ de la home lleva JSON-LD `FAQPage` (mismas 6 preguntas del copy).
 
 ---
 
+## Orden del DOM en landings (cotizador)
+
+En `/{rubro}` y `/{rubro}/{comuna}` el formulario (`#cotizar`) va **antes**
+del explicador y la FAQ en el DOM móvil, para que el comprador que llega
+desde la home aterrice en la pregunta siguiente. El `h1`, la intro, el
+copy SEO y el JSON-LD se conservan. En escritorio, `/{rubro}/{comuna}`
+sigue en dos columnas (contenido | formulario) con colocación explícita
+de grilla. El ancla de la home es `#cotizador`; en landings, `#cotizar`.
+
+---
+
 ## Qué no hacemos
 
 - No inventar que Google ya indexó.

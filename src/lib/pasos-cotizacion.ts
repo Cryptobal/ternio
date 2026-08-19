@@ -47,6 +47,7 @@ export function construirPasos(
 export type ValoresFormulario = Record<string, string | string[]>
 
 export function avanzaSoloAlElegir(paso: PasoCotizacion): boolean {
+  if (paso.tipo === 'comuna') return true
   if (paso.tipo === 'modulo') return esOpcionUnica(paso.campo.tipo)
   return false
 }
@@ -69,13 +70,14 @@ export function etiquetaAvancePaso(
   paso: PasoCotizacion,
   valores: ValoresFormulario,
 ): 'Saltar' | 'Continuar' {
-  if (paso.tipo === 'tronco' || paso.tipo === 'comuna') return 'Continuar'
+  if (paso.tipo === 'tronco') return 'Continuar'
   if (esPasoOpcional(paso) && pasoEstaVacio(paso, valores)) return 'Saltar'
   return 'Continuar'
 }
 
 export function mostrarBotonAvance(paso: PasoCotizacion, valores: ValoresFormulario): boolean {
   if (paso.tipo === 'envio') return false
+  if (paso.tipo === 'comuna') return false
   if (paso.tipo === 'modulo' && esOpcionUnica(paso.campo.tipo)) {
     return esPasoOpcional(paso) && pasoEstaVacio(paso, valores)
   }

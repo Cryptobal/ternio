@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
+import { HojaInferior } from '@/components/ui/hoja-inferior'
 import { filtrarServiciosPorTexto } from '@/lib/audiencia'
 import { CLASE_CAMPO_NAVY, CLASE_LEYENDA_NAVY } from '@/lib/ui'
 
@@ -26,6 +27,12 @@ function resaltar(texto: string, query: string): React.ReactNode {
   )
 }
 
+const CLASE_LISTA_FLUJO =
+  'mt-2 w-full rounded-2xl border border-white/20 bg-[#0a1522] py-1'
+
+const CLASE_OPCION =
+  'flex min-h-11 w-full px-3.5 py-2.5 text-left text-sm'
+
 export function ComboServicio({
   servicios,
   onElegir,
@@ -41,9 +48,11 @@ export function ComboServicio({
   const listboxId = useId()
   const inputId = `${idPrefijo}-input`
   const caja = useRef<HTMLDivElement>(null)
+  const disparadorRef = useRef<HTMLButtonElement>(null)
   const [query, setQuery] = useState('')
   const [abierto, setAbierto] = useState(abrirAlMontar)
   const [activo, setActivo] = useState(0)
+  const [escritorio, setEscritorio] = useState<boolean | null>(null)
 
   const filtrados = useMemo(
     () => filtrarServiciosPorTexto(servicios, query),
@@ -66,16 +75,27 @@ export function ComboServicio({
   }, [query])
 
   useEffect(() => {
+    const mql = window.matchMedia('(min-width: 640px)')
+    function sync() {
+      setEscritorio(mql.matches)
+    }
+    sync()
+    mql.addEventListener('change', sync)
+    return () => mql.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
     if (abrirAlMontar) setAbierto(true)
   }, [abrirAlMontar])
 
   useEffect(() => {
+    if (!escritorio) return
     function fuera(event: MouseEvent) {
       if (!caja.current?.contains(event.target as Node)) setAbierto(false)
     }
     document.addEventListener('mousedown', fuera)
     return () => document.removeEventListener('mousedown', fuera)
-  }, [])
+  }, [escritorio])
 
   function elegir(slug: string) {
     onElegir(slug)
@@ -115,7 +135,7 @@ export function ComboServicio({
           type="button"
           onMouseEnter={() => setActivo(indiceGlobal)}
           onClick={() => elegir(item.slug)}
-          className={`flex w-full px-3.5 py-2.5 text-left text-sm ${
+          className={`${CLASE_OPCION} ${
             indiceGlobal === activo ? 'bg-white/10 text-white' : 'text-white/90'
           }`}
         >
@@ -125,8 +145,90 @@ export function ComboServicio({
     )
   }
 
+  function lista() {
+    return (
+      <ul id={listboxId} role="listbox" className={CLASE_LISTA_FLUJO}>
+        {planos.length === 0 ? (
+          <li className="px-3.5 py-3 text-sm text-white/55">
+            No hay un servicio con ese nombre. Escríbelo igual: queda en lista de espera.
+          </li>
+        ) : (
+          <>
+            {disponibles.length > 0 ? (
+              <>
+                <li className="px-3.5 pb-1 pt-2 font-eyebrow text-[0.65rem] text-white/45">
+                  Disponibles ahora
+                </li>
+                {disponibles.map((item, i) => fila(item, i))}
+              </>
+            ) : null}
+            {espera.length > 0 ? (
+              <>
+                <li className="px-3.5 pb-1 pt-2 font-eyebrow text-[0.65rem] text-white/45">
+                  Lista de espera
+                </li>
+                {espera.map((item, i) => fila(item, disponibles.length + i))}
+              </>
+            ) : null}
+          </>
+        )}
+      </ul>
+    )
+  }
+
+  // Hasta conocer el breakpoint no montamos input e ids duplicados.
+  if (escritorio === null) {
+    return (
+      <div>
+        <p className={CLASE_LEYENDA_NAVY}>¿Qué servicio necesitas?</p>
+        <div className={`${CLASE_CAMPO_NAVY} animate-pulse`} aria-hidden="true">
+          &nbsp;
+        </div>
+      </div>
+    )
+  }
+
+  if (!escritorio) {
+    const etiquetaBoton = query.trim() || 'Escribe o elige un servicio'
+    return (
+      <div>
+        <p className={CLASE_LEYENDA_NAVY}>¿Qué servicio necesitas?</p>
+        <button
+          ref={disparadorRef}
+          type="button"
+          aria-expanded={abierto}
+          aria-haspopup="dialog"
+          onClick={() => setAbierto(true)}
+          className={`${CLASE_CAMPO_NAVY} text-left ${query.trim() ? 'text-white' : 'text-white/45'}`}
+        >
+          {etiquetaBoton}
+        </button>
+        <HojaInferior
+          abierta={abierto}
+          onCerrar={() => setAbierto(false)}
+          titulo="¿Qué servicio necesitas?"
+          disparadorRef={disparadorRef}
+        >
+          <label htmlFor={inputId} className="sr-only">
+            Buscar servicio
+          </label>
+          <input
+            id={inputId}
+            type="text"
+            autoComplete="off"
+            value={query}
+            placeholder="Escribe o elige un servicio"
+            onChange={(event) => setQuery(event.target.value)}
+            className={`${CLASE_CAMPO_NAVY} mb-3`}
+          />
+          {lista()}
+        </HojaInferior>
+      </div>
+    )
+  }
+
   return (
-    <div ref={caja} className="relative">
+    <div ref={caja}>
       <label htmlFor={inputId} className={`block ${CLASE_LEYENDA_NAVY}`}>
         ¿Qué servicio necesitas?
       </label>
@@ -148,38 +250,7 @@ export function ComboServicio({
         onKeyDown={tecla}
         className={CLASE_CAMPO_NAVY}
       />
-      {abierto ? (
-        <ul
-          id={listboxId}
-          role="listbox"
-          className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-white/20 bg-[#0a1522] py-1 shadow-[0_16px_40px_-20px_rgb(0_0_0/0.7)]"
-        >
-          {planos.length === 0 ? (
-            <li className="px-3.5 py-3 text-sm text-white/55">
-              No hay un servicio con ese nombre. Escríbelo igual: queda en lista de espera.
-            </li>
-          ) : (
-            <>
-              {disponibles.length > 0 ? (
-                <>
-                  <li className="px-3.5 pb-1 pt-2 font-eyebrow text-[0.65rem] text-white/45">
-                    Disponibles ahora
-                  </li>
-                  {disponibles.map((item, i) => fila(item, i))}
-                </>
-              ) : null}
-              {espera.length > 0 ? (
-                <>
-                  <li className="px-3.5 pb-1 pt-2 font-eyebrow text-[0.65rem] text-white/45">
-                    Lista de espera
-                  </li>
-                  {espera.map((item, i) => fila(item, disponibles.length + i))}
-                </>
-              ) : null}
-            </>
-          )}
-        </ul>
-      ) : null}
+      {abierto ? lista() : null}
     </div>
   )
 }

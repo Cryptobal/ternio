@@ -22,12 +22,14 @@ import {
   type PasoCotizacion,
   type ValoresFormulario,
 } from '@/lib/pasos-cotizacion'
+import { progresoFases } from '@/lib/fases-cotizacion'
 import { esRutValido } from '@/lib/rut'
 import { crearLeadAction, type EstadoFormulario } from '@/server/leads'
 import { CampoHoneypot } from '@/components/campo-honeypot'
 import { registrarEventoCliente } from '@/components/medidor-embudo'
 import { SelectorTerritorio } from '@/components/selector-territorio'
 import { PasoAnimado } from '@/components/ui/motion'
+import { RielFases } from '@/components/ui/riel-fases'
 import { Turnstile } from '@/components/turnstile'
 import type { ComunaTerritorio } from '@/lib/territorio'
 import { CLASE_BOTON, CLASE_CAMPO, CLASE_CHIP, CLASE_CHIP_ACTIVO, CLASE_SUPERFICIE } from '@/lib/ui'
@@ -107,6 +109,10 @@ export function FormularioCotizacion({
   const resumenRef = useRef<HTMLDivElement>(null)
   const paso = pasos[indice] as PasoCotizacion
   const total = pasos.length
+  const tramos = useMemo(
+    () => progresoFases(pasos, indice, { necesidadPrevia: Boolean(comunaSlug) }),
+    [pasos, indice, comunaSlug],
+  )
   const errorServidor =
     paso.tipo === 'modulo'
       ? errores[paso.campo.nombre]
@@ -171,15 +177,7 @@ export function FormularioCotizacion({
         </fieldset>
       ) : (
         <>
-      <p className="font-eyebrow text-[0.65rem] text-(--color-tinta-suave)">
-        Paso {indice + 1} de {total}
-      </p>
-      <div className="h-1.5 overflow-hidden rounded-full bg-(--color-linea)" aria-hidden="true">
-        <div
-          className="h-full rounded-full bg-(--color-ambar)"
-          style={{ width: `${((indice + 1) / total) * 100}%` }}
-        />
-      </div>
+      <RielFases tramos={tramos} variante="claro" />
       {TRONCO_IDENTIDAD.map((campo) => (
         <input
           key={campo.id}
@@ -226,7 +224,7 @@ export function FormularioCotizacion({
                   comunas={comunas}
                   value={comunaActual}
                   onChange={(slug) => {
-                    if (slug) guardar('comuna', slug, false)
+                    if (slug) guardar('comuna', slug, true)
                   }}
                 />
               </div>

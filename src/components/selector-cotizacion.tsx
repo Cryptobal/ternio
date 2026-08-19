@@ -1,12 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { ChipMiga } from '@/components/chip-miga'
 import { ComboServicio } from '@/components/combo-servicio'
 import { SelectorTerritorio } from '@/components/selector-territorio'
 import { PasoAnimado } from '@/components/ui/motion'
+import { RielFases } from '@/components/ui/riel-fases'
 import {
   audienciaInicialParaPagina,
   filtrarServiciosPorAudiencia,
@@ -14,6 +15,7 @@ import {
   pasoCotizador,
   type Audiencia,
 } from '@/lib/audiencia'
+import { progresoSelectorNecesidad } from '@/lib/fases-cotizacion'
 import {
   claveCombo,
   destinoSelector,
@@ -23,9 +25,6 @@ import type { ComunaTerritorio } from '@/lib/territorio'
 import {
   CLASE_BOTON_AMBAR,
   CLASE_PREGUNTA_NAVY,
-  CLASE_RIEL_PROGRESO,
-  CLASE_RIEL_TRAMO,
-  CLASE_RIEL_TRAMO_ACTIVO,
   CLASE_TARJETA_AUDIENCIA,
   CLASE_TARJETA_AUDIENCIA_ACTIVA,
 } from '@/lib/ui'
@@ -74,6 +73,7 @@ export function SelectorCotizacion({
   publicados = [],
   rubroInicial,
   audienciaInicial,
+  comunaInicial,
   idPrefijo = 'selector-home',
 }: {
   rubros: RubroSelector[]
@@ -81,9 +81,12 @@ export function SelectorCotizacion({
   publicados?: string[]
   rubroInicial?: string
   audienciaInicial?: string | null
+  /** Comuna ya elegida (p. ej. query string validada). */
+  comunaInicial?: string
   idPrefijo?: string
 }) {
   const router = useRouter()
+  const navegando = useRef(false)
   /** VENTA y CAPTURA: el combo los agrupa; CAPTURA queda en lista de espera. */
   const servicios = rubros
   const partida = servicios.find((item) => item.slug === rubroInicial)
@@ -92,7 +95,7 @@ export function SelectorCotizacion({
     partida ? audienciaInicialParaPagina(partida.audiencias, audienciaInicial) : '',
   )
   const [slug, setSlug] = useState(partida?.slug ?? '')
-  const [comunaSlug, setComunaSlug] = useState('')
+  const [comunaSlug, setComunaSlug] = useState(comunaInicial ?? '')
   const [error, setError] = useState<string | undefined>()
 
   const rubro = useMemo(
@@ -105,7 +108,15 @@ export function SelectorCotizacion({
     ? filtrarServiciosPorAudiencia(servicios, audiencia)
     : servicios
 
-  const tramosCompletos = (audiencia ? 1 : 0) + (slug ? 1 : 0) + (comunaSlug ? 1 : 0)
+  const tramos = progresoSelectorNecesidad(audiencia, slug, comunaSlug)
+
+  function navegarA(comuna: string) {
+    if (!rubro || !comuna || navegando.current) return
+    navegando.current = true
+    setError(undefined)
+    const publicado = publicadosSet.has(claveCombo(rubro.slug, comuna))
+    router.push(destinoSelector(rubro, comuna, publicado, audiencia || undefined))
+  }
 
   function ir(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -114,26 +125,14 @@ export function SelectorCotizacion({
       setError('Elige una comuna.')
       return
     }
-    setError(undefined)
-    const publicado = publicadosSet.has(claveCombo(rubro.slug, comunaSlug))
-    router.push(destinoSelector(rubro, comunaSlug, publicado, audiencia || undefined))
+    navegarA(comunaSlug)
   }
 
   if (rubros.length === 0) return null
 
   return (
     <form onSubmit={ir} className="grid gap-4 text-white">
-      <div className={CLASE_RIEL_PROGRESO} aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className={`${CLASE_RIEL_TRAMO} ${i < tramosCompletos ? CLASE_RIEL_TRAMO_ACTIVO : ''}`}
-          />
-        ))}
-      </div>
-      <p className="font-eyebrow text-[0.65rem] text-white/55">
-        Ternio · {tramosCompletos} de 3 · hasta tres empresas
-      </p>
+      <RielFases tramos={tramos} variante="navy" />
 
       {audiencia || rubro ? (
         <div className="flex flex-wrap gap-2">
@@ -145,6 +144,7 @@ export function SelectorCotizacion({
                 setSlug('')
                 setComunaSlug('')
                 setError(undefined)
+                navegando.current = false
               }}
             >
               {PALABRA[audiencia]}
@@ -157,6 +157,7 @@ export function SelectorCotizacion({
                 setSlug('')
                 setComunaSlug('')
                 setError(undefined)
+                navegando.current = false
               }}
             >
               {rubro.nombrePlural ?? rubro.nombre}
@@ -182,6 +183,7 @@ export function SelectorCotizacion({
                         setSlug('')
                         setComunaSlug('')
                         setError(undefined)
+                        navegando.current = false
                       }}
                       className={`${CLASE_TARJETA_AUDIENCIA} ${activa ? CLASE_TARJETA_AUDIENCIA_ACTIVA : ''}`}
                     >
@@ -207,6 +209,7 @@ export function SelectorCotizacion({
               setSlug(siguiente)
               setComunaSlug('')
               setError(undefined)
+              navegando.current = false
             }}
           />
         ) : null}
@@ -220,6 +223,7 @@ export function SelectorCotizacion({
             onChange={(siguiente) => {
               setComunaSlug(siguiente)
               setError(undefined)
+              if (siguiente) navegarA(siguiente)
             }}
             idPrefijo={idPrefijo}
           />
@@ -228,7 +232,8 @@ export function SelectorCotizacion({
 
       {error ? <p className="text-sm text-[#ffb4a8]">{error}</p> : null}
 
-      {rubro && comunaSlug ? (
+      {/* Respaldo si hay comuna y aún no se navegó (p. ej. Enter / comunaInicial). */}
+      {rubro && comunaSlug && !navegando.current ? (
         <button type="submit" className={CLASE_BOTON_AMBAR}>
           Cotizar
         </button>

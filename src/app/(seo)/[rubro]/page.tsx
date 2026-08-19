@@ -152,14 +152,28 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
           ) : null}
 
           <div id="cotizar" className="mt-8">
-            <SelectorCotizacion
-              rubros={rubros}
-              comunas={comunas}
-              publicados={publicados}
-              rubroInicial={rubro.slug}
-              audienciaInicial={audienciaQuery}
-              idPrefijo="selector-rubro"
-            />
+            {comunaPreseleccionada ? (
+              <div className="rounded-2xl border border-white/15 bg-white p-5 text-(--color-texto) shadow-sm sm:p-6">
+                <FormularioCotizacion
+                  rubroSlug={rubro.slug}
+                  comunaSlug={comunaPreseleccionada}
+                  comunas={comunas}
+                  campos={parsearCampos(rubro.camposFormulario)}
+                  audienciasRubro={rubro.audiencias}
+                  audienciaInicial={audienciaQuery}
+                  turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
+                />
+              </div>
+            ) : (
+              <SelectorCotizacion
+                rubros={rubros}
+                comunas={comunas}
+                publicados={publicados}
+                rubroInicial={rubro.slug}
+                audienciaInicial={audienciaQuery}
+                idPrefijo="selector-rubro"
+              />
+            )}
           </div>
         </div>
       </section>
@@ -179,22 +193,6 @@ export default async function PaginaRubro({ params, searchParams }: Props) {
         </section>
 
         <FaqRubro items={copy.faq} />
-
-        {comunaPreseleccionada ? (
-          <section className="mt-10">
-            <h2 className="font-display text-xl">Pide tu cotización</h2>
-            <p className="mt-1 mb-5 text-sm text-(--color-texto-suave)">Toma un par de minutos. Es gratis.</p>
-            <FormularioCotizacion
-              rubroSlug={rubro.slug}
-              comunaSlug={comunaPreseleccionada}
-              comunas={comunas}
-              campos={parsearCampos(rubro.camposFormulario)}
-              audienciasRubro={rubro.audiencias}
-              audienciaInicial={audienciaQuery}
-              turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
-            />
-          </section>
-        ) : null}
       </div>
     </div>
   )

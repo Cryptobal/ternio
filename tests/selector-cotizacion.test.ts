@@ -40,6 +40,14 @@ describe('destinoSelector', () => {
     expect(claveCombo('seguridad', 'santiago')).toBe('seguridad/santiago')
   })
 
+  it('comunaInicial no cambia el contrato de destinoSelector', () => {
+    // La prop comunaInicial solo siembra el estado del selector;
+    // el destino sigue saliendo de rubro + comuna + publicado.
+    expect(
+      destinoSelector({ slug: 'seguridad', modo: 'VENTA' }, 'valdivia', false, 'empresa'),
+    ).toBe('/seguridad?comuna=valdivia&audiencia=empresa')
+  })
+
   it('las tarjetas Servicios son solo VENTA', () => {
     const lista = rubrosEnVenta([
       { modo: 'VENTA', slug: 'aseo' },
