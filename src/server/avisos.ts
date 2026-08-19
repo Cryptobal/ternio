@@ -138,6 +138,12 @@ export async function avisarProveedoresLeadVerificado(leadId: string): Promise<v
         ahora,
       ),
     }
+    // Fail-closed: sin precio vendible no avisamos con ficha vacía.
+    const tienePrecio =
+      (ficha.precioExclusivoClp != null && ficha.precioExclusivoClp > 0) ||
+      (ficha.precioCompartidoClp != null && ficha.precioCompartidoClp > 0)
+    if (!tienePrecio) return
+
     const cuerpo = correoAvisoLead(ficha)
     const destinos = proveedoresAAvisar(
       match,

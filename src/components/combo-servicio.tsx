@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useActionState, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useFormStatus } from 'react-dom'
 
 import { HojaInferior } from '@/components/ui/hoja-inferior'
 import { filtrarServiciosPorTexto } from '@/lib/audiencia'
 import { CLASE_CAMPO_NAVY, CLASE_LEYENDA_NAVY } from '@/lib/ui'
+import { solicitarOtroServicioAction, type EstadoFormulario } from '@/server/leads'
 
 export type ServicioCombo = {
   slug: string
@@ -32,6 +34,49 @@ const CLASE_LISTA_FLUJO =
 
 const CLASE_OPCION =
   'flex min-h-11 w-full px-3.5 py-2.5 text-left text-sm'
+
+const ESTADO_DEMANDA: EstadoFormulario = { ok: false }
+
+function BotonDemanda() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="mt-2 min-h-11 w-full rounded-2xl border border-white/25 px-3.5 text-sm font-medium text-white transition hover:bg-white/10 disabled:opacity-60"
+    >
+      {pending ? 'Anotando…' : 'Anotar y avisarme'}
+    </button>
+  )
+}
+
+/** Salida real del estado vacío: registra demanda sin prometer proveedores. */
+function DemandaServicioInexistente({ texto }: { texto: string }) {
+  const [estado, accion] = useActionState(solicitarOtroServicioAction, ESTADO_DEMANDA)
+
+  if (estado.ok) {
+    return (
+      <p role="status" className="text-sm text-white/70">
+        {estado.mensaje}
+      </p>
+    )
+  }
+
+  return (
+    <form action={accion} className="space-y-1">
+      <p className="text-sm text-white/55">
+        No tenemos ese servicio todavía. Déjanos el nombre y te avisamos.
+      </p>
+      <input type="hidden" name="textoRubro" value={texto} />
+      <BotonDemanda />
+      {estado.mensaje && !estado.ok ? (
+        <p role="alert" className="text-sm text-(--color-rojo)">
+          {estado.mensaje}
+        </p>
+      ) : null}
+    </form>
+  )
+}
 
 export function ComboServicio({
   servicios,
@@ -145,13 +190,29 @@ export function ComboServicio({
     )
   }
 
+  function estadoVacio() {
+    const texto = query.trim()
+    if (texto.length >= 3) {
+      return (
+        <li className="px-3.5 py-3" role="presentation">
+          <DemandaServicioInexistente texto={texto} />
+        </li>
+      )
+    }
+    return (
+      <li className="px-3.5 py-3 text-sm text-white/55">
+        {texto
+          ? 'Sigue escribiendo el nombre del servicio…'
+          : 'Escribe o elige un servicio de la lista.'}
+      </li>
+    )
+  }
+
   function lista() {
     return (
       <ul id={listboxId} role="listbox" className={CLASE_LISTA_FLUJO}>
         {planos.length === 0 ? (
-          <li className="px-3.5 py-3 text-sm text-white/55">
-            No hay un servicio con ese nombre. Escríbelo igual: queda en lista de espera.
-          </li>
+          estadoVacio()
         ) : (
           <>
             {disponibles.length > 0 ? (

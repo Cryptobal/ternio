@@ -114,10 +114,11 @@ async function sembrarRubros(): Promise<void> {
 }
 
 /**
- * Idempotente: escribe audiencias desde la semilla y, si el rubro atiende
- * hogar y aún no tiene precios de hogar, copia los de empresa (mismo monto
- * que hoy) para no cortar la venta el día del deploy. El admin puede bajar
- * el ticket de hogar después.
+ * Idempotente y no destructivo respecto del admin:
+ * - audiencias: solo si la fila sigue en el default ['empresa'] y la semilla
+ *   indica otra cosa (no pisa ediciones del admin).
+ * - precios hogar: solo si aún son NULL (espejo de empresa).
+ * - coberturas: solo filas en default ['empresa'] cuyo rubro atiende hogar.
  */
 async function sembrarAudienciasYPreciosHogar(): Promise<void> {
   const rubros = await prisma.rubro.findMany({
@@ -135,10 +136,18 @@ async function sembrarAudienciasYPreciosHogar(): Promise<void> {
   for (const rubro of rubros) {
     const audiencias = audienciasSemilla(rubro.slug)
     const data: {
-      audiencias: string[]
+      audiencias?: string[]
       precioExclusivoHogarClp?: number | null
       precioCompartidoHogarClp?: number | null
-    } = { audiencias }
+    } = {}
+
+    const sigueDefaultEmpresa =
+      rubro.audiencias.length === 1 && rubro.audiencias[0] === 'empresa'
+    const semillaDistinta =
+      audiencias.length !== 1 || audiencias[0] !== 'empresa'
+    if (sigueDefaultEmpresa && semillaDistinta) {
+      data.audiencias = audiencias
+    }
 
     if (audiencias.includes('hogar')) {
       if (rubro.precioExclusivoHogarClp == null && (rubro.precioExclusivoClp ?? 0) > 0) {
@@ -149,22 +158,21 @@ async function sembrarAudienciasYPreciosHogar(): Promise<void> {
       }
     }
 
+    if (Object.keys(data).length === 0) continue
     await prisma.rubro.update({ where: { id: rubro.id }, data })
   }
 
-  // Cobertura: audiencias del rubro (nadie pierde avisos).
   const coberturas = await prisma.cobertura.findMany({
     select: { id: true, audiencias: true, rubro: { select: { audiencias: true } } },
   })
   for (const fila of coberturas) {
-    const deseadas = fila.rubro.audiencias
-    const actuales = fila.audiencias
-    const igual =
-      deseadas.length === actuales.length && deseadas.every((a, i) => a === actuales[i])
-    if (igual) continue
+    const sigueDefault =
+      fila.audiencias.length === 1 && fila.audiencias[0] === 'empresa'
+    if (!sigueDefault) continue
+    if (!fila.rubro.audiencias.includes('hogar')) continue
     await prisma.cobertura.update({
       where: { id: fila.id },
-      data: { audiencias: deseadas },
+      data: { audiencias: fila.rubro.audiencias },
     })
   }
 }

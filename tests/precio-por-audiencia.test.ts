@@ -70,6 +70,33 @@ describe('precio por audiencia (brief §5)', () => {
     expect(vigente('hogar', 'EXCLUSIVO', '2026-08-18T12:00:00.000Z', sinHogar)).toBeNull()
   })
 
+  it('precio hogar cargado usa el monto hogar, no el de empresa', () => {
+    expect(
+      precioBasePorAudiencia({ audiencia: 'hogar', tipo: 'EXCLUSIVO', rubro: RUBRO_PLAGAS }),
+    ).toBe(8_000)
+    expect(
+      precioBasePorAudiencia({ audiencia: 'hogar', tipo: 'COMPARTIDO', rubro: RUBRO_PLAGAS }),
+    ).toBe(3_000)
+    expect(
+      precioBasePorAudiencia({ audiencia: 'empresa', tipo: 'EXCLUSIVO', rubro: RUBRO_PLAGAS }),
+    ).toBe(15_000)
+  })
+
+  it('precio hogar NULL no cae al de empresa (fail-closed)', () => {
+    const soloEmpresa = {
+      precioExclusivoClp: 50_000,
+      precioCompartidoClp: 20_000,
+      precioExclusivoHogarClp: null,
+      precioCompartidoHogarClp: null,
+    }
+    expect(
+      precioBasePorAudiencia({ audiencia: 'hogar', tipo: 'EXCLUSIVO', rubro: soloEmpresa }),
+    ).toBeNull()
+    expect(
+      precioBasePorAudiencia({ audiencia: 'hogar', tipo: 'COMPARTIDO', rubro: soloEmpresa }),
+    ).toBeNull()
+  })
+
   it('precio hogar ≤ 0 tampoco vende', () => {
     const cero = { ...RUBRO_PLAGAS, precioCompartidoHogarClp: 0 }
     expect(precioBasePorAudiencia({ audiencia: 'hogar', tipo: 'COMPARTIDO', rubro: cero })).toBe(0)

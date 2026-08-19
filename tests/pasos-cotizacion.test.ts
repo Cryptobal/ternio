@@ -8,6 +8,7 @@ import {
   etiquetaAvancePaso,
   mostrarBotonAvance,
   payloadDesdeValores,
+  troncoIdentidad,
 } from '@/lib/pasos-cotizacion'
 
 const CAMPOS: CampoFormulario[] = [
@@ -21,6 +22,27 @@ const CAMPOS: CampoFormulario[] = [
   { nombre: 'cantidad', etiqueta: 'Cantidad', tipo: 'numero', requerido: false },
 ]
 
+describe('troncoIdentidad', () => {
+  it('hogar omite razón social y etiqueta el RUT como personal', () => {
+    const hogar = troncoIdentidad('hogar')
+    expect(hogar.map((c) => c.id)).toEqual(['rut', 'nombreContacto', 'telefono', 'email'])
+    expect(hogar.find((c) => c.id === 'rut')?.etiqueta).toBe('Tu RUT')
+    expect(hogar.some((c) => c.id === 'razonSocial')).toBe(false)
+  })
+
+  it('empresa mantiene los 5 pasos actuales', () => {
+    const empresa = troncoIdentidad('empresa')
+    expect(empresa.map((c) => c.id)).toEqual([
+      'razonSocial',
+      'rut',
+      'nombreContacto',
+      'telefono',
+      'email',
+    ])
+    expect(empresa.find((c) => c.id === 'rut')?.etiqueta).toBe('RUT de la empresa')
+  })
+})
+
 describe('construirPasos', () => {
   it('pone el módulo primero, después el tronco y el envío', () => {
     const pasos = construirPasos(CAMPOS, { pideComuna: false })
@@ -28,6 +50,19 @@ describe('construirPasos', () => {
       'tipo_servicio',
       'cantidad',
       'razonSocial',
+      'rut',
+      'nombreContacto',
+      'telefono',
+      'email',
+      'envio',
+    ])
+  })
+
+  it('en hogar el tronco no incluye razón social', () => {
+    const pasos = construirPasos(CAMPOS, { pideComuna: false, audiencia: 'hogar' })
+    expect(pasos.map((paso) => paso.id)).toEqual([
+      'tipo_servicio',
+      'cantidad',
       'rut',
       'nombreContacto',
       'telefono',
@@ -87,6 +122,13 @@ describe('payloadDesdeValores', () => {
     expect(telefono && errorDePaso(telefono, { telefono: '+56 9 1234 5678' })).toBeUndefined()
     expect(email && errorDePaso(email, { email: 'no-es-correo' })).toMatch(/correo/i)
     expect(email && errorDePaso(email, { email: 'ana@gmail.com' })).toBeUndefined()
+  })
+
+  it('en hogar el mensaje de RUT vacío es personal', () => {
+    const pasos = construirPasos(CAMPOS, { pideComuna: false, audiencia: 'hogar' })
+    const rut = pasos.find((paso) => paso.id === 'rut')
+    expect(rut && errorDePaso(rut, { rut: '' }, 'hogar')).toMatch(/tu RUT/i)
+    expect(pasos.some((paso) => paso.id === 'razonSocial')).toBe(false)
   })
 
   it('en un paso opcional vacío el botón dice Saltar; la identidad nunca se salta', () => {

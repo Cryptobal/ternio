@@ -103,18 +103,22 @@ export async function crearLeadAction(
   }
 
   const errores: Record<string, string> = {}
+  // Audiencia contra Rubro.audiencias (DB), nunca confiar solo en el form.
   const audiencia = audienciaParaLead(formData.get('audiencia'), rubro.audiencias)
   if (!audiencia) {
     errores.audiencia = 'Elige si es para la casa o para la empresa.'
   }
 
-  const identidad = validarIdentidadTronco({
-    razonSocial: formData.get('razonSocial'),
-    rut: formData.get('rut'),
-    nombreContacto: formData.get('nombreContacto'),
-    telefono: formData.get('telefono'),
-    email: formData.get('email'),
-  })
+  const identidad = validarIdentidadTronco(
+    {
+      razonSocial: formData.get('razonSocial'),
+      rut: formData.get('rut'),
+      nombreContacto: formData.get('nombreContacto'),
+      telefono: formData.get('telefono'),
+      email: formData.get('email'),
+    },
+    audiencia ?? 'empresa',
+  )
   if (!identidad.ok) Object.assign(errores, identidad.errores)
 
   const campos = parsearCampos(rubro.camposFormulario)

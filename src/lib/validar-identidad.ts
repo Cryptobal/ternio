@@ -1,3 +1,4 @@
+import type { Audiencia } from '@/lib/audiencia'
 import { normalizarRut } from '@/lib/rut'
 import { esMovil, normalizarTelefonoE164 } from '@/lib/telefono'
 
@@ -7,7 +8,8 @@ import { esMovil, normalizarTelefonoE164 } from '@/lib/telefono'
  */
 
 export type IdentidadTronco = {
-  razonSocial: string
+  /** Null en hogar (no se pide) o si el comprador la dejó vacía. */
+  razonSocial: string | null
   rutNormalizado: string
   nombreContacto: string
   telefonoE164: string
@@ -38,9 +40,11 @@ export function errorRazonSocial(valor: string): string | undefined {
   return undefined
 }
 
-export function errorRut(valor: string): string | undefined {
+export function errorRut(valor: string, audiencia: Audiencia = 'empresa'): string | undefined {
   const limpio = valor.trim()
-  if (!limpio) return 'Escribe el RUT de la empresa.'
+  if (!limpio) {
+    return audiencia === 'hogar' ? 'Escribe tu RUT.' : 'Escribe el RUT de la empresa.'
+  }
   if (!normalizarRut(limpio)) {
     return 'El dígito verificador del RUT no cuadra. Revísalo e inténtalo de nuevo.'
   }
@@ -72,12 +76,16 @@ export function errorCorreo(valor: string): string | undefined {
   return undefined
 }
 
-export function errorCampoIdentidad(id: string, valor: string): string | undefined {
+export function errorCampoIdentidad(
+  id: string,
+  valor: string,
+  audiencia: Audiencia = 'empresa',
+): string | undefined {
   switch (id) {
     case 'razonSocial':
       return errorRazonSocial(valor)
     case 'rut':
-      return errorRut(valor)
+      return errorRut(valor, audiencia)
     case 'nombreContacto':
       return errorNombre(valor)
     case 'telefono':
@@ -89,13 +97,16 @@ export function errorCampoIdentidad(id: string, valor: string): string | undefin
   }
 }
 
-export function validarIdentidadTronco(entrada: {
-  razonSocial?: unknown
-  rut?: unknown
-  nombreContacto?: unknown
-  telefono?: unknown
-  email?: unknown
-}): ResultadoIdentidad {
+export function validarIdentidadTronco(
+  entrada: {
+    razonSocial?: unknown
+    rut?: unknown
+    nombreContacto?: unknown
+    telefono?: unknown
+    email?: unknown
+  },
+  audiencia: Audiencia = 'empresa',
+): ResultadoIdentidad {
   const razonSocial = texto(entrada.razonSocial)
   const rut = texto(entrada.rut)
   const nombreContacto = texto(entrada.nombreContacto)
@@ -103,13 +114,15 @@ export function validarIdentidadTronco(entrada: {
   const email = texto(entrada.email).toLowerCase()
 
   const errores: Record<string, string> = {}
-  const eRazon = errorRazonSocial(razonSocial)
-  const eRut = errorRut(rut)
+  const eRut = errorRut(rut, audiencia)
   const eNombre = errorNombre(nombreContacto)
   const eTelefono = errorTelefonoMovil(telefono)
   const eEmail = errorCorreo(email)
 
-  if (eRazon) errores.razonSocial = eRazon
+  if (audiencia !== 'hogar') {
+    const eRazon = errorRazonSocial(razonSocial)
+    if (eRazon) errores.razonSocial = eRazon
+  }
   if (eRut) errores.rut = eRut
   if (eNombre) errores.nombreContacto = eNombre
   if (eTelefono) errores.telefono = eTelefono
@@ -125,7 +138,7 @@ export function validarIdentidadTronco(entrada: {
   return {
     ok: true,
     datos: {
-      razonSocial,
+      razonSocial: audiencia === 'hogar' ? (razonSocial || null) : razonSocial,
       rutNormalizado,
       nombreContacto,
       telefonoE164,
