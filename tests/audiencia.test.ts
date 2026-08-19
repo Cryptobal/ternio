@@ -10,7 +10,9 @@ import {
   filtrarServiciosPorTexto,
   normalizarAudiencias,
   ordenarServiciosPorNombre,
+  PALABRA_AUDIENCIA,
   parsearAudiencia,
+  preguntaServicioPorAudiencia,
   rubroCalzaAudiencia,
 } from '@/lib/audiencia'
 
@@ -105,5 +107,13 @@ describe('audiencia hogar / empresa', () => {
       'seguridad',
       'gasfiteria',
     ])
+  })
+
+  it('el cotizador dice Casa y Empresa, no Hogar ni Negocio', () => {
+    expect(PALABRA_AUDIENCIA).toEqual({ hogar: 'Casa', empresa: 'Empresa' })
+    expect(preguntaServicioPorAudiencia('hogar')).toBe('¿Qué servicio necesitas para tu casa?')
+    expect(preguntaServicioPorAudiencia('empresa')).toBe(
+      '¿Qué servicio necesitas para tu empresa?',
+    )
   })
 })

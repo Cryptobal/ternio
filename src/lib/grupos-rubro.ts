@@ -1,5 +1,6 @@
 /**
- * Agrupación liviana del cotizador. Un solo producto; no son dos marketplaces.
+ * Taxonomía interna del catálogo (ola hogar / empresa / asesoría).
+ * No se muestra en el cotizador: ahí la única puerta es casa o empresa.
  * Vive en código (no en Prisma) para no arrastrar el client al sitemap.
  */
 

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
+import { IconoCasa, IconoEmpresa } from '@/components/iconos-audiencia'
 import {
   filtrarServiciosPorAudiencia,
   filtrarServiciosPorTexto,
@@ -49,15 +50,7 @@ export function CatalogoHome({
             onClick={() => setAudiencia(a)}
             className={`${CLASE_CHIP} inline-flex min-h-11 items-center gap-2 ${audiencia === a ? CLASE_CHIP_ACTIVO : ''}`}
           >
-            {a === 'hogar' ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4v-9.5Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 20V7.5L12 3l8 4.5V20H4Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-              </svg>
-            )}
+            {a === 'hogar' ? <IconoCasa tamano={18} /> : <IconoEmpresa tamano={18} />}
             {a === 'hogar' ? 'Casa' : 'Empresa'}
           </button>
         ))}

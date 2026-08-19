@@ -21,10 +21,14 @@ export const ETIQUETA_AUDIENCIA: Record<Audiencia, string> = {
   empresa: 'Para la empresa',
 }
 
-/** Segunda línea de las tarjetas del paso 1. */
-export const CONTEXTO_AUDIENCIA: Record<Audiencia, string> = {
-  hogar: 'Servicios para tu hogar',
-  empresa: 'Servicios para tu negocio',
+/** Una sola palabra en el cotizador. Internamente el valor sigue siendo hogar|empresa. */
+export const PALABRA_AUDIENCIA: Record<Audiencia, string> = {
+  hogar: 'Casa',
+  empresa: 'Empresa',
+}
+
+export function preguntaServicioPorAudiencia(audiencia: Audiencia): string {
+  return `¿Qué servicio necesitas para tu ${PALABRA_AUDIENCIA[audiencia].toLowerCase()}?`
 }
 
 /**
