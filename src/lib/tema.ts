@@ -17,8 +17,10 @@ export function esTema(valor: unknown): valor is Tema {
  */
 export function resolverTemaInicial(
   guardado: string | null | undefined,
-  _prefiereOscuro?: boolean,
+  // Preferencia del sistema: ya no se usa; se mantiene la firma.
+  prefiereOscuro?: boolean,
 ): Tema {
+  void prefiereOscuro
   if (esTema(guardado)) return guardado
   return 'dia'
 }

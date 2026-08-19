@@ -34,6 +34,7 @@ export function HojaInferior({
 
     const previo = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const disparador = disparadorRef?.current ?? null
 
     function tecla(event: KeyboardEvent) {
       if (event.key === 'Escape') onCerrar()
@@ -49,7 +50,7 @@ export function HojaInferior({
     return () => {
       document.body.style.overflow = previo
       document.removeEventListener('keydown', tecla)
-      disparadorRef?.current?.focus()
+      disparador?.focus()
     }
   }, [abierta, onCerrar, disparadorRef])
 
