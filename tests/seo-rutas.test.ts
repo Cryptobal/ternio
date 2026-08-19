@@ -26,6 +26,20 @@ describe('rutas SEO públicas', () => {
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/plagas/:comuna', destino: '/control-de-plagas/:comuna' })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardias-de-seguridad', destino: '/seguridad' })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardias', destino: '/seguridad' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardia', destino: '/seguridad' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/guarda', destino: '/seguridad' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/guardia-de-seguridad', destino: '/seguridad' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/guarda-de-seguridad', destino: '/seguridad' })
+    expect(ALIAS_SEO_308).toContainEqual({
+      origen: '/guardia/:comuna',
+      destino: '/seguridad/:comuna',
+    })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/nana', destino: '/aseo-hogar' })
+    expect(ALIAS_SEO_308).toContainEqual({ origen: '/aseo-a-domicilio', destino: '/aseo-hogar' })
+    expect(ALIAS_SEO_308).toContainEqual({
+      origen: '/nana/:comuna',
+      destino: '/aseo-hogar/:comuna',
+    })
     expect(ALIAS_SEO_308).toContainEqual({ origen: '/empresas-de-aseo', destino: '/aseo' })
     expect(ALIAS_SEO_308).toContainEqual({
       origen: '/climatizacion',
@@ -123,6 +137,8 @@ describe('copy único por combo', () => {
     expect(copyRubro('gasfiter', 'Gasfitería', null).title).toBe('Gasfitería')
     expect(copyRubro('maestro', 'Remodelaciones', null).title).toBe('Remodelaciones')
     expect(copyRubro('creditos', 'Créditos', null).title).toBe('Créditos y asesoría financiera')
+    expect(copyRubro('guardia', 'Guardias', null).title).toBe('Guardias de seguridad')
+    expect(copyRubro('nana', 'Nana', null).title).toBe(copyRubro('aseo-hogar', 'Aseo', null).title)
   })
 
   it('cada landing VENTA tiene title e H1 propios, sin copy de lista de espera', () => {

@@ -219,7 +219,6 @@ export function SelectorCotizacion({
             comunas={comunas}
             value={comunaSlug}
             variante="navy"
-            frecuentes
             onChange={(siguiente) => {
               setComunaSlug(siguiente)
               setError(undefined)

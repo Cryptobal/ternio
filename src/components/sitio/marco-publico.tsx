@@ -84,7 +84,7 @@ export async function PiePublico() {
           {combos.length > 0 ? (
             <div>
               <p className="font-eyebrow text-[0.7rem] text-(--color-texto-suave)">
-                Cotiza en tu comuna
+                En tu zona
               </p>
               <ul className="mt-3 space-y-2 text-sm">
                 {combos.map((combo) => (

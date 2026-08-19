@@ -8,6 +8,7 @@ import {
   filtrarComunas,
   nivelListaTerritorio,
   pasoTerritorio,
+  preguntaNivelTerritorio,
   provinciasDe,
   regionesDe,
   slugificarNombre,
@@ -36,6 +37,9 @@ describe('territorio CUT', () => {
     expect(pasoTerritorio('Región Metropolitana', '', '')).toBe('provincia')
     expect(pasoTerritorio('Región Metropolitana', 'Santiago', '')).toBe('comuna')
     expect(pasoTerritorio('Región Metropolitana', 'Santiago', 'providencia')).toBe('listo')
+    expect(preguntaNivelTerritorio('region')).toBe('¿En qué región?')
+    expect(preguntaNivelTerritorio('provincia')).toBe('¿En qué ciudad?')
+    expect(preguntaNivelTerritorio('comuna')).toBe('¿En qué comuna?')
   })
 
   it('un solo nivel visible a la vez: nunca regiones + provincias + comunas juntas', () => {

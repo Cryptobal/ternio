@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   CATALOGO_HOME,
   FAQ_HOME,
+  LUGAR_HOME,
   PROMESAS_HOME,
   audienciaCatalogoFallback,
+  combosDeLugar,
   combosDestacados,
   enlacesCatalogo,
 } from '@/lib/contenido-home'
@@ -30,6 +32,12 @@ describe('contenido-home', () => {
     expect(cupo).toBeDefined()
     expect(cupo?.titulo).toContain(String(CUPOS_COMPARTIDO))
     expect(cupo?.texto.toLowerCase()).toContain('tres')
+  })
+
+  it('LUGAR_HOME no filtra copy de desarrollo', () => {
+    const textos = `${LUGAR_HOME.titulo} ${LUGAR_HOME.bajada} ${LUGAR_HOME.vacio}`
+    expect(LUGAR_HOME.titulo).not.toMatch(/cotiza en tu comuna/i)
+    expect(textos).not.toMatch(/páginas ya publicadas|sin urls inventadas/i)
   })
 
   it('CATALOGO_HOME explica la lista de espera', () => {
@@ -107,5 +115,34 @@ describe('contenido-home', () => {
     expect(combos[0]?.etiqueta).toBe('Seguridad privada en Las Condes')
     expect(combos[1]?.href).toBe('/seguridad/providencia')
     expect(combos.every((c) => c.href.startsWith('/'))).toBe(true)
+  })
+
+  it('combosDeLugar lista solo la comuna pedida, en orden, sin inventar', () => {
+    const enlaces = combosDeLugar(
+      [
+        {
+          rubroSlug: 'seguridad',
+          comunaSlug: 'las-condes',
+          rubroNombre: 'Seguridad privada',
+          comunaNombre: 'Las Condes',
+        },
+        {
+          rubroSlug: 'aseo',
+          comunaSlug: 'las-condes',
+          rubroNombre: 'Aseo',
+          comunaNombre: 'Las Condes',
+        },
+        {
+          rubroSlug: 'seguridad',
+          comunaSlug: 'santiago',
+          rubroNombre: 'Seguridad privada',
+          comunaNombre: 'Santiago',
+        },
+      ],
+      'las-condes',
+    )
+    expect(enlaces.map((e) => e.href)).toEqual(['/aseo/las-condes', '/seguridad/las-condes'])
+    expect(enlaces.every((e) => e.href.includes('las-condes'))).toBe(true)
+    expect(combosDeLugar([], 'valdivia')).toEqual([])
   })
 })

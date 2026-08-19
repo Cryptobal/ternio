@@ -7,7 +7,9 @@ import {
   audienciasDe,
   audienciasSemilla,
   filtrarServiciosPorAudiencia,
+  filtrarServiciosPorTexto,
   normalizarAudiencias,
+  ordenarServiciosPorNombre,
   parsearAudiencia,
   rubroCalzaAudiencia,
 } from '@/lib/audiencia'
@@ -83,5 +85,25 @@ describe('audiencia hogar / empresa', () => {
         'hogar',
       ).map((r) => r.slug),
     ).toEqual(['aseo-hogar', 'control-de-plagas'])
+  })
+
+  it('el typeahead encuentra por sinónimo chileno y ordena por nombre', () => {
+    const lista = [
+      { slug: 'seguridad', nombre: 'Seguridad privada', nombrePlural: 'Empresas de seguridad' },
+      { slug: 'aseo-hogar', nombre: 'Aseo a domicilio', nombrePlural: 'Aseo a domicilio' },
+      { slug: 'gasfiteria', nombre: 'Gasfitería', nombrePlural: 'Gasfiteres' },
+      { slug: 'destape', nombre: 'Destape', nombrePlural: 'Destape y alcantarillado' },
+    ]
+    expect(filtrarServiciosPorTexto(lista, 'guardia').map((r) => r.slug)).toEqual(['seguridad'])
+    expect(filtrarServiciosPorTexto(lista, 'guarda').map((r) => r.slug)).toEqual(['seguridad'])
+    expect(filtrarServiciosPorTexto(lista, 'nana').map((r) => r.slug)).toEqual(['aseo-hogar'])
+    expect(filtrarServiciosPorTexto(lista, 'gasfiter').map((r) => r.slug)).toEqual(['gasfiteria'])
+    expect(filtrarServiciosPorTexto(lista, 'destape').map((r) => r.slug)).toEqual(['destape'])
+    expect(ordenarServiciosPorNombre(lista).map((r) => r.slug)).toEqual([
+      'aseo-hogar',
+      'destape',
+      'seguridad',
+      'gasfiteria',
+    ])
   })
 })

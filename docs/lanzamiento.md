@@ -21,8 +21,9 @@ indexó ni que hay proveedores comprando.
       `/climatizacion-industrial` responden **200** y cotizan (no lista
       de espera).
 - [ ] `/plagas` → 308 `/control-de-plagas`. `/climatizacion` → 308
-      `/climatizacion-industrial`. `/guardias`,
+      `/climatizacion-industrial`. `/guardias`, `/guardia`, `/guarda`,
       `/guardias-de-seguridad` → `/seguridad`. `/empresas-de-aseo` → `/aseo`.
+      `/nana` y `/aseo-a-domicilio` → `/aseo-hogar`.
 - [ ] Un combo piloto (ej. `/seguridad/santiago`) abre el cotizador
       precargado.
 - [ ] Home: frase “Cotiza servicios para tu casa o tu empresa” + un solo
