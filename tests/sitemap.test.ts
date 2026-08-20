@@ -98,6 +98,7 @@ describe('sitemap público', () => {
     expect(locs).toContain('https://www.ternio.cl/blog/contador-para-pyme-f29-y-remuneraciones')
     expect(locs).toContain('https://www.ternio.cl/blog/gasfiter-de-urgencia-vs-programado')
     expect(locs).toContain('https://www.ternio.cl/blog/destape-de-urgencia-vs-programado')
+    expect(locs).toContain('https://www.ternio.cl/blog/como-contratar-empresa-de-seguridad-en-chile')
     expect(xml).toContain('https://www.ternio.cl/blog')
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
