@@ -155,6 +155,7 @@ no bancos.
 | `/blog/destape-de-urgencia-vs-programado` | Sí | → `/destape` |
 | `/blog/como-contratar-empresa-de-seguridad-en-chile` | Sí | → `/seguridad` |
 | `/blog/camaras-o-guardia-para-empresa-en-chile` | Sí | → `/seguridad` |
+| `/blog/ronda-o-puesto-fijo-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |
 | `/panel` | No | Proveedor. |
@@ -180,6 +181,7 @@ social). Markdown en `content/blog/*.md`. RSS opcional:
 | destape urgencia vs programado | `/blog/destape-de-urgencia-vs-programado` |
 | cómo contratar empresa de seguridad | `/blog/como-contratar-empresa-de-seguridad-en-chile` |
 | cámaras o guardia para empresa | `/blog/camaras-o-guardia-para-empresa-en-chile` |
+| ronda o puesto fijo para empresa | `/blog/ronda-o-puesto-fijo-para-empresa-en-chile` |
 
 No es parte de “100% operativa”. Crecimiento.
 
