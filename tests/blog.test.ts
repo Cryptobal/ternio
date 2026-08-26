@@ -27,6 +27,7 @@ const SLUGS_PRIMEROS = [
   'como-contratar-empresa-de-seguridad-en-chile',
   'camaras-o-guardia-para-empresa-en-chile',
   'ronda-o-puesto-fijo-para-empresa-en-chile',
+  'reemplazo-de-guardia-que-exigir-en-chile',
 ] as const
 
 describe('markdown del blog', () => {
@@ -81,8 +82,9 @@ Hola
 describe('posts publicados', () => {
   const posts = listarPosts()
 
-  it('son 10, más nuevo primero, slugs pedidos', () => {
+  it('son 11, más nuevo primero, slugs pedidos', () => {
     expect(posts.map((post) => post.slug)).toEqual([
+      'reemplazo-de-guardia-que-exigir-en-chile',
       'ronda-o-puesto-fijo-para-empresa-en-chile',
       'camaras-o-guardia-para-empresa-en-chile',
       'como-contratar-empresa-de-seguridad-en-chile',
@@ -94,9 +96,9 @@ describe('posts publicados', () => {
       'como-elegir-empresa-de-aseo-industrial',
       'cuanto-cuesta-un-guardia-de-seguridad-en-chile',
     ])
-    expect(posts[0]?.date).toBe('2026-08-25')
+    expect(posts[0]?.date).toBe('2026-08-26')
     expect(posts.at(-1)?.date).toBe('2026-08-13')
-    expect(new Set(posts.map((post) => post.date)).size).toBe(10)
+    expect(new Set(posts.map((post) => post.date)).size).toBe(11)
   })
 
   it('cada post renderiza HTML, metadescripción propia y CTA al rubro', () => {
@@ -112,11 +114,12 @@ describe('posts publicados', () => {
       'como-contratar-empresa-de-seguridad-en-chile': '/seguridad#cotizar',
       'camaras-o-guardia-para-empresa-en-chile': '/seguridad#cotizar',
       'ronda-o-puesto-fijo-para-empresa-en-chile': '/seguridad#cotizar',
+      'reemplazo-de-guardia-que-exigir-en-chile': '/seguridad#cotizar',
     }
     const titles = posts.map((post) => post.title)
     const descriptions = posts.map((post) => post.description)
-    expect(new Set(titles).size).toBe(10)
-    expect(new Set(descriptions).size).toBe(10)
+    expect(new Set(titles).size).toBe(11)
+    expect(new Set(descriptions).size).toBe(11)
 
     for (const slug of SLUGS_PRIMEROS) {
       const post = porSlug.get(slug)
