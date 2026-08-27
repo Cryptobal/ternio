@@ -157,6 +157,7 @@ no bancos.
 | `/blog/camaras-o-guardia-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/blog/ronda-o-puesto-fijo-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/blog/reemplazo-de-guardia-que-exigir-en-chile` | Sí | → `/seguridad` |
+| `/blog/guardia-24-7-o-diurno-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |
 | `/panel` | No | Proveedor. |
@@ -184,6 +185,7 @@ social). Markdown en `content/blog/*.md`. RSS opcional:
 | cámaras o guardia para empresa | `/blog/camaras-o-guardia-para-empresa-en-chile` |
 | ronda o puesto fijo para empresa | `/blog/ronda-o-puesto-fijo-para-empresa-en-chile` |
 | reemplazo de guardia qué exigir | `/blog/reemplazo-de-guardia-que-exigir-en-chile` |
+| guardia 24/7 o diurno para empresa | `/blog/guardia-24-7-o-diurno-para-empresa-en-chile` |
 
 No es parte de “100% operativa”. Crecimiento.
 
