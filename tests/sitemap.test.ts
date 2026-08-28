@@ -103,6 +103,7 @@ describe('sitemap público', () => {
     expect(locs).toContain('https://www.ternio.cl/blog/ronda-o-puesto-fijo-para-empresa-en-chile')
     expect(locs).toContain('https://www.ternio.cl/blog/reemplazo-de-guardia-que-exigir-en-chile')
     expect(locs).toContain('https://www.ternio.cl/blog/guardia-24-7-o-diurno-para-empresa-en-chile')
+    expect(locs).toContain('https://www.ternio.cl/blog/supervisor-de-seguridad-cuando-pedirlo-en-chile')
     expect(xml).toContain('https://www.ternio.cl/blog')
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
