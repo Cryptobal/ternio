@@ -30,6 +30,7 @@ const SLUGS_PRIMEROS = [
   'reemplazo-de-guardia-que-exigir-en-chile',
   'guardia-24-7-o-diurno-para-empresa-en-chile',
   'supervisor-de-seguridad-cuando-pedirlo-en-chile',
+  'bitacora-de-guardia-que-exigir-en-chile',
 ] as const
 
 describe('markdown del blog', () => {
@@ -84,8 +85,9 @@ Hola
 describe('posts publicados', () => {
   const posts = listarPosts()
 
-  it('son 13, más nuevo primero, slugs pedidos', () => {
+  it('son 14, más nuevo primero, slugs pedidos', () => {
     expect(posts.map((post) => post.slug)).toEqual([
+      'bitacora-de-guardia-que-exigir-en-chile',
       'supervisor-de-seguridad-cuando-pedirlo-en-chile',
       'guardia-24-7-o-diurno-para-empresa-en-chile',
       'reemplazo-de-guardia-que-exigir-en-chile',
@@ -100,9 +102,9 @@ describe('posts publicados', () => {
       'como-elegir-empresa-de-aseo-industrial',
       'cuanto-cuesta-un-guardia-de-seguridad-en-chile',
     ])
-    expect(posts[0]?.date).toBe('2026-08-28')
+    expect(posts[0]?.date).toBe('2026-08-31')
     expect(posts.at(-1)?.date).toBe('2026-08-13')
-    expect(new Set(posts.map((post) => post.date)).size).toBe(13)
+    expect(new Set(posts.map((post) => post.date)).size).toBe(14)
   })
 
   it('cada post renderiza HTML, metadescripción propia y CTA al rubro', () => {
@@ -121,11 +123,12 @@ describe('posts publicados', () => {
       'reemplazo-de-guardia-que-exigir-en-chile': '/seguridad#cotizar',
       'guardia-24-7-o-diurno-para-empresa-en-chile': '/seguridad#cotizar',
       'supervisor-de-seguridad-cuando-pedirlo-en-chile': '/seguridad#cotizar',
+      'bitacora-de-guardia-que-exigir-en-chile': '/seguridad#cotizar',
     }
     const titles = posts.map((post) => post.title)
     const descriptions = posts.map((post) => post.description)
-    expect(new Set(titles).size).toBe(13)
-    expect(new Set(descriptions).size).toBe(13)
+    expect(new Set(titles).size).toBe(14)
+    expect(new Set(descriptions).size).toBe(14)
 
     for (const slug of SLUGS_PRIMEROS) {
       const post = porSlug.get(slug)
