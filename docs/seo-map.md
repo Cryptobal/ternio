@@ -162,6 +162,7 @@ no bancos.
 | `/blog/bitacora-de-guardia-que-exigir-en-chile` | Sí | → `/seguridad` |
 | `/blog/guardia-armado-o-desarmado-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/blog/control-de-acceso-y-visitas-para-empresa-en-chile` | Sí | → `/seguridad` |
+| `/blog/seguridad-de-urgencia-o-programada-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |
 | `/panel` | No | Proveedor. |
@@ -194,6 +195,7 @@ social). Markdown en `content/blog/*.md`. RSS opcional:
 | bitácora de guardia qué exigir | `/blog/bitacora-de-guardia-que-exigir-en-chile` |
 | guardia armado o desarmado para empresa | `/blog/guardia-armado-o-desarmado-para-empresa-en-chile` |
 | control de acceso y visitas para empresa | `/blog/control-de-acceso-y-visitas-para-empresa-en-chile` |
+| seguridad de urgencia o programada para empresa | `/blog/seguridad-de-urgencia-o-programada-para-empresa-en-chile` |
 
 No es parte de “100% operativa”. Crecimiento.
 

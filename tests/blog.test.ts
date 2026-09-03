@@ -33,6 +33,7 @@ const SLUGS_PRIMEROS = [
   'bitacora-de-guardia-que-exigir-en-chile',
   'guardia-armado-o-desarmado-para-empresa-en-chile',
   'control-de-acceso-y-visitas-para-empresa-en-chile',
+  'seguridad-de-urgencia-o-programada-para-empresa-en-chile',
 ] as const
 
 describe('markdown del blog', () => {
@@ -87,8 +88,9 @@ Hola
 describe('posts publicados', () => {
   const posts = listarPosts()
 
-  it('son 16, más nuevo primero, slugs pedidos', () => {
+  it('son 17, más nuevo primero, slugs pedidos', () => {
     expect(posts.map((post) => post.slug)).toEqual([
+      'seguridad-de-urgencia-o-programada-para-empresa-en-chile',
       'control-de-acceso-y-visitas-para-empresa-en-chile',
       'guardia-armado-o-desarmado-para-empresa-en-chile',
       'bitacora-de-guardia-que-exigir-en-chile',
@@ -106,9 +108,9 @@ describe('posts publicados', () => {
       'como-elegir-empresa-de-aseo-industrial',
       'cuanto-cuesta-un-guardia-de-seguridad-en-chile',
     ])
-    expect(posts[0]?.date).toBe('2026-09-02')
+    expect(posts[0]?.date).toBe('2026-09-03')
     expect(posts.at(-1)?.date).toBe('2026-08-13')
-    expect(new Set(posts.map((post) => post.date)).size).toBe(16)
+    expect(new Set(posts.map((post) => post.date)).size).toBe(17)
   })
 
   it('cada post renderiza HTML, metadescripción propia y CTA al rubro', () => {
@@ -130,11 +132,12 @@ describe('posts publicados', () => {
       'bitacora-de-guardia-que-exigir-en-chile': '/seguridad#cotizar',
       'guardia-armado-o-desarmado-para-empresa-en-chile': '/seguridad#cotizar',
       'control-de-acceso-y-visitas-para-empresa-en-chile': '/seguridad#cotizar',
+      'seguridad-de-urgencia-o-programada-para-empresa-en-chile': '/seguridad#cotizar',
     }
     const titles = posts.map((post) => post.title)
     const descriptions = posts.map((post) => post.description)
-    expect(new Set(titles).size).toBe(16)
-    expect(new Set(descriptions).size).toBe(16)
+    expect(new Set(titles).size).toBe(17)
+    expect(new Set(descriptions).size).toBe(17)
 
     for (const slug of SLUGS_PRIMEROS) {
       const post = porSlug.get(slug)
