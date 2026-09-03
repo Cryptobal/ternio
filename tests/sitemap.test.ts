@@ -108,6 +108,7 @@ describe('sitemap público', () => {
     expect(locs).toContain('https://www.ternio.cl/blog/guardia-armado-o-desarmado-para-empresa-en-chile')
     expect(locs).toContain('https://www.ternio.cl/blog/control-de-acceso-y-visitas-para-empresa-en-chile')
     expect(locs).toContain('https://www.ternio.cl/blog/seguridad-de-urgencia-o-programada-para-empresa-en-chile')
+    expect(locs).toContain('https://www.ternio.cl/blog/turno-4x3-o-5x2-del-guardia-para-empresa-en-chile')
     expect(xml).toContain('https://www.ternio.cl/blog')
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
