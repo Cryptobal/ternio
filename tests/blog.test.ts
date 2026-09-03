@@ -34,6 +34,7 @@ const SLUGS_PRIMEROS = [
   'guardia-armado-o-desarmado-para-empresa-en-chile',
   'control-de-acceso-y-visitas-para-empresa-en-chile',
   'seguridad-de-urgencia-o-programada-para-empresa-en-chile',
+  'turno-4x3-o-5x2-del-guardia-para-empresa-en-chile',
 ] as const
 
 describe('markdown del blog', () => {
@@ -88,9 +89,10 @@ Hola
 describe('posts publicados', () => {
   const posts = listarPosts()
 
-  it('son 17, más nuevo primero, slugs pedidos', () => {
+  it('son 18, más nuevo primero, slugs pedidos', () => {
     expect(posts.map((post) => post.slug)).toEqual([
       'seguridad-de-urgencia-o-programada-para-empresa-en-chile',
+      'turno-4x3-o-5x2-del-guardia-para-empresa-en-chile',
       'control-de-acceso-y-visitas-para-empresa-en-chile',
       'guardia-armado-o-desarmado-para-empresa-en-chile',
       'bitacora-de-guardia-que-exigir-en-chile',
@@ -133,11 +135,12 @@ describe('posts publicados', () => {
       'guardia-armado-o-desarmado-para-empresa-en-chile': '/seguridad#cotizar',
       'control-de-acceso-y-visitas-para-empresa-en-chile': '/seguridad#cotizar',
       'seguridad-de-urgencia-o-programada-para-empresa-en-chile': '/seguridad#cotizar',
+      'turno-4x3-o-5x2-del-guardia-para-empresa-en-chile': '/seguridad#cotizar',
     }
     const titles = posts.map((post) => post.title)
     const descriptions = posts.map((post) => post.description)
-    expect(new Set(titles).size).toBe(17)
-    expect(new Set(descriptions).size).toBe(17)
+    expect(new Set(titles).size).toBe(18)
+    expect(new Set(descriptions).size).toBe(18)
 
     for (const slug of SLUGS_PRIMEROS) {
       const post = porSlug.get(slug)
