@@ -165,6 +165,7 @@ no bancos.
 | `/blog/seguridad-de-urgencia-o-programada-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/blog/turno-4x3-o-5x2-del-guardia-para-empresa-en-chile` | Sí | → `/seguridad` |
 | `/blog/os-10-vigente-que-verificar-al-cotizar-seguridad-empresa-chile` | Sí | → `/seguridad` |
+| `/blog/custodia-de-llaves-seguridad-empresa-chile` | Sí | → `/seguridad` |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |
 | `/panel` | No | Proveedor. |
@@ -200,6 +201,7 @@ social). Markdown en `content/blog/*.md`. RSS opcional:
 | seguridad de urgencia o programada para empresa | `/blog/seguridad-de-urgencia-o-programada-para-empresa-en-chile` |
 | turno 4x3 o 5x2 del guardia para empresa | `/blog/turno-4x3-o-5x2-del-guardia-para-empresa-en-chile` |
 | OS-10 vigente al cotizar seguridad empresa | `/blog/os-10-vigente-que-verificar-al-cotizar-seguridad-empresa-chile` |
+| custodia de llaves seguridad empresa chile | `/blog/custodia-de-llaves-seguridad-empresa-chile` |
 
 No es parte de “100% operativa”. Crecimiento.
 
