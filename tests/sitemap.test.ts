@@ -115,6 +115,9 @@ describe('sitemap público', () => {
     expect(locs).toContain(
       'https://www.ternio.cl/blog/custodia-de-llaves-seguridad-empresa-chile',
     )
+    expect(locs).toContain(
+      'https://www.ternio.cl/blog/control-vehicular-bodega-planta-seguridad-chile',
+    )
     expect(xml).toContain('https://www.ternio.cl/blog')
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
