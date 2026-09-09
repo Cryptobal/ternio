@@ -37,6 +37,7 @@ const SLUGS_PRIMEROS = [
   'turno-4x3-o-5x2-del-guardia-para-empresa-en-chile',
   'os-10-vigente-que-verificar-al-cotizar-seguridad-empresa-chile',
   'custodia-de-llaves-seguridad-empresa-chile',
+  'control-vehicular-bodega-planta-seguridad-chile',
 ] as const
 
 describe('markdown del blog', () => {
@@ -91,8 +92,9 @@ Hola
 describe('posts publicados', () => {
   const posts = listarPosts()
 
-  it('son 20, más nuevo primero, slugs pedidos', () => {
+  it('son 21, más nuevo primero, slugs pedidos', () => {
     expect(posts.map((post) => post.slug)).toEqual([
+      'control-vehicular-bodega-planta-seguridad-chile',
       'custodia-de-llaves-seguridad-empresa-chile',
       'os-10-vigente-que-verificar-al-cotizar-seguridad-empresa-chile',
       'seguridad-de-urgencia-o-programada-para-empresa-en-chile',
@@ -114,9 +116,9 @@ describe('posts publicados', () => {
       'como-elegir-empresa-de-aseo-industrial',
       'cuanto-cuesta-un-guardia-de-seguridad-en-chile',
     ])
-    expect(posts[0]?.date).toBe('2026-09-07')
+    expect(posts[0]?.date).toBe('2026-09-09')
     expect(posts.at(-1)?.date).toBe('2026-08-13')
-    expect(new Set(posts.map((post) => post.date)).size).toBe(19)
+    expect(new Set(posts.map((post) => post.date)).size).toBe(20)
   })
 
   it('cada post renderiza HTML, metadescripción propia y CTA al rubro', () => {
@@ -142,11 +144,12 @@ describe('posts publicados', () => {
       'turno-4x3-o-5x2-del-guardia-para-empresa-en-chile': '/seguridad#cotizar',
       'os-10-vigente-que-verificar-al-cotizar-seguridad-empresa-chile': '/seguridad#cotizar',
       'custodia-de-llaves-seguridad-empresa-chile': '/seguridad#cotizar',
+      'control-vehicular-bodega-planta-seguridad-chile': '/seguridad#cotizar',
     }
     const titles = posts.map((post) => post.title)
     const descriptions = posts.map((post) => post.description)
-    expect(new Set(titles).size).toBe(20)
-    expect(new Set(descriptions).size).toBe(20)
+    expect(new Set(titles).size).toBe(21)
+    expect(new Set(descriptions).size).toBe(21)
 
     for (const slug of SLUGS_PRIMEROS) {
       const post = porSlug.get(slug)
