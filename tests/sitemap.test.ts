@@ -121,6 +121,9 @@ describe('sitemap público', () => {
     expect(locs).toContain(
       'https://www.ternio.cl/blog/induccion-del-guardia-en-empresa-chile',
     )
+    expect(locs).toContain(
+      'https://www.ternio.cl/blog/apertura-y-cierre-recinto-seguridad-empresa-chile',
+    )
     expect(xml).toContain('https://www.ternio.cl/blog')
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
