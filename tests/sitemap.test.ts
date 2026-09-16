@@ -127,6 +127,9 @@ describe('sitemap público', () => {
     expect(locs).toContain(
       'https://www.ternio.cl/blog/cobertura-en-festivos-seguridad-empresa-chile',
     )
+    expect(locs).toContain(
+      'https://www.ternio.cl/blog/consignas-del-puesto-seguridad-empresa-chile',
+    )
     expect(xml).toContain('https://www.ternio.cl/blog')
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
