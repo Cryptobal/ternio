@@ -171,6 +171,7 @@ no bancos.
 | `/blog/apertura-y-cierre-recinto-seguridad-empresa-chile` | Sí | → `/seguridad` |
 | `/blog/cobertura-en-festivos-seguridad-empresa-chile` | Sí | → `/seguridad` |
 | `/blog/consignas-del-puesto-seguridad-empresa-chile` | Sí | → `/seguridad` |
+| `/blog/alarma-monitoreada-o-guardia-empresa-chile` | Sí | → `/seguridad` |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |
 | `/panel` | No | Proveedor. |
@@ -212,6 +213,7 @@ social). Markdown en `content/blog/*.md`. RSS opcional:
 | apertura y cierre recinto seguridad empresa chile | `/blog/apertura-y-cierre-recinto-seguridad-empresa-chile` |
 | cobertura en festivos seguridad empresa chile | `/blog/cobertura-en-festivos-seguridad-empresa-chile` |
 | consignas del puesto seguridad empresa chile | `/blog/consignas-del-puesto-seguridad-empresa-chile` |
+| alarma monitoreada o guardia empresa chile | `/blog/alarma-monitoreada-o-guardia-empresa-chile` |
 
 No es parte de “100% operativa”. Crecimiento.
 
