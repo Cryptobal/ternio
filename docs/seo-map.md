@@ -172,6 +172,7 @@ no bancos.
 | `/blog/cobertura-en-festivos-seguridad-empresa-chile` | Sí | → `/seguridad` |
 | `/blog/consignas-del-puesto-seguridad-empresa-chile` | Sí | → `/seguridad` |
 | `/blog/alarma-monitoreada-o-guardia-empresa-chile` | Sí | → `/seguridad` |
+| `/blog/escalamiento-incidentes-seguridad-empresa-chile` | Sí | → `/seguridad` |
 | `/privacidad` | Sí | Ley 21.719. |
 | `/terminos` | Sí | — |
 | `/panel` | No | Proveedor. |
@@ -214,6 +215,7 @@ social). Markdown en `content/blog/*.md`. RSS opcional:
 | cobertura en festivos seguridad empresa chile | `/blog/cobertura-en-festivos-seguridad-empresa-chile` |
 | consignas del puesto seguridad empresa chile | `/blog/consignas-del-puesto-seguridad-empresa-chile` |
 | alarma monitoreada o guardia empresa chile | `/blog/alarma-monitoreada-o-guardia-empresa-chile` |
+| escalamiento de incidentes seguridad chile | `/blog/escalamiento-incidentes-seguridad-empresa-chile` |
 
 No es parte de “100% operativa”. Crecimiento.
 
