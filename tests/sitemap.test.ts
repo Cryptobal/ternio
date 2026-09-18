@@ -133,6 +133,9 @@ describe('sitemap público', () => {
     expect(locs).toContain(
       'https://www.ternio.cl/blog/alarma-monitoreada-o-guardia-empresa-chile',
     )
+    expect(locs).toContain(
+      'https://www.ternio.cl/blog/escalamiento-incidentes-seguridad-empresa-chile',
+    )
     expect(xml).toContain('https://www.ternio.cl/blog')
     expect(locs.some((url) => url.startsWith('https://ternio.cl/'))).toBe(false)
   })
